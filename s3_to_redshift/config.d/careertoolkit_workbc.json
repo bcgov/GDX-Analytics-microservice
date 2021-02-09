@@ -1,0 +1,19 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "careertoolkit_workbc",
+  "doc": "NOC.*",
+  "dbtable": "microservice.careertoolkit_workbc",
+  "column_count": 3,
+  "columns": [
+    "grouping",
+    "noc",
+    "description"
+  ],
+  "dtype_dic_strings": [
+    "noc"
+  ],
+  "delim": "|",
+  "truncate": true
+}
