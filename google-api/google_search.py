@@ -563,9 +563,9 @@ query = """
 -- perform this as a transaction.
 -- Either the whole query completes, or it leaves the old table intact
 BEGIN;
-DROP TABLE IF EXISTS cmslite.google_pdt;
+DROP TABLE IF EXISTS cmslite.google_pdt_gdxdsd2696;
 
-CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
+CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
         site              VARCHAR(255)    ENCODE ZSTD,
         date              date            ENCODE AZ64,
         query             VARCHAR(2048)   ENCODE ZSTD,
@@ -591,17 +591,17 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         subsubtopic       VARCHAR(2047)   ENCODE ZSTD)
         COMPOUND SORTKEY (date,page_urlhost,theme,page,clicks);
 
-ALTER TABLE cmslite.google_pdt OWNER TO microservice;
-GRANT SELECT ON cmslite.google_pdt TO looker;
+ALTER TABLE cmslite.google_pdt_gdxdsd2696 OWNER TO microservice;
+GRANT SELECT ON cmslite.google_pdt_gdxdsd2696 TO looker;
 
-INSERT INTO cmslite.google_pdt
+INSERT INTO cmslite.google_pdt_gdxdsd2696
       SELECT gs.*,
           COALESCE(node_id,'') AS node_id,
           SPLIT_PART(page, '/',3) as page_urlhost,
           title,
           theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme,
           subtheme, topic, subtopic, subsubtopic
-      FROM google.googlesearch AS gs
+      FROM google.googlesearch_gdxdsd2696 AS gs
       -- fix for misreporting of redirected front page URL in Google search
       LEFT JOIN cmslite.themes AS themes ON
         CASE WHEN page = 'https://www2.gov.bc.ca/'
