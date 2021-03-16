@@ -670,7 +670,7 @@ biglist
       WHEN l1.page_type = 'ASSET'
       THEN NULL
       ELSE l1.title
-      END AS theme,
+    END AS theme,
     l2.title AS subtheme,
     l3.title AS topic,
     l4.title AS subtopic,
