@@ -666,7 +666,11 @@ biglist
   AS (SELECT
     ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
     ids.*,
-    l1.title AS theme,
+    CASE 
+      WHEN l1.page_type = 'ASSET'
+      THEN NULL
+      ELSE l1.title
+      END AS theme,
     l2.title AS subtheme,
     l3.title AS topic,
     l4.title AS subtopic,
