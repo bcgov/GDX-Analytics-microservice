@@ -1,0 +1,27 @@
+{
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+    "source": "client",
+    "destination": "processed",
+    "directory": "cmslite_gdx",
+    "doc": "Translated Content Matrix.*",
+    "dbtable": "cmslite.covid_language_matrix",
+    "column_count": 14,
+    "columns": [
+      "title",
+      "english",
+      "punjabi",
+      "french",
+      "spanish",
+      "tc",
+      "sc",
+      "farsi",
+      "tagalog",
+      "korean",
+      "arabicc",
+      "vietnamese",
+      "japanese",
+      "hindi"
+    ],
+    "delim": ",",
+    "truncate": true
+}
