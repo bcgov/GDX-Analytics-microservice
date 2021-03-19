@@ -740,6 +740,24 @@ COMMIT;
             outfile = goodfile
             report_stats['loaded'] += 1
             report_stats['tables_loaded'].append(dbschema + '.themes')
+
+            # if the job was succesful, write to cmslite.microservice_log
+            endtime = str(datetime.now())
+            query = (f"SET search_path TO {dbschema}; "
+                     "INSERT INTO microservice_log VALUES "
+                     f"('{starttime}', '{endtime}');")
+            if spdb.query(query):
+                logger.debug("timestamp row added to microservice_log "
+                                "table")
+                logger.debug("start time: %s -- end time: %s",
+                                 starttime, endtime)
+            else:
+                logger.exception(
+                        "Failed to write to %s.microservice_log", dbschema)
+                logger.debug("To manually update, use: "
+                                 "start time: %s -- end time: %s",
+                                 starttime, endtime)
+                clean_exit(1,'microservice_log load failed.')
         else:
             outfile = badfile
         spdb.close_connection()
