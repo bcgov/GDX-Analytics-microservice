@@ -742,7 +742,7 @@ COMMIT;
             report_stats['tables_loaded'].append(dbschema + '.themes')
 
             # if the job was succesful, write to cmslite.microservice_log
-            endtime = str(datetime.datetime.now())
+            endtime = str(datetime.now())
             query = (f"SET search_path TO {dbschema}; "
                      "INSERT INTO microservice_log VALUES "
                      f"('{starttime}', '{endtime}');")
