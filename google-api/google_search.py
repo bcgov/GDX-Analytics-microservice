@@ -564,7 +564,6 @@ query = """
 -- Either the whole query completes, or it leaves the old table intact
 BEGIN;
 DROP TABLE IF EXISTS cmslite.google_pdt_gdxdsd2696;
-
 CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
         site              VARCHAR(255)    ENCODE ZSTD,
         date              date            ENCODE AZ64,
@@ -594,8 +593,10 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
 ALTER TABLE cmslite.google_pdt_gdxdsd2696 OWNER TO microservice;
 GRANT SELECT ON cmslite.google_pdt_gdxdsd2696 TO looker;
 
-INSERT INTO cmslite.google_pdt_gdxdsd2696_full
-SELECT gs.*,
+INSERT INTO cmslite.google_pdt_gdxdsd2696
+WITH base_cte AS
+( SELECT
+       gs.*,
        COALESCE(node_id, '')    AS node_id,
        Split_part(page, '/', 3) AS page_urlhost,
        title,
@@ -608,10 +609,9 @@ SELECT gs.*,
        subtheme,
        topic,
        subtopic,
-       subsubtopic
+       subsubtopic,
+       ref_site, sc_domain, overlap, start_date, sc_urlhost
 FROM   google.googlesearch AS gs
-       LEFT JOIN google.google_sites_gdxdsd2696 AS ref
-              ON gs.site = ref.site
        -- fix for misreporting of redirected front page URL in Google search
        LEFT JOIN cmslite.themes AS themes
               ON CASE
@@ -619,18 +619,66 @@ FROM   google.googlesearch AS gs
                    'https://www2.gov.bc.ca/gov/content/home'
                    ELSE page
                  END = themes.hr_url
-WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
-        OR ( gs.site = 'sc-domain:gov.bc.ca'
-             AND EXISTS (SELECT 1
-                         FROM   google.google_sites_gdxdsd2696 r
-                         WHERE  page_urlhost = r.sc_urlhost
-                                AND gs.date < r.start_date) )
-        OR ( gs.site = 'sc-domain:gov.bc.ca'
-             AND page_urlhost NOT IN (SELECT sc_urlhost
-                                      FROM   google.google_sites_gdxdsd2696
-                                      WHERE  sc_urlhost IS NOT NULL) )
-        OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
+       LEFT JOIN google.google_sites_gdxdsd2696 r
+              ON gs.site = r.ref_site
+),
 
+not_sc_domain_cte AS
+( SELECT * 
+       FROM base_cte bs
+       WHERE bs.site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca')
+),
+
+overlap_cte AS  
+( SELECT *
+       FROM base_cte bs
+       WHERE ( bs.site = 'sc-domain:gov.bc.ca' AND
+               bs.date < start_date )
+),
+
+sc_domain_cte AS
+( SELECT *
+       FROM base_cte bs
+       WHERE ( bs.site = 'sc-domain:gov.bc.ca'AND 
+               bs.sc_domain = 't')
+       OR ( bs.site = 'sc-domain:engage.gov.bc.ca' )
+       OR   bs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
+),
+
+build_cte AS 
+( SELECT *
+    FROM not_sc_domain_cte
+    UNION
+    SELECT *
+    FROM overlap_cte
+    UNION
+    SELECT *
+    FROM sc_domain_cte
+)
+SELECT site,
+date,
+query,
+country,
+device,
+page,
+position,
+clicks,
+ctr,
+impressions,
+node_id,
+page_urlhost,
+title,
+theme_id,
+subtheme_id,
+topic_id,
+subtopic_id,
+subsubtopic_id,
+theme,
+subtheme,
+topic,
+subtopic,
+subsubtopic
+FROM build_cte;
 COMMIT;
 """
 
