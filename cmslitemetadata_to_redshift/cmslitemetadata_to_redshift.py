@@ -729,6 +729,34 @@ SELECT node_id,
        subsubtopic
 FROM biglist
 WHERE index = 1;
+
+INSERT INTO cmslite.metadata (
+    SELECT 'A2DB016A552E4D3DAD0832B264700000' AS node_id,parent_node_id,ancestor_nodes, hr_url,
+              keywords,description,page_type,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
+              eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
+              locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
+              publication_date,defined_security_groups,inherited_security_group
+        FROM cmslite.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO cmslite.metadata (
+    SELECT 'A2DB016A552E4D3DAD0832B264700005' AS node_id,parent_node_id,ancestor_nodes, hr_url,
+              keywords,description,page_type,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
+              eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
+              locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
+              publication_date,defined_security_groups,inherited_security_group
+        FROM cmslite.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO cmslite.themes (
+    SELECT 'A2DB016A552E4D3DAD0832B264700000' AS node_id, title, hr_url, parent_node_id, 
+              parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
+        FROM cmslite.themes WHERE node_id  = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO cmslite.themes (
+    SELECT 'A2DB016A552E4D3DAD0832B264700005' AS node_id, title, hr_url, parent_node_id, 
+              parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
+        FROM cmslite.themes WHERE node_id  = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+
 COMMIT;
     """.format(dbschema=dbschema)
 
