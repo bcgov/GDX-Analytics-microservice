@@ -26,6 +26,10 @@ import re
 import logging
 import argparse
 import json
+import time
+import datetime
+from tzlocal import get_localzone
+from pytz import timezone
 import subprocess
 import boto3
 from botocore.exceptions import ClientError
@@ -34,6 +38,12 @@ import lib.logs as log
 logger = logging.getLogger(__name__)
 log.setup()
 
+# Get script start time
+local_tz = get_localzone()
+yvr_tz = timezone('America/Vancouver')
+yvr_dt_start = (yvr_tz
+    .normalize(datetime.datetime.now(local_tz)
+    .astimezone(yvr_tz)))
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
@@ -110,6 +120,48 @@ def is_processed():
     return False
 
 
+# Will run at end of script to print out accumulated report_stats
+def report(data):
+    '''reports out cumulative script events'''
+    print(f'{__file__} report:')
+    # Get script end time
+    yvr_dt_end = (yvr_tz
+        .normalize(datetime.datetime.now(local_tz)
+        .astimezone(yvr_tz)))
+    print(
+    	'\nMicroservice started at: '
+        f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+    print(f'\nItems to process: {data["objects"]}')
+    print(f'Objects successfully processed: {data["objects_processed"]}')
+    print(f'Objects unsuccessfully processed: {data["objects_not_processed"]}')
+    print(f'Objects output to processed/good: {data["good_list"]}')
+    print(f'Objects output to processed/bad {data["bad_list"]}\n')
+
+    # Print all objects loaded into s3/good
+    print(f'Objects loaded to S3 /good:')
+    if data['good_list']:
+        for i, item in enumerate(data['good_list'], 1):
+            print(f"\n{i}: {item}")
+
+    # Print all objects loaded into s3/bad
+    if data['bad_list']:
+        print(f'\nObjects loaded RedShift and to S3 /bad:')
+        for i, item in enumerate(data['bad_list'], 1):
+            print(f"\n{i}: {item}")
+
+
+# Reporting variables. Accumulates as the the loop below is traversed
+report_stats = {
+    'objects':0,
+    'objects_processed':0,
+    'objects_not_processed':0,
+    'objects_list':[],
+    'good_list':[], 
+    'bad_list':[]
+}
+
 # This bucket scan will find unprocessed objects matching on the object prefix
 # objects_to_process will contain zero or one objects if truncate = True
 # objects_to_process will contain zero or more objects if truncate = False
@@ -126,6 +178,9 @@ for object_summary in res_bucket.objects.filter(Prefix=prefix):
     if re.search(filename_regex, filename):
         objects_to_process.append(object_summary)
         logger.debug('added %a for processing', filename)
+        report_stats['objects_list'].append(filename)
+
+report_stats['objects'] = len(objects_to_process)
 
 if not objects_to_process:
     clean_exit(1, 'Failing due to no files to process')
@@ -191,8 +246,12 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
+        report_stats['bad_list'].append(outfile)
+        report_stats['objects_not_processed'] += 1
     else:
         logger.debug('copied %s to %s', obj.key, outfile)
+        report_stats['good_list'].append(outfile)
+        report_stats['objects_processed'] += 1
 
 # Remove the temporary local files used to transfer
 try:
@@ -200,6 +259,11 @@ try:
 except (os.error, OSError):
     logger.exception('Exception deleting temporary folder:')
     clean_exit(1,'Could not delete tmp folder')
+else:
+    logger.debug('Successfully deleted temporary folder:')
+
+# run report output
+report(report_stats)
 
 if xfer_proc:
     clean_exit(0,'Finished successfully.')
