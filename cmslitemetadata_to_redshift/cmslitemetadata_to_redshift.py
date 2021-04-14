@@ -757,9 +757,9 @@ INSERT INTO {dbschema}.themes (
               parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
         FROM {dbschema}.themes WHERE node_id  = 'A2DB016A552E4D3DAD0832B26472BA8E'
 );
-UPDATE {dbschema}.metadata SET folder_name = (select l2.title
-    FROM {dbschema}.metadata AS l1 LEFT JOIN {dbschema}.metadata AS l2
-    ON l1.parent_node_id = l2.node_id)
+UPDATE {dbschema}.metadata SET folder_name = l2.title
+    FROM {dbschema}.metadata AS l1 INNEER JOIN {dbschema}.metadata AS l2
+    ON l1.parent_node_id = l2.node_id
     WHERE page_type = 'ASSET';
 COMMIT;
     """.format(dbschema=dbschema)
