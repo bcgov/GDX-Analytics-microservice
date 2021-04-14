@@ -426,6 +426,7 @@ def main():
                 key = None
                 columnlist = columns_metadata
                 df_new = _df.copy()
+                df_new = df_new.reindex(columns = columnlist)   
             # the column lookup tables are built
             elif i < len(columns_lookup):
                 key = "key"

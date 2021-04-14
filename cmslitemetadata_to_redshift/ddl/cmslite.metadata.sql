@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "keywords"                     VARCHAR(2047)               ENCODE ZSTD,
  "description"                  VARCHAR(1023)               ENCODE ZSTD,
  "page_type"                    VARCHAR(255)                ENCODE ZSTD,
- "folder_name"                  VARCHAR(255)                ENCODE ZSTD,
  "synonyms"                     VARCHAR(1023)               ENCODE ZSTD,
  "dcterms_creator"              VARCHAR(4095)               ENCODE ZSTD,
  "modified_date"                TIMESTAMP WITHOUT TIME ZONE ENCODE LZO,
