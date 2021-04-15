@@ -86,13 +86,14 @@ def setup(dir='logs', minLevel=logging.INFO):
     stream_handler.setLevel(minLevel)
     stream_formatter = logging.Formatter(CONS_FORMAT)
     stream_handler.setFormatter(stream_formatter)
-    logger.addHandler(stream_handler)
+    # Redirect console to log file
+    logger.addHandler(file_handler)
 
-    logging.getLogger("botocore").setLevel(logging.WARNING)
-    logging.getLogger("boto3").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("googleapiclient.discovery").setLevel(logging.WARNING)
+    logging.getLogger("botocore").setLevel(logging.DEBUG)
+    logging.getLogger("boto3").setLevel(logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.DEBUG)
+    logging.getLogger("googleapiclient.discovery").setLevel(logging.DEBUG)
     logging.getLogger("googleapiclient.discovery_cache").setLevel(
         logging.ERROR)
     logging.getLogger("googleapiclient.http").setLevel(logging.ERROR)
-    logging.getLogger("oauth2client.client").setLevel(logging.WARNING)
+    logging.getLogger("oauth2client.client").setLevel(logging.DEBUG)
