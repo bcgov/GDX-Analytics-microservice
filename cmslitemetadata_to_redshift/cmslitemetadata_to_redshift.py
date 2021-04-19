@@ -761,7 +761,7 @@ UPDATE {dbschema}.metadata
     SET folder_name = l2.title 
     FROM {dbschema}.metadata as l1 
     INNER JOIN {dbschema}.metadata as l2 ON l1.parent_node_id = l2.node_id 
-    WHERE l1.parent_node_id in (select node_id from cmslite.metadata where page_type like 'ASSET_FOLDER'));
+    WHERE l1.parent_node_id in (select node_id from {dbschema}.metadata where page_type like 'ASSET_FOLDER');
 COMMIT;
     """.format(dbschema=dbschema)
 
