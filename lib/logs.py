@@ -63,7 +63,7 @@ def setup(dir='logs', minLevel=logging.INFO):
 
     # Set up logging to the logfile.
     file_handler = CustomFileHandler(file_path)
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(minLevel)
     file_formatter = logging.Formatter(FILE_FORMAT)
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
