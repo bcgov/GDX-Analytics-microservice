@@ -469,7 +469,10 @@ for object_summary in objects_to_process:
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try: 
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                logger.debug(f'Could not enforce string limit on {df[key]} in {object_summary.key}.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
