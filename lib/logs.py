@@ -7,7 +7,6 @@ import os
 
 # Define the default logging message formats.
 FILE_FORMAT = '%(levelname)s:%(name)s:%(asctime)s:%(message)s'
-CONS_FORMAT = '%(message)s'
 
 '''
 The Custom Handler classes below override logging File and Stream Handlers
@@ -38,18 +37,6 @@ class CustomFileHandler(logging.FileHandler):
             fh_repack.msg = message
             super(CustomFileHandler, self).emit(fh_repack)
 
-class CustomStreamHandler(logging.StreamHandler):
-    def __init__(self):
-        super(CustomStreamHandler, self).__init__()
-
-    def emit(self, record):
-        sh_repack = copy.copy(record)
-        sh_repack.msg = sh_repack.getMessage()
-        sh_repack.args = ()
-        messages = sh_repack.msg.split('\n')
-        for message in messages:
-            sh_repack.msg = message
-            super(CustomStreamHandler, self).emit(sh_repack)
 
 def setup(dir='logs', minLevel=logging.INFO):
     """ Set up dual logging to console and to logfile.
@@ -76,23 +63,7 @@ def setup(dir='logs', minLevel=logging.INFO):
 
     # Set up logging to the logfile.
     file_handler = CustomFileHandler(file_path)
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(minLevel)
     file_formatter = logging.Formatter(FILE_FORMAT)
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
-
-    # Set up logging to the console.
-    stream_handler = CustomStreamHandler()
-    stream_handler.setLevel(minLevel)
-    stream_formatter = logging.Formatter(CONS_FORMAT)
-    stream_handler.setFormatter(stream_formatter)
-    logger.addHandler(stream_handler)
-
-    logging.getLogger("botocore").setLevel(logging.WARNING)
-    logging.getLogger("boto3").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("googleapiclient.discovery").setLevel(logging.WARNING)
-    logging.getLogger("googleapiclient.discovery_cache").setLevel(
-        logging.ERROR)
-    logging.getLogger("googleapiclient.http").setLevel(logging.ERROR)
-    logging.getLogger("oauth2client.client").setLevel(logging.WARNING)

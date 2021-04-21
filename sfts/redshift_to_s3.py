@@ -29,7 +29,7 @@ log.setup()
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -86,7 +86,7 @@ def raise_(ex):
 def pmrp_date_range():
     '''geneate a SQL DML sting for a date type BETWEEN clause'''
     between = "''{}'' AND ''{}''".format(start_date, end_date)
-    logger.debug('date clause will be between %s', between)
+    logger.info('date clause will be between %s', between)
     return between
 
 
@@ -111,7 +111,7 @@ def return_query(local_query):
                 clean_exit(1, 'Failed psycopg2 query attempt.')
             else:
                 response = local_curs.fetchone()[0]
-                logger.debug("returned: %s", response)
+                logger.info("returned: %s", response)
     return response
 
 
@@ -145,10 +145,10 @@ def unsent():
     last_file = last_modified_object_key(good_prefix)
     # default start date to three days ago if no objects present
     if last_file is None:
-        logger.debug("No previous files to extract start date key from")
+        logger.info("No previous files to extract start date key from")
         return (date.today() - timedelta(days=3)).strftime('%Y%m%d')
     # extract a start date based on the end date of the last uploaded file
-    logger.debug("setting startdate to 1 after end date of last file: %s",
+    logger.info("setting startdate to 1 after end date of last file: %s",
                  last_file)
     # 3rd from last index on split contains the file's end date as YYYYMMDD
     return (datetime.strptime(last_file.split("_")[-3], '%Y%m%d')
@@ -193,7 +193,7 @@ if 'start_date' in config and 'end_date' in config:
     # determine unsent value for start date
     if start_date == 'unsent':
         start_date = unsent()
-        logger.debug("unsent start date set to: %s", start_date)
+        logger.info("unsent start date set to: %s", start_date)
 
     # set end_date if not a YYYYMMDD value
     if any(end_date == pick for pick in ['min', 'max', 'unsent']):
@@ -257,9 +257,9 @@ query = log_query.format(
 with psycopg2.connect(conn_string) as conn:
     with conn.cursor() as curs:
         try:
-            logger.debug("executing query")
+            logger.info("executing query")
             curs.execute(query)
-            logger.debug(log_query)
+            logger.info(log_query)
         except psycopg2.Error:
             logger.exception("psycopg2.Error:")
             logger.error(('UNLOAD transaction on %s failed.'
