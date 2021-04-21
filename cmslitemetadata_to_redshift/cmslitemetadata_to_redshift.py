@@ -52,7 +52,7 @@ def main():
 
     def clean_exit(code, message):
         """Exits with a logger message and code"""
-        logger.debug('Exiting with code %s : %s', str(code), message)
+        logger.info('Exiting with code %s : %s', str(code), message)
         sys.exit(code)
 
     # we will use this timestamp to write to the cmslite.microservice_log table
@@ -166,7 +166,7 @@ def main():
                               index_label=loc_index,
                               encoding='utf-8')
 
-        logger.debug("Writing " + filename + " to " + loc_batchfile)
+        logger.info("Writing " + filename + " to " + loc_batchfile)
         resource.Bucket(bucket).put_object(Key=loc_batchfile + "/" + filename,
                                            Body=csv_buffer.getvalue())
 
@@ -196,7 +196,7 @@ def main():
         except ClientError:
             pass  # this object does not exist under the good destination path
         else:
-            logger.debug('%s was processed as good already.', filename)
+            logger.info('%s was processed as good already.', filename)
             return True
         try:
             client.head_object(Bucket=bucket, Key=loc_badfile)
@@ -204,7 +204,7 @@ def main():
             pass  # this object does not exist under the bad destination path
         else:
             return True
-        logger.debug("%s has not been processed.", filename)
+        logger.info("%s has not been processed.", filename)
         return False
 
     def report(data):
@@ -266,7 +266,7 @@ def main():
         if is_processed(object_summary):
             continue
 
-        logger.debug("Processing %s", object_summary)
+        logger.info("Processing %s", object_summary)
         # only review those matching our configued 'doc' regex pattern
         if re.search(doc + '$', key):
             # under truncate, we will keep list length to 1
@@ -280,7 +280,7 @@ def main():
                         > objects_to_process[0].last_modified):
                     objects_to_process[0] = object_summary
                 else:
-                    logger.debug(
+                    logger.info(
                         "skipping %s; less recent than %s", key,
                         object_summary.last_modified)
             else:
@@ -426,6 +426,7 @@ def main():
                 key = None
                 columnlist = columns_metadata
                 df_new = _df.copy()
+                df_new = df_new.reindex(columns = columnlist)   
             # the column lookup tables are built
             elif i < len(columns_lookup):
                 key = "key"
@@ -504,7 +505,7 @@ def main():
 
         # Execute the transaction against Redshift using 
         # local lib redshift module.
-        logger.debug(logquery)
+        logger.info(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
@@ -666,7 +667,11 @@ biglist
   AS (SELECT
     ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
     ids.*,
-    l1.title AS theme,
+    CASE 
+      WHEN l1.page_type = 'ASSET'
+      THEN NULL
+      ELSE l1.title
+    END AS theme,
     l2.title AS subtheme,
     l3.title AS topic,
     l4.title AS subtopic,
@@ -725,22 +730,72 @@ SELECT node_id,
        subsubtopic
 FROM biglist
 WHERE index = 1;
+
+INSERT INTO {dbschema}.metadata (
+    SELECT 'A2DB016A552E4D3DAD0832B264700000' AS node_id,parent_node_id,ancestor_nodes, hr_url,
+              keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
+              eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
+              locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
+              publication_date,defined_security_groups,inherited_security_group
+        FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO {dbschema}.metadata (
+    SELECT 'A2DB016A552E4D3DAD0832B264700005' AS node_id,parent_node_id,ancestor_nodes, hr_url,
+              keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
+              eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
+              locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
+              publication_date,defined_security_groups,inherited_security_group
+        FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO {dbschema}.themes (
+    SELECT 'A2DB016A552E4D3DAD0832B264700000' AS node_id, title, hr_url, parent_node_id, 
+              parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
+        FROM {dbschema}.themes WHERE node_id  = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+INSERT INTO {dbschema}.themes (
+    SELECT 'A2DB016A552E4D3DAD0832B264700005' AS node_id, title, hr_url, parent_node_id, 
+              parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
+        FROM {dbschema}.themes WHERE node_id  = 'A2DB016A552E4D3DAD0832B26472BA8E'
+);
+UPDATE {dbschema}.metadata 
+    SET folder_name = l2.title 
+    FROM {dbschema}.metadata as l1 
+    INNER JOIN {dbschema}.metadata as l2 ON l1.parent_node_id = l2.node_id 
+    WHERE l1.parent_node_id in (select node_id from {dbschema}.metadata where page_type like 'ASSET_FOLDER');
 COMMIT;
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
         # Execute the query using local lib redshift module and log the outcome
-        logger.debug('Executing query:\n%s', query)
+        logger.info('Executing query:\n%s', query)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
             report_stats['loaded'] += 1
             report_stats['tables_loaded'].append(dbschema + '.themes')
+
+            # if the job was succesful, write to cmslite.microservice_log
+            endtime = str(datetime.now())
+            query = (f"SET search_path TO {dbschema}; "
+                     "INSERT INTO microservice_log VALUES "
+                     f"('{starttime}', '{endtime}');")
+            if spdb.query(query):
+                logger.info("timestamp row added to microservice_log "
+                                "table")
+                logger.info("start time: %s -- end time: %s",
+                                 starttime, endtime)
+            else:
+                logger.exception(
+                        "Failed to write to %s.microservice_log", dbschema)
+                logger.info("To manually update, use: "
+                                 "start time: %s -- end time: %s",
+                                 starttime, endtime)
+                clean_exit(1,'microservice_log load failed.')
         else:
             outfile = badfile
         spdb.close_connection()
 
-    logger.debug("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
     report(report_stats)
     clean_exit(0,'Succesfully finished cmslitemetadata_to_redshift.')
 

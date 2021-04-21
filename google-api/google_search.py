@@ -89,7 +89,7 @@ yvr_dt_start = (yvr_tz
 # Ctrl+C
 def signal_handler(sig, frame):
     '''Ctrl+C signal handler'''
-    logger.debug('singal handler sig: %s frame: %s', sig, frame)
+    logger.info('singal handler sig: %s frame: %s', sig, frame)
     logger.info('Ctrl+C pressed!')
     sys.exit(0)
 
@@ -103,7 +103,7 @@ log.setup()
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -112,7 +112,7 @@ def backoff_hdlr(details):
     """Event handler for use in backoff decorators on_backoff kwarg"""
     msg = "Backing off %s(...) for %.1fs after try %i"
     log_args = [details['target'].__name__, details['wait'], details['tries']]
-    logger.debug(msg, *log_args)
+    logger.info(msg, *log_args)
 
 
 def giveup_hdlr(details):
@@ -245,7 +245,7 @@ def report(data):
     '''Reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
     if data['no_new_data'] == data['sites']:
-        logger.debug("No API response contained new data")
+        logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
     print(f'\nSites to process: {data["sites"]}')
@@ -374,7 +374,7 @@ for site_item in config_sites:  # noqa: C901
 
         def daterange(start_date, end_date):
             """yields a generator of all dates from startDate to endDate"""
-            logger.debug("daterange called with startDate: %s and endDate: %s",
+            logger.info("daterange called with startDate: %s and endDate: %s",
                          start_date, end_date)
             assert end_date >= start_date, (f'start_date: {start_date} '
                                             'cannot exceed end_date: '
@@ -396,7 +396,7 @@ for site_item in config_sites:  # noqa: C901
 
             index = 0
             while (index == 0 or ('rows' in search_analytics_response)):
-                logger.debug('%s %s', str(date_in_range), index)
+                logger.info('%s %s', str(date_in_range), index)
 
                 # The order of the values in the dimensions[] block of this
                 #  Google Search API query determines the order of the keys[]
@@ -478,7 +478,7 @@ for site_item in config_sites:  # noqa: C901
             continue
         
         if max_date_in_data < str(end_dt):
-            logger.debug('The date range in the request spanned %s - %s, '
+            logger.info('The date range in the request spanned %s - %s, '
                            'but the max date in the data retrieved was: %s',
                            str(start_dt),str(end_dt),str(max_date_in_data))
 
@@ -492,9 +492,9 @@ for site_item in config_sites:  # noqa: C901
         # like "googlesearch-sitename-startdate-enddate.csv"
         resource.Bucket(config_bucket).put_object(Key=object_key,
                                                   Body=stream.getvalue())
-        logger.debug('PUT_OBJECT: %s:%s', outfile, config_bucket)
+        logger.info('PUT_OBJECT: %s:%s', outfile, config_bucket)
         object_summary = resource.ObjectSummary(config_bucket, object_key)
-        logger.debug('OBJECT LOADED ON: %s, OBJECT SIZE: %s',
+        logger.info('OBJECT LOADED ON: %s, OBJECT SIZE: %s',
                      object_summary.last_modified, object_summary.size)
 
         # S3 file path for report_stats
@@ -511,7 +511,7 @@ for site_item in config_sites:  # noqa: C901
         query = logquery.format(
             AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID'],
             AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY'])
-        logger.debug(logquery)
+        logger.info(logquery)
 
         # Load into Redshift
         with psycopg2.connect(conn_string) as conn:
@@ -531,14 +531,14 @@ for site_item in config_sites:  # noqa: C901
                     report_stats['failed_to_rs'].remove(s3_file_path)
                     if max_date_in_data != str(0):
                         report_stats['processed'].append(s3_file_path)
-                        logger.debug(
+                        logger.info(
                             "SUCCESS loading %s (%s index) over date range "
                             "%s to %s into %s. Object key %s.", site_name,
                             str(index), str(start_dt), str(end_dt),
                             config_dbtable, object_key.split('/')[-1])
                     else:
                         # The s3 object is 68B and max_Date_in data == 0
-                        logger.debug(
+                        logger.info(
                             "%s max_date_in_data == 0"
                             "Nothing copied to RedShift", site_name)
                         report_stats['no_new_data'] += 1
@@ -683,7 +683,7 @@ COMMIT;
 """
 
 # Execute the query and log the outcome
-logger.debug(query)
+logger.info(query)
 with psycopg2.connect(conn_string) as conn:
     with conn.cursor() as curs:
         try:
@@ -694,6 +694,6 @@ with psycopg2.connect(conn_string) as conn:
             clean_exit(1,'Could not rebuild PDT in Redshift.')
         else:
             report_stats['pdt_build_success'] = True
-            logger.debug("Google Search PDT loaded successfully")
+            logger.info("Google Search PDT loaded successfully")
             report(report_stats)
             clean_exit(0,'Finished successfully.')

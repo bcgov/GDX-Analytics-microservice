@@ -37,7 +37,7 @@ log.setup()
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -97,16 +97,16 @@ def is_processed():
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.debug("%s was processed as good already.", filename)
+        logger.info("%s was processed as good already.", filename)
         return True
     try:
         client.head_object(Bucket=config_bucket, Key=badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.debug("%s was processed as bad already.", filename)
+        logger.info("%s was processed as bad already.", filename)
         return True
-    logger.debug("%s has not been processed.", filename)
+    logger.info("%s has not been processed.", filename)
     return False
 
 
@@ -125,7 +125,7 @@ for object_summary in res_bucket.objects.filter(Prefix=prefix):
         continue
     if re.search(filename_regex, filename):
         objects_to_process.append(object_summary)
-        logger.debug('added %a for processing', filename)
+        logger.info('added %a for processing', filename)
 
 if not objects_to_process:
     clean_exit(1, 'Failing due to no files to process')
@@ -150,9 +150,9 @@ for obj in objects_to_process:
 sf.write('quit\n')
 sf.close()
 
-logger.debug('file for xfer -s call is %s', os.path.realpath(sf.name))
+logger.info('file for xfer -s call is %s', os.path.realpath(sf.name))
 with open(sfts_conf, 'r') as sf:
-    logger.debug('Contents:\n%s', sf.read())
+    logger.info('Contents:\n%s', sf.read())
 sf.close()
 
 # as a subprocess pass the credentials and the sfile to run xfer in batch mode
@@ -192,7 +192,7 @@ for obj in objects_to_process:
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
     else:
-        logger.debug('copied %s to %s', obj.key, outfile)
+        logger.info('copied %s to %s', obj.key, outfile)
 
 # Remove the temporary local files used to transfer
 try:
