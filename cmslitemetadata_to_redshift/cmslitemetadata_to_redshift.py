@@ -52,7 +52,7 @@ def main():
 
     def clean_exit(code, message):
         """Exits with a logger message and code"""
-        logger.debug('Exiting with code %s : %s', str(code), message)
+        logger.info('Exiting with code %s : %s', str(code), message)
         sys.exit(code)
 
     # we will use this timestamp to write to the cmslite.microservice_log table
@@ -166,7 +166,7 @@ def main():
                               index_label=loc_index,
                               encoding='utf-8')
 
-        logger.debug("Writing " + filename + " to " + loc_batchfile)
+        logger.info("Writing " + filename + " to " + loc_batchfile)
         resource.Bucket(bucket).put_object(Key=loc_batchfile + "/" + filename,
                                            Body=csv_buffer.getvalue())
 
@@ -196,7 +196,7 @@ def main():
         except ClientError:
             pass  # this object does not exist under the good destination path
         else:
-            logger.debug('%s was processed as good already.', filename)
+            logger.info('%s was processed as good already.', filename)
             return True
         try:
             client.head_object(Bucket=bucket, Key=loc_badfile)
@@ -204,7 +204,7 @@ def main():
             pass  # this object does not exist under the bad destination path
         else:
             return True
-        logger.debug("%s has not been processed.", filename)
+        logger.info("%s has not been processed.", filename)
         return False
 
     def report(data):
@@ -266,7 +266,7 @@ def main():
         if is_processed(object_summary):
             continue
 
-        logger.debug("Processing %s", object_summary)
+        logger.info("Processing %s", object_summary)
         # only review those matching our configued 'doc' regex pattern
         if re.search(doc + '$', key):
             # under truncate, we will keep list length to 1
@@ -280,7 +280,7 @@ def main():
                         > objects_to_process[0].last_modified):
                     objects_to_process[0] = object_summary
                 else:
-                    logger.debug(
+                    logger.info(
                         "skipping %s; less recent than %s", key,
                         object_summary.last_modified)
             else:
@@ -504,7 +504,7 @@ def main():
 
         # Execute the transaction against Redshift using 
         # local lib redshift module.
-        logger.debug(logquery)
+        logger.info(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
@@ -762,7 +762,7 @@ COMMIT;
 
     if(len(objects_to_process) > 0):
         # Execute the query using local lib redshift module and log the outcome
-        logger.debug('Executing query:\n%s', query)
+        logger.info('Executing query:\n%s', query)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
@@ -775,14 +775,14 @@ COMMIT;
                      "INSERT INTO microservice_log VALUES "
                      f"('{starttime}', '{endtime}');")
             if spdb.query(query):
-                logger.debug("timestamp row added to microservice_log "
+                logger.info("timestamp row added to microservice_log "
                                 "table")
-                logger.debug("start time: %s -- end time: %s",
+                logger.info("start time: %s -- end time: %s",
                                  starttime, endtime)
             else:
                 logger.exception(
                         "Failed to write to %s.microservice_log", dbschema)
-                logger.debug("To manually update, use: "
+                logger.info("To manually update, use: "
                                  "start time: %s -- end time: %s",
                                  starttime, endtime)
                 clean_exit(1,'microservice_log load failed.')
@@ -790,7 +790,7 @@ COMMIT;
             outfile = badfile
         spdb.close_connection()
 
-    logger.debug("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
     report(report_stats)
     clean_exit(0,'Succesfully finished cmslitemetadata_to_redshift.')
 
