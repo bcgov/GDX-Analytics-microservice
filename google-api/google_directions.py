@@ -86,7 +86,7 @@ yvr_dt_start = (yvr_tz
 
 # Ctrl+C
 def signal_handler(signal, frame):
-    logger.debug('Ctrl+C pressed!')
+    logger.info('Ctrl+C pressed!')
     sys.exit(0)
 
 
@@ -97,7 +97,7 @@ log.setup()
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
     
 
@@ -202,23 +202,23 @@ def is_processed(key):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.debug("%s was processed as good already.", filename)
+        logger.info("%s was processed as good already.", filename)
         return True
     try:
         client.head_object(Bucket=config_bucket, Key=badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.debug("%s was processed as bad already.", filename)
+        logger.info("%s was processed as bad already.", filename)
         return True
-    logger.debug("%s has not been processed.", filename)
+    logger.info("%s has not been processed.", filename)
     return False
 
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
     if data['no_new_data'] == True:
-        logger.debug("No API response contained new data")
+        logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
     # get times from system and convert to Americas/Vancouver for printing
@@ -337,7 +337,7 @@ for account in validated_accounts:
     object_key = object_key_path + outfile
 
     if is_processed(object_key):
-        logger.debug(
+        logger.info(
             ("The file: %s has already been generated "
              "and processed by this script today."), object_key)
         report_stats['no_new_data'] = True
@@ -376,10 +376,10 @@ for account in validated_accounts:
     # stitching the responses into a single list to process after the API calls
     stitched_responses = {'locationDrivingDirectionMetrics': []}
     for key, batch in enumerate(batched_location_names):
-        logger.debug("Begin processing on locations batch %s of %s",
+        logger.info("Begin processing on locations batch %s of %s",
                      str(key + 1), len(batched_location_names))
         for days in account['aggregate_days']:
-            logger.debug("Begin processing on %s day aggregate", days)
+            logger.info("Begin processing on %s day aggregate", days)
             bodyvar = {
                 'locationNames': batch,
                 # https://developers.google.com/my-business/reference/rest/v4/accounts.locations/reportInsights#DrivingDirectionMetricsRequest
@@ -389,7 +389,7 @@ for account in validated_accounts:
                     }
                 }
             report_stats['locations'] += 1
-            logger.debug("Request JSON -- \n%s", json.dumps(bodyvar, indent=2))
+            logger.info("Request JSON -- \n%s", json.dumps(bodyvar, indent=2))
 
             # Posts the API request
             try:
@@ -404,7 +404,7 @@ for account in validated_accounts:
                 clean_exit(1,'Request to API caused an Error.')
             else:
                 # If retreived, report it
-                logger.debug(f"{account['clientShortname']} Retrieved.")
+                logger.info(f"{account['clientShortname']} Retrieved.")
                 report_stats['retrieved'] += 1
 
             # stitch all responses responses for later iterative processing
@@ -492,9 +492,9 @@ for account in validated_accounts:
     resource.Bucket(config_bucket).put_object(
         Key=object_key,
         Body=csv_stream.getvalue())
-    logger.debug('S3 PUT_OBJECT: %s:%s', outfile, config_bucket)
+    logger.info('S3 PUT_OBJECT: %s:%s', outfile, config_bucket)
     object_summary = resource.ObjectSummary(config_bucket, object_key)
-    logger.debug('S3 OBJECT LOADED ON: %s OBJECT SIZE: %s',
+    logger.info('S3 OBJECT LOADED ON: %s OBJECT SIZE: %s',
                  object_summary.last_modified, object_summary.size)
 
     logquery = (
@@ -521,7 +521,7 @@ for account in validated_accounts:
     query = logquery.format(
             AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID,
             AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY)
-    logger.debug(logquery)
+    logger.info(logquery)
 
     # Connect to Redshift and execute the query.
     with psycopg2.connect(conn_string) as conn:
@@ -538,7 +538,7 @@ for account in validated_accounts:
                 report_stats['failed_rs'] += 1
                 badfiles += 1
             else:
-                logger.debug(
+                logger.info(
                     ("Loaded %s driving directions successfully. "
                      "Object key %s."),
                     account['clientShortname'], object_key.split('/')[-1])

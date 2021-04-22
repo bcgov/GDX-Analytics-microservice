@@ -48,7 +48,7 @@ logging.getLogger("RedShift").setLevel(logging.WARNING)
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 # check that configuration file was passed as argument
@@ -144,16 +144,16 @@ def is_processed(this_object_summary):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.debug('%s was processed as good already.', this_filename)
+        logger.info('%s was processed as good already.', this_filename)
         return True
     try:
         client.head_object(Bucket=bucket, Key=this_badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.debug('%s was processed as bad already.', this_filename)
+        logger.info('%s was processed as bad already.', this_filename)
         return True
-    logger.debug('%s has not been processed.', this_filename)
+    logger.info('%s has not been processed.', this_filename)
     return False
 
 
@@ -226,7 +226,7 @@ for object_summary in my_bucket.objects.filter(Prefix=source + "/"
 
 # an object exists to be processed as a truncate copy to the table
 if truncate and len(objects_to_process) == 1:
-    logger.debug(
+    logger.info(
         'truncate is set. processing only one file: %s (modified %s)',
         objects_to_process[0].key, objects_to_process[0].last_modified)
 
@@ -324,7 +324,7 @@ for object_summary in objects_to_process:
                     parsed_line += ua_string + referrer_string
                     parsed_list.append(parsed_line)
         csv_string = linefeed.join(parsed_list)
-        logger.debug("%s parsed successfully", object_summary.key)
+        logger.info("%s parsed successfully", object_summary.key)
 
     # This is not an apache access log
     if 'access_log_parse' not in data:
@@ -495,7 +495,7 @@ COMMIT;
         logquery = scratch_start + scratch_copy_log + scratch_cleanup
 
     # Execute the transaction against Redshift using local lib redshift module
-    logger.debug(logquery)
+    logger.info(logquery)
     spdb = RedShift.snowplow(batchfile)
     if spdb.query(query):
         outfile = goodfile
@@ -527,7 +527,7 @@ COMMIT;
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
-    logger.debug("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
 
 report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')

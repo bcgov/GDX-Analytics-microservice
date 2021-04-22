@@ -25,7 +25,10 @@
       "referrer_medium"
     ],
     "column_string_limit":{
-      "user_agent_http_request_header": 4095
+      "user_agent_http_request_header": 4095,
+      "referrer": 4095,
+      "referrer_source": 255,
+      "request_string": 4095
     },
     "drop_columns": [
       "id",

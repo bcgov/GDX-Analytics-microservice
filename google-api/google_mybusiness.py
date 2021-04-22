@@ -79,7 +79,7 @@ import lib.logs as log
 
 # Ctrl+C
 def signal_handler(signal, frame):
-    logger.debug('Ctrl+C pressed!')
+    logger.info('Ctrl+C pressed!')
     sys.exit(0)
 
 
@@ -90,7 +90,7 @@ log.setup()
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -208,7 +208,7 @@ def last_loaded(dbtable, location_id):
 def report(data):
     '''reports out the data from the main program loop'''
     if data['no_new_data'] == data['locations']:
-        logger.debug("No API response contained new data")
+        logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
     print(f'\nLocations to process: {data["locations"]}')
@@ -315,7 +315,7 @@ for account in validated_accounts:
     # we will handle each location separately
     for loc in locations['locations']:
 
-        logger.debug("Begin processing on location: %s", loc['locationName'])
+        logger.info("Begin processing on location: %s", loc['locationName'])
 
         # encode as ASCII for dataframe
         location_uri = loc['name']
@@ -341,7 +341,7 @@ for account in validated_accounts:
         # query RedShift to see if there is a date already loaded
         last_loaded_date = last_loaded(config_dbtable, loc['name'])
         if last_loaded_date is None:
-            logger.debug("first time loading %s: %s",
+            logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
 
         # If it is loaded with some data for this ID, use that date plus
@@ -371,13 +371,13 @@ for account in validated_accounts:
 
         # if start and end times are same, then there's no new data
         if start_time == end_time:
-            logger.debug(
+            logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
             report_stats['no_new_data'] += 1
             continue
 
-        logger.debug("Querying range from %s to %s", start_date, end_date)
+        logger.info("Querying range from %s to %s", start_date, end_date)
 
         # the API call must construct each metric request in a list of dicts
         metricRequests = []
@@ -403,7 +403,7 @@ for account in validated_accounts:
                 }
             }
 
-        logger.debug("Request body:\n%s", json.dumps(bodyvar, indent=2))
+        logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
 
         # retrieves the request for this location.
         try:
@@ -418,12 +418,12 @@ for account in validated_accounts:
             continue
         else:
             # If retreived, report it
-            logger.debug(f"{location_name} Retrieved.")
+            logger.info(f"{location_name} Retrieved.")
             report_stats['retrieved_list'].append(location_name)
             report_stats['retrieved'] += 1
 
         # Write API response for every location to debug log    
-        logger.debug("Response body\n%s", reportInsights)
+        logger.info("Response body\n%s", reportInsights)
 
         # We constrain API calls to one location at a time, so
         # there is only one element in the locationMetrics list:
@@ -432,7 +432,7 @@ for account in validated_accounts:
         for metric in metrics:
             metric_name = metric['metric'].lower()
 
-            logger.debug("processing metric: %s", metric_name)
+            logger.info("processing metric: %s", metric_name)
 
             # iterate on the dimensional values for this metric.
 
@@ -484,9 +484,9 @@ for account in validated_accounts:
         resource.Bucket(config_bucket).put_object(
             Key=object_key,
             Body=csv_buffer.getvalue())
-        logger.debug('PUT_OBJECT: %s:%s', outfile, config_bucket)
+        logger.info('PUT_OBJECT: %s:%s', outfile, config_bucket)
         object_summary = resource.ObjectSummary(config_bucket, object_key)
-        logger.debug('OBJECT LOADED ON: %s OBJECT SIZE: %s',
+        logger.info('OBJECT LOADED ON: %s OBJECT SIZE: %s',
                      object_summary.last_modified, object_summary.size)
 
         # Prepare the Redshift COPY command.
@@ -499,7 +499,7 @@ for account in validated_accounts:
         query = logquery.format(
             AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID'],
             AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY'])
-        logger.debug(logquery)
+        logger.info(logquery)
 
         # Define s3 bucket paths
         goodfile = f"{config_destination}/good/{object_key}"
@@ -520,7 +520,7 @@ for account in validated_accounts:
                     report_stats['failed_rs'] += 1
                     badfiles += 1
                 else:
-                    logger.debug("".join((
+                    logger.info("".join((
                         "Loaded {0} successfully."
                         .format(location_name),
                         ' Object key: {0}'.format(object_key.split('/')[-1]))))

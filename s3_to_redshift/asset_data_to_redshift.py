@@ -52,7 +52,7 @@ logging.getLogger("RedShift").setLevel(logging.WARNING)
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -140,16 +140,16 @@ def is_processed(object_summary):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.debug("{0} was processed as good already.".format(filename))
+        logger.info("{0} was processed as good already.".format(filename))
         return True
     try:
         client.head_object(Bucket=bucket, Key=badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.debug("{0} was processed as bad already.".format(filename))
+        logger.info("{0} was processed as bad already.".format(filename))
         return True
-    logger.debug("{0} has not been processed.".format(filename))
+    logger.info("{0} has not been processed.".format(filename))
     return False
 
 
@@ -234,7 +234,7 @@ for object_summary in my_bucket.objects.filter(Prefix=source + "/"
 
 # an object exists to be processed as a truncate copy to the table
 if truncate and len(objects_to_process) == 1:
-    logger.debug(
+    logger.info(
         'truncate is set. processing only one file: {0} (modified {1})'.format(
             objects_to_process[0].key, objects_to_process[0].last_modified))
 
@@ -267,7 +267,7 @@ for object_summary in objects_to_process:
 
     # The file is an empty upload. Key to goodfile and continue
     if(obj['ContentLength'] == 0):
-        logger.debug('%s is empty, keying to goodfile and proceeding.',
+        logger.info('%s is empty, keying to goodfile and proceeding.',
                      object_summary.key)
         outfile = goodfile
         try:
@@ -378,7 +378,7 @@ for object_summary in objects_to_process:
 
         # Concatenate all the parsed lines together with the end of line char
         csv_string = linefeed.join(parsed_list)
-        logger.debug(object_summary.key + " parsed successfully")
+        logger.info(object_summary.key + " parsed successfully")
 
     # This is not an apache access log
     if 'access_log_parse' not in data:
@@ -469,7 +469,10 @@ for object_summary in objects_to_process:
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try: 
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                logger.debug(f'Could not enforce string limit on {df[key]} in {object_summary.key}.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
@@ -534,7 +537,7 @@ COMMIT;
         logquery = scratch_start + scratch_copy_log + scratch_cleanup
 
     # Execute the transaction against Redshift using the psycopg2 library
-    logger.debug(logquery)
+    logger.info(logquery)
     spdb = RedShift.snowplow(batchfile)
     if spdb.query(query):
         outfile = goodfile
@@ -561,8 +564,8 @@ COMMIT;
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
-    logger.debug("finished %s", object_summary.key)
-    logger.debug("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
 
 report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')
