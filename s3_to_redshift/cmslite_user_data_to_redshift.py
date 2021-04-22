@@ -151,7 +151,7 @@ def is_processed(object_summary):
     logger.debug("{0} has not been processed.".format(filename))
     return False
 
-    def report(data):
+def report(data):
     '''reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
     if data["objects"] == 0:
