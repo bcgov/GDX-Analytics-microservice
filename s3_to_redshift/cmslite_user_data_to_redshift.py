@@ -31,8 +31,7 @@ import logging
 from shutil import unpack_archive
 from lib.redshift import RedShift
 import lib.logs as log
-#import time
-#from datetime import datetime
+from datetime import datetime
 from tzlocal import get_localzone
 from pytz import timezone
 
@@ -191,6 +190,7 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
 
+objects_to_process = []
 
 # This bucket scan will find unprocessed objects.
 # objects_to_process will contain zero or one objects if truncate = True
@@ -243,8 +243,6 @@ report_stats = {
     'bad_list':[],
     'incomplete_list':[]
 }
-
-objects_to_process = []
 
 report_stats['objects'] = len(objects_to_process)
 report_stats['incomplete_list'] = objects_to_process.copy()
@@ -408,7 +406,7 @@ COMMIT;
             ),
             Key=outfile)
     except ClientError:
-        logger.exception("S3 transfer failed")
+        logger.exception("S3 copy to processed folder failed")
 
     if outfile == badfile:
         report_stats['failed'] += 1
