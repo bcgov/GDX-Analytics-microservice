@@ -150,6 +150,7 @@ def is_processed(object_summary):
     logger.debug("{0} has not been processed.".format(filename))
     return False
 
+
 def report(data):
     '''reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
@@ -161,25 +162,24 @@ def report(data):
     print(f'Objects that failed to process: {data["failed"]}')
     print(f'Objects output to \'processed/good\': {data["good"]}')
     print(f'Objects output to \'processed/bad\': {data["bad"]}')
-    print(f'Objects loaded to Redshift: {data["loaded"]}')
-    print(
-        "\nList of objects successfully fully ingested from S3, processed, "
-        "loaded to S3 ('good'), and copied to Redshift:")
+    print(f'Tables loaded to Redshift: {data["loaded"]}')
     if data['good_list']:
-        for i, meta in enumerate(data['good_list']):
-            print(f"{i}: {meta.key}")
-    else: print('None')
-    print('\nList of objects that failed to process:')
+        print(
+            "\nList of objects successfully fully ingested from S3, processed, "
+            "loaded to S3 ('good'), and copied to Redshift:")
+        [print(meta.key) for meta in data['good_list']]
     if data['bad_list']:
-        for i, meta in enumerate(data['bad_list']):
-            print(f"{i}: {meta.key}")
-    else: print('None')
-    print('\nList of objects that were not processed due to early exit:')
+        print('\nList of objects that failed to process:')
+        [print(meta.key) for meta in data['bad_list']]
     if data['incomplete_list']:
-        for i, meta in enumerate(data['incomplete_list']):
-            print(f"{i}: {meta.key}")
-    else: print("None")
-
+        print('\nList of objects that were not processed due to early exit:')
+        [print(meta.key) for meta in data['incomplete_list']]
+    if data['tables_loaded']:
+        print('\nList of tables that were successfully loaded into Redshift:')
+        [print(table) for table in data['tables_loaded']]
+    if data['table_loads_failed']:
+        print('\nList of tables that failed to load into Redshift:')
+        [print(table) for table in data['table_loads_failed']]
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
@@ -189,6 +189,7 @@ def report(data):
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+
 
 objects_to_process = []
 
@@ -241,7 +242,9 @@ report_stats = {
     'loaded': 0,
     'good_list':[],
     'bad_list':[],
-    'incomplete_list':[]
+    'incomplete_list':[],
+    'tables_loaded':[],
+    'table_loads_failed':[]
 }
 
 report_stats['objects'] = len(objects_to_process)
@@ -392,8 +395,10 @@ COMMIT;
         if spdb.query(query):
             outfile = destination + "/good/" + object_summary.key
             report_stats['loaded'] += 1
+            report_stats['tables_loaded'].append(dbtable)
         else:
             outfile = destination + "/bad/" + object_summary.key
+            report_stats['table_loads_failed'].append(dbtable)
         spdb.close_connection()
 
     # copy the object to the S3 outfile (processed/good/ or processed/bad/)
@@ -417,6 +422,7 @@ COMMIT;
                    'no further processing.')
 
     report_stats['good'] += 1
+    report_stats['processed'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
     logger.debug("finished %s", object_summary.key)
