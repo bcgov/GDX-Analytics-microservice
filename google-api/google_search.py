@@ -612,6 +612,8 @@ WITH base_cte AS
        subsubtopic,
        ref_site, sc_domain, overlap, start_date, sc_urlhost
 FROM   google.googlesearch AS gs
+       LEFT JOIN google.google_sites_gdxdsd2696 r
+              ON gs.site = r.ref_site
        -- fix for misreporting of redirected front page URL in Google search
        LEFT JOIN cmslite.themes AS themes
               ON CASE
@@ -619,42 +621,12 @@ FROM   google.googlesearch AS gs
                    'https://www2.gov.bc.ca/gov/content/home'
                    ELSE page
                  END = themes.hr_url
-       LEFT JOIN google.google_sites_gdxdsd2696 r
-              ON gs.site = r.ref_site
-),
-
-not_sc_domain_cte AS
-( SELECT * 
-       FROM base_cte bs
-       WHERE bs.site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca')
-),
-
-overlap_cte AS  
-( SELECT *
-       FROM base_cte bs
-       WHERE ( bs.site = 'sc-domain:gov.bc.ca' AND
-               bs.date < start_date )
-),
-
-sc_domain_cte AS
-( SELECT *
-       FROM base_cte bs
-       WHERE ( bs.site = 'sc-domain:gov.bc.ca'AND 
-               bs.sc_domain = 't')
-       OR ( bs.site = 'sc-domain:engage.gov.bc.ca' )
-       OR   bs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
-),
-
-build_cte AS 
-( SELECT *
-    FROM not_sc_domain_cte
-    UNION
-    SELECT *
-    FROM overlap_cte
-    UNION
-    SELECT *
-    FROM sc_domain_cte
+            WHERE gs.site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca') -- not sc_domain
+                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.overlap = 't' AND gs.date < r.start_date ) -- overlap
+                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.sc_domain = 't') -- sc_domain
+                OR ( gs.site = 'sc-domain:engage.gov.bc.ca' )
 )
+
 SELECT site,
 date,
 query,
