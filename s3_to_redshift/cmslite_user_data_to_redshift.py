@@ -21,7 +21,6 @@ import pandas.errors
 import re  # regular expressions
 from io import StringIO
 import os  # to read environment variables
-# import psycopg2  # to connect to Redshift
 import json  # to read json config files
 import sys  # to read command line parameters
 from lib.redshift import RedShift
@@ -408,6 +407,12 @@ COMMIT;
             report_stats['bad_list'].append(object_summary)
             report_stats['incomplete_list'].remove(object_summary)
             report_stats['table_loads_failed'].append(dbtable)
+            try:
+                client.copy_object(Bucket=f"{bucket}",
+                                   CopySource=f"{bucket}/{object_summary.key}",
+                                   Key=f"{destination}/bad/client/{directory}/{filename}")
+            except ClientError:
+                logger.exception("S3 copy to processed folder failed")
             report(report_stats)
             clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
