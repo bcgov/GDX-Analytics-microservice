@@ -156,6 +156,7 @@ def report(data):
     if data["objects"] == 0:
         return
     print(f'report {__file__}:')
+    print(f'config: {configfile}')
     print(f'\nObjects to process: {data["objects"]}')
     print(f'Objects successfully processed: {data["processed"]}')
     print(f'Objects that failed to process: {data["failed"]}')
