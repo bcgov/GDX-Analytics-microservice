@@ -307,7 +307,7 @@ for object_summary in objects_to_process:
             try:
                 client.copy_object(Bucket=f"{bucket}",
                                    CopySource=f"{bucket}/{object_summary.key}",
-                                   Key=outfile)
+                                   Key=f"{destination}/bad/client/{directory}/{filename}")
             except ClientError:
                 logger.exception("S3 transfer failed")
             report(report_stats)
