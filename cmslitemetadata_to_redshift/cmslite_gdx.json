@@ -2,9 +2,9 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
   "destination": "processed",
-  "directory": "cmslite_gdx",
+  "directory": "brendan_test",
   "doc": "cmslite.csv.*",
-  "dbschema": "cmslite",
+  "dbschema": "test",
   "dbtable": "metadata",
   "columns": ["node_id","parent_node_id","ancestor_nodes","keywords","description","page_type","synonyms","dcterms_creator","modified_date","created_date","updated_date","published_date","content_types","mbcterms_subject_categories","dcterms_subjects","dcterms_languages","audiences","hr_url","title","nav_title","eng_nav_title","site_key","site_id", "language_name","language_code","page_status","published_by","created_by","modified_by","node_level","locked_date","moved_date","exclude_from_ia","hide_from_navigation","exclude_from_search_engines","security_classification","security_label","publication_date","defined_security_groups","inherited_security_groups"],
   "column_count": 40,
@@ -52,7 +52,9 @@
     "dcterms_subjects",
     "dcterms_languages",
     "audiences",
-    "dcterms_creator"
+    "dcterms_creator",
+    "node_id",
+    "defined_security_groups"
   ],
   "dbtables_dictionaries": [
     "content_types",
@@ -60,7 +62,9 @@
     "dcterms_subjects",
     "dcterms_languages",
     "audiences",
-    "creators"
+    "creators",
+    "metadata_security_groups",
+    "metadata_security_groups"
   ],
   "dbtables_metadata": [
     "metadata_content_types",
@@ -68,7 +72,9 @@
     "metadata_subjects",
     "metadata_languages",
     "metadata_audiences",
-    "metadata_creators"
+    "metadata_creators",
+    "metadata_security_groups",
+    "metadata_security_groups"
   ],
   "replace": [
     {
