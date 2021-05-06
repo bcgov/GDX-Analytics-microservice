@@ -54,7 +54,8 @@
     "audiences",
     "dcterms_creator",
     "node_id",
-    "defined_security_groups"
+    "defined_security_groups",
+    "inherited_security_groups"
   ],
   "dbtables_dictionaries": [
     "content_types",
@@ -63,6 +64,7 @@
     "dcterms_languages",
     "audiences",
     "creators",
+    "metadata_security_groups",
     "metadata_security_groups",
     "metadata_security_groups"
   ],
@@ -73,6 +75,7 @@
     "metadata_languages",
     "metadata_audiences",
     "metadata_creators",
+    "metadata_security_groups",
     "metadata_security_groups",
     "metadata_security_groups"
   ],
