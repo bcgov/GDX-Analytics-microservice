@@ -259,8 +259,10 @@ def report(data):
             f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
+    else:
+        print(f'Google Search PDT build failed\n')
     print(
-        '\nMicroservice started at: '
+        'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
@@ -287,11 +289,6 @@ def report(data):
         for i, site in enumerate(data['failed_api_call']), 1:
             print(f'\n{i}: {site}')
     
-    if report_stats['pdt_build_success']:
-        print('\nGoogle Search PDT loaded successfully\n')
-    else:
-        print('\nGoogle Search PDT load failed\n')
-
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
