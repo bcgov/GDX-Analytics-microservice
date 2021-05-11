@@ -221,6 +221,7 @@ def report(data):
         logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
+    print(f'Config: {CONFIG}')
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.datetime.now(local_tz)

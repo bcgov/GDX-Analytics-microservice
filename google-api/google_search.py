@@ -243,7 +243,11 @@ conn_string = (
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''Reports out the data from the main program loop'''
-    # if no objects were processed; do not print a report
+    # Get script end time from system and convert to Americas/Vancouver for printing
+    yvr_dt_end = (yvr_tz
+        .normalize(datetime.now(local_tz)
+        .astimezone(yvr_tz)))
+    # If no objects were processed; do not print a report
     if data['no_new_data'] == data['sites']:
         logger.info("No API response contained new data")
         return
@@ -266,25 +270,19 @@ def report(data):
     print(f'Failed loads to RedShift: {data["failed_rs"]}\n')
 
     # Print all processed sites
-    if not data['processed']:
-        print(f'Objects loaded to S3 and copied to RedShift: \n\nNone\n')
-    else:
-        print(f'Objects loaded to S3 and copied to RedShift:')
+    print(f'Objects loaded to S3 and copied to RedShift:')
+    if data['processed']:
         for i, site in enumerate(data['processed'], 1):
             print(f"\n{i}: {site}")
 
-    # If nothing failed to copy to RedShift, print None
-    if not data['failed_to_rs']:
-        print(f'\nList of objects that failed to copy to Redshift: \n\nNone\n')
-    else:
+    # If anything failed to copy to RedShift, print it.
+    if data['failed_to_rs']:
         print(f'\nList of objects that failed to copy to Redshift:')
         for i, item in enumerate(data['failed_to_rs'], 1):
             print(f'\n{i}: {item}')
 
-    # If nothing failed do to early exit, print None
-    if not data['failed_api_call']:
-        print(f'List of sites not processed due to early exit: \n\nNone\n')
-    else:
+    # If anything failed do to early exit, print it
+    if data['failed_api_call']:
         print(f'List of sites that were not processed due to early exit:')
         for i, site in enumerate(data['failed_api_call']), 1:
             print(f'\n{i}: {site}')
@@ -293,11 +291,6 @@ def report(data):
         print('\nGoogle Search PDT loaded successfully\n')
     else:
         print('\nGoogle Search PDT load failed\n')
-
-    # get times from system and convert to Americas/Vancouver for printing
-    yvr_dt_end = (yvr_tz
-        .normalize(datetime.now(local_tz)
-        .astimezone(yvr_tz)))
 
 
 # Reporting variables. Accumulates as the the sites lare looped over

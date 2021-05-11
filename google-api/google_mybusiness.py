@@ -211,6 +211,7 @@ def report(data):
         logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
+    print(f'Config: {CONFIG}')
     print(f'\nLocations to process: {data["locations"]}')
     print(f'Successful API calls: {data["retrieved"]}')
     print(f'Failed API calls: {data["not_retrieved"]}')
