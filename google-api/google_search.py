@@ -251,8 +251,8 @@ def report(data):
     if data['no_new_data'] == data['sites']:
         logger.info("No API response contained new data")
         return
-    print(f'{__file__} report:')
-    print(f'Config: {CONFIG}')
+    print(f'Report: {__file__}\n')
+    print(f'Config: {CONFIG}\n')
     if report_stats['pdt_build_success']:
         print(
             'PDT build started at: '
