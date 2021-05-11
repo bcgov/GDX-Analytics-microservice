@@ -213,6 +213,16 @@ def main():
         if data["objects"] == 0:
             return
         print(f'Report {__file__}:')
+        print(f'\nconfig: {configfile}')
+        # Get times from system and convert to Americas/Vancouver for printing
+        yvr_dt_end = (yvr_tz
+            .normalize(datetime.now(local_tz)
+            .astimezone(yvr_tz)))
+        print(
+            '\nMicroservice started at: '
+            f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            f'elapsing: {yvr_dt_end - yvr_dt_start}.')
         print(f'\nObjects to process: {data["objects"]}')
         print(f'Objects successfully processed: {data["processed"]}')
         print(f'Objects that failed to process: {data["failed"]}')
@@ -245,15 +255,6 @@ def main():
             [print(table) for table in data['table_loads_failed']]
         else: print("None")
 
-        # get times from system and convert to Americas/Vancouver for printing
-        yvr_dt_end = (yvr_tz
-            .normalize(datetime.now(local_tz)
-            .astimezone(yvr_tz)))
-        print(
-            '\nMicroservice started at: '
-            f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'elapsing: {yvr_dt_end - yvr_dt_start}.')
 
     # This bucket scan will find unprocessed objects.
     # objects_to_process will contain zero or one objects if truncate=True;
