@@ -248,6 +248,18 @@ def report(data):
         logger.info("No API response contained new data")
         return
     print(f'{__file__} report:')
+    print(f'Config: {CONFIG}')
+    if report_stats['pdt_build_success']:
+        print(
+            'PDT build started at: '
+            f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
+    print(
+        '\nMicroservice started at: '
+        f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nSites to process: {data["sites"]}')
     print(f'Successful API calls: {data["retrieved"]}')
     print(f'Failed API calls: {data["failed_api"]}')
@@ -287,17 +299,6 @@ def report(data):
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
 
-    if report_stats['pdt_build_success']:
-        print(
-            'PDT build started at: '
-            f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
-    print(
-        '\nMicroservice started at: '
-        f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-        f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
