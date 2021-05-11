@@ -213,7 +213,7 @@ def main():
         if data["objects"] == 0:
             return
         print(f'Report {__file__}:')
-        print(f'\nconfig: {configfile}')
+        print(f'\nConfig: {configfile}')
         # Get times from system and convert to Americas/Vancouver for printing
         yvr_dt_end = (yvr_tz
             .normalize(datetime.now(local_tz)

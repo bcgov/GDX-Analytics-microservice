@@ -69,7 +69,8 @@ def report(data):
     # if no objects were processed; do not print a report
     if data["objects"] == 0:
         return
-    print(f'report {__file__}:')
+    print(f'Report {__file__}:')
+    print(f'\nConfig: {configfile}')
     print(f'\nObjects to process: {data["objects"]}')
     print(f'Objects that failed to process: {data["failed"]}')
     print(f'Objects loaded to Redshift: {data["loaded"]}')
