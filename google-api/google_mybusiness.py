@@ -229,25 +229,21 @@ def report(data):
         print(f'\n\nNone\n')
 
     # Print all fully processed locations in bad
-    print(f'\nObjects loaded RedShift and to S3 /bad:')
     if data['bad_list']:
+        print(f'\nObjects loaded RedShift and to S3 /bad:')
         for i, item in enumerate(data['bad_list'], 1):
             print(f"\n{i}: {item}")
     else:
         print(f'\n\nNone\n')
 
-    # If nothing failed to copy to RedShift, print None
-    if not data['failed_rs_list']:
-        print(f'\nList of objects that failed to copy to Redshift: \n\nNone\n')
-    else:
+    # Print failed to copy to RedShift
+    if data['failed_rs_list']:
         print(f'\nList of objects that failed to copy to Redshift:')
         for i, item in enumerate(data['failed_rs_list'], 1):
             print(f'\n{i}: {item}')
 
-    # Unsuccessful API calls 
-    if not data['not_retrieved_list']:
-        print(f'List of sites not processed due to early exit: \n\nNone\n')
-    else:
+    # Print unsuccessful API calls 
+    if  data['not_retrieved_list']:
         print(f'List of sites that were not processed due to early exit:')
         for i, site in enumerate(data['not_retrieved_list']), 1:
             print(f'\n{i}: {site}')
