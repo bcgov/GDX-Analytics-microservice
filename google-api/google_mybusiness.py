@@ -225,16 +225,12 @@ def report(data):
     if data['good_list']:
         for i, item in enumerate(data['good_list'], 1):
             print(f"\n{i}: {item}")
-    else:
-        print(f'\n\nNone\n')
 
     # Print all fully processed locations in bad
     if data['bad_list']:
         print(f'\nObjects loaded RedShift and to S3 /bad:')
         for i, item in enumerate(data['bad_list'], 1):
             print(f"\n{i}: {item}")
-    else:
-        print(f'\n\nNone\n')
 
     # Print failed to copy to RedShift
     if data['failed_rs_list']:
