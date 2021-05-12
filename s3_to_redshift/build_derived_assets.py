@@ -69,28 +69,8 @@ def report(data):
     # if no objects were processed; do not print a report
     if data["objects"] == 0:
         return
-    print(f'report {__file__}:')
-    print(f'\nObjects to process: {data["objects"]}')
-    print(f'Objects that failed to process: {data["failed"]}')
-    print(f'Objects loaded to Redshift: {data["loaded"]}')
-    print(
-        "\nList of tables successfully parsed, "
-        "and copied to the derived table in Redshift:")
-    if data['good_list']:
-        [print(table) for table in data['good_list']]
-    else:
-        print('None')
-    print('\nList of tables that failed to process:')
-    if data['bad_list']:
-        [print(table) for table in data['bad_list']]
-    else:
-        print('None')
-    print('\nList of tables that were not processed due to early exit:')
-    if data['incomplete_list']:
-        [print(table) for table in data['incomplete_list']]
-    else:
-        print("None")
-
+    print(f'Report {__file__}:')
+    print(f'\nConfig: {configfile}')
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
                   .normalize(datetime.now(local_tz)
@@ -100,6 +80,20 @@ def report(data):
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+    print(f'\nObjects to process: {data["objects"]}')
+    print(f'Objects that failed to process: {data["failed"]}')
+    print(f'Objects loaded to Redshift: {data["loaded"]}')
+    if data['good_list']:
+        print(
+        "\nList of tables successfully parsed, "
+        "and copied to the derived table in Redshift:")
+        [print(table) for table in data['good_list']]
+    if data['bad_list']:
+        print('\nList of tables that failed to process:')
+        [print(table) for table in data['bad_list']]
+    if data['incomplete_list']:
+        print('\nList of tables that were not processed due to early exit:')
+        [print(table) for table in data['incomplete_list']]
 
 
 schema_name = data['schema_name']

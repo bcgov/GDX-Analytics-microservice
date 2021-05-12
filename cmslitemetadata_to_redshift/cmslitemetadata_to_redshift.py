@@ -213,39 +213,8 @@ def main():
         if data["objects"] == 0:
             return
         print(f'Report {__file__}:')
-        print(f'\nObjects to process: {data["objects"]}')
-        print(f'Objects successfully processed: {data["processed"]}')
-        print(f'Objects that failed to process: {data["failed"]}')
-        print(f'Objects output to \'processed/good\': {data["good"]}')
-        print(f'Objects output to \'processed/bad\': {data["bad"]}')
-        print(f'Objects loaded to Redshift: {data["loaded"]}')
-        print(
-            "\nList of objects successfully fully ingested from S3, processed, "
-            "loaded to S3 ('good'), and copied to Redshift:")
-        if data['good_list']:
-            for i, meta in enumerate(data['good_list']):
-                print(f"{i}: {meta.key}")
-        else: print('None')
-        print('\nList of objects that failed to process:')
-        if data['bad_list']:
-            for i, meta in enumerate(data['bad_list']):
-                print(f"{i}: {meta.key}")
-        else: print('None')
-        print('\nList of objects that were not processed due to early exit:')
-        if data['incomplete_list']:
-            for i, meta in enumerate(data['incomplete_list']):
-                print(f"{i}: {meta.key}")
-        else: print("None")
-        print('\nList of tables that were successfully loaded into Redshift:')
-        if data['tables_loaded']:
-            [print(table) for table in data['tables_loaded']]
-        else: print("None")
-        print('\nList of tables that failed to load into Redshift:')
-        if data['table_loads_failed']:
-            [print(table) for table in data['table_loads_failed']]
-        else: print("None")
-
-        # get times from system and convert to Americas/Vancouver for printing
+        print(f'\nConfig: {configfile}')
+        # Get times from system and convert to Americas/Vancouver for printing
         yvr_dt_end = (yvr_tz
             .normalize(datetime.now(local_tz)
             .astimezone(yvr_tz)))
@@ -254,6 +223,33 @@ def main():
             f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+        print(f'\nObjects to process: {data["objects"]}')
+        print(f'Objects successfully processed: {data["processed"]}')
+        print(f'Objects that failed to process: {data["failed"]}')
+        print(f'Objects output to \'processed/good\': {data["good"]}')
+        print(f'Objects output to \'processed/bad\': {data["bad"]}')
+        print(f'Objects loaded to Redshift: {data["loaded"]}')
+        if data['good_list']:
+            print(
+            "\nList of objects successfully fully ingested from S3, processed, "
+            "loaded to S3 ('good'), and copied to Redshift:")
+            for i, meta in enumerate(data['good_list']):
+                print(f"{i}: {meta.key}")
+        if data['bad_list']:
+            print('\nList of objects that failed to process:')
+            for i, meta in enumerate(data['bad_list']):
+                print(f"{i}: {meta.key}")
+        if data['incomplete_list']:
+            print('\nList of objects that were not processed due to early exit:')
+            for i, meta in enumerate(data['incomplete_list']):
+                print(f"{i}: {meta.key}")
+        if data['tables_loaded']:
+            print('\nList of tables that were successfully loaded into Redshift:')
+            [print(table) for table in data['tables_loaded']]
+        if data['table_loads_failed']:
+            print('\nList of tables that failed to load into Redshift:')
+            [print(table) for table in data['table_loads_failed']]
+
 
     # This bucket scan will find unprocessed objects.
     # objects_to_process will contain zero or one objects if truncate=True;

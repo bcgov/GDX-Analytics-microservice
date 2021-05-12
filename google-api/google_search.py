@@ -243,61 +243,52 @@ conn_string = (
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''Reports out the data from the main program loop'''
-    # if no objects were processed; do not print a report
-    if data['no_new_data'] == data['sites']:
-        logger.info("No API response contained new data")
-        return
-    print(f'{__file__} report:')
-    print(f'\nSites to process: {data["sites"]}')
-    print(f'Successful API calls: {data["retrieved"]}')
-    print(f'Failed API calls: {data["failed_api"]}')
-    print(f'Failed loads to RedShift: {data["failed_rs"]}\n')
-
-    # Print all processed sites
-    if not data['processed']:
-        print(f'Objects loaded to S3 and copied to RedShift: \n\nNone\n')
-    else:
-        print(f'Objects loaded to S3 and copied to RedShift:')
-        for i, site in enumerate(data['processed'], 1):
-            print(f"\n{i}: {site}")
-
-    # If nothing failed to copy to RedShift, print None
-    if not data['failed_to_rs']:
-        print(f'\nList of objects that failed to copy to Redshift: \n\nNone\n')
-    else:
-        print(f'\nList of objects that failed to copy to Redshift:')
-        for i, item in enumerate(data['failed_to_rs'], 1):
-            print(f'\n{i}: {item}')
-
-    # If nothing failed do to early exit, print None
-    if not data['failed_api_call']:
-        print(f'List of sites not processed due to early exit: \n\nNone\n')
-    else:
-        print(f'List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['failed_api_call']), 1:
-            print(f'\n{i}: {site}')
-    
-    if report_stats['pdt_build_success']:
-        print('\nGoogle Search PDT loaded successfully\n')
-    else:
-        print('\nGoogle Search PDT load failed\n')
-
-    # get times from system and convert to Americas/Vancouver for printing
+    # Get script end time from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
-
+    # If no objects were processed; do not print a report
+    if data['no_new_data'] == data['sites']:
+        logger.info("No API response contained new data")
+        return
+    print(f'Report: {__file__}\n')
+    print(f'Config: {CONFIG}\n')
     if report_stats['pdt_build_success']:
         print(
             'PDT build started at: '
             f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
+    else:
+        print(f'Google Search PDT build failed\n')
     print(
-        '\nMicroservice started at: '
+        'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+    print(f'\nSites to process: {data["sites"]}')
+    print(f'Successful API calls: {data["retrieved"]}')
+    print(f'Failed API calls: {data["failed_api"]}')
+    print(f'Failed loads to RedShift: {data["failed_rs"]}\n')
+
+    # Print all processed sites
+    print(f'Objects loaded to S3 and copied to RedShift:')
+    if data['processed']:
+        for i, site in enumerate(data['processed'], 1):
+            print(f"\n{i}: {site}")
+
+    # If anything failed to copy to RedShift, print it.
+    if data['failed_to_rs']:
+        print(f'\nList of objects that failed to copy to Redshift:')
+        for i, item in enumerate(data['failed_to_rs'], 1):
+            print(f'\n{i}: {item}')
+
+    # If anything failed do to early exit, print it
+    if data['failed_api_call']:
+        print(f'List of sites that were not processed due to early exit:')
+        for i, site in enumerate(data['failed_api_call']), 1:
+            print(f'\n{i}: {site}')
+    
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
