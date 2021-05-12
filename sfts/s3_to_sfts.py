@@ -147,7 +147,11 @@ def report(data):
 
     # Print all objects loaded into s3/good
     print(f'Objects loaded to S3 /good:')
+<<<<<<< HEAD
     if data['s3_good_list']:
+=======
+    if data['good_list']:
+>>>>>>> 7bd996b590ce28ec3fdf307af0b59853a3037fbf
         for i, item in enumerate(data['s3_good_list'], 1):
             print(f"\n{i}: {item}")
 
