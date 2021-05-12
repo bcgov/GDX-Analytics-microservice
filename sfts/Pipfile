@@ -13,6 +13,7 @@ boto3 = "*"
 botocore = "*"
 psycopg2-binary = "*"
 microservices = {editable = true,path = "./.."}
+tzlocal = "*"
 
 [requires]
 python_version = "3.7"
