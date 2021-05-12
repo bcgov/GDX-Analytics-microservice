@@ -147,14 +147,14 @@ def report(data):
 
     # Print all objects loaded into s3/good
     print(f'Objects loaded to S3 /good:')
-    if data['good_list']:
-        for i, item in enumerate(data['good_list'], 1):
+    if data['s3_good_list']:
+        for i, item in enumerate(data['s3_good_list'], 1):
             print(f"\n{i}: {item}")
 
     # Print all objects loaded into s3/bad
-    if data['bad_list']:
+    if data['s3_bad_list']:
         print(f'\nObjects loaded to S3 /bad:')
-        for i, item in enumerate(data['bad_list'], 1):
+        for i, item in enumerate(data['s3_bad_list'], 1):
             print(f"\n{i}: {item}")
 
 
