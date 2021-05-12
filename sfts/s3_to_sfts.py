@@ -127,6 +127,8 @@ def report(data):
     '''reports out cumulative script events'''
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}')
+    if data['objects_failed_to_sfts'] or data['objects_not_processed']:
+        print(f'*** ATTN: A failure occured ***')
     # Get script end time
     yvr_dt_end = (yvr_tz
         .normalize(datetime.datetime.now(local_tz)
@@ -137,8 +139,11 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nItems to process: {data["objects"]}')
-    print(f'Objects successfully processed: {data["objects_processed"]}')
-    print(f'Objects unsuccessfully processed: {data["objects_not_processed"]}\n')
+    print(f'Objects successfully processed to s3: {data["objects_processed"]}')
+    print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
+    print(f'Objects successfully process to sfts: {data["objects_to_sfts"]}')
+    print(f'Objects unsuccessfully process to sfts: {data["objects_failed_to_sfts"]}')
+
 
     # Print all objects loaded into s3/good
     print(f'Objects loaded to S3 /good:')
@@ -148,7 +153,7 @@ def report(data):
 
     # Print all objects loaded into s3/bad
     if data['bad_list']:
-        print(f'\nObjects loaded RedShift and to S3 /bad:')
+        print(f'\nObjects loaded to S3 /bad:')
         for i, item in enumerate(data['bad_list'], 1):
             print(f"\n{i}: {item}")
 
@@ -158,9 +163,13 @@ report_stats = {
     'objects':0,
     'objects_processed':0,
     'objects_not_processed':0,
+    'objects_to_sfts':0,
+    'objects_failed_to_sfts':0,
     'objects_list':[],
-    'good_list':[], 
-    'bad_list':[]
+    's3_good_list':[], 
+    's3_bad_s3_list':[],
+    'sfts_good_list':[],
+    'sfts_bad_list':[]
 }
 
 # This bucket scan will find unprocessed objects matching on the object prefix
@@ -225,11 +234,16 @@ try:
          f"-user:{sfts_user}",
          f"-password:{sfts_pass}",
          f"-s:{sfts_conf}",
-         "filetransfer.gov.bc.ca"])
+         "filetransfer.gov.bc.ca"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL)
     xfer_proc = True
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
+    report_stats['objects_failed_to_sfts'] += 1
+else:
+    report_stats['objects_to_sfts'] += 1
 
 # copy the processed files to their outfile destination path
 for obj in objects_to_process:
@@ -247,12 +261,12 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
-        report_stats['bad_list'].append(outfile)
+        report_stats['s3_bad_list'].append(outfile)
         report_stats['objects_not_processed'] += 1
     else:
         logger.info('copied %s to %s', obj.key, outfile)
         report_stats['objects_processed'] += 1
-        report_stats['good_list'].append(outfile)
+        report_stats['s3_good_list'].append(outfile)
 
 
 # Remove the temporary local files used to transfer
