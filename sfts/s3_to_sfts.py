@@ -144,14 +144,9 @@ def report(data):
     print(f'Objects successfully process to sfts: {data["objects_to_sfts"]}')
     print(f'Objects unsuccessfully process to sfts: {data["objects_failed_to_sfts"]}')
 
-
     # Print all objects loaded into s3/good
-    print(f'Objects loaded to S3 /good:')
-<<<<<<< HEAD
     if data['s3_good_list']:
-=======
-    if data['good_list']:
->>>>>>> 7bd996b590ce28ec3fdf307af0b59853a3037fbf
+        print(f'Objects loaded to S3 /good:')  
         for i, item in enumerate(data['s3_good_list'], 1):
             print(f"\n{i}: {item}")
 
