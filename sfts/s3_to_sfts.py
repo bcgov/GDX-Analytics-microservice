@@ -61,6 +61,8 @@ flags = parser.parse_args()
 
 config = flags.conf
 
+configfile = sys.argv[2]
+
 # Parse the CONFIG file as a json object and load its elements as variables
 with open(config) as f:
     config = json.load(f)
@@ -123,7 +125,8 @@ def is_processed():
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out cumulative script events'''
-    print(f'{__file__} report:')
+    print(f'Report: {__file__}\n')
+    print(f'Config: {configfile}')
     # Get script end time
     yvr_dt_end = (yvr_tz
         .normalize(datetime.datetime.now(local_tz)
@@ -135,9 +138,7 @@ def report(data):
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nItems to process: {data["objects"]}')
     print(f'Objects successfully processed: {data["objects_processed"]}')
-    print(f'Objects unsuccessfully processed: {data["objects_not_processed"]}')
-    print(f'Objects output to processed/good: {data["good_list"]}')
-    print(f'Objects output to processed/bad {data["bad_list"]}\n')
+    print(f'Objects unsuccessfully processed: {data["objects_not_processed"]}\n')
 
     # Print all objects loaded into s3/good
     print(f'Objects loaded to S3 /good:')
@@ -178,6 +179,9 @@ for object_summary in res_bucket.objects.filter(Prefix=prefix):
     if re.search(filename_regex, filename):
         objects_to_process.append(object_summary)
         logger.info('added %a for processing', filename)
+        report_stats['objects'] += 1
+        report_stats['objects_list'].append(object_summary)
+
 
 if not objects_to_process:
     clean_exit(1, 'Failing due to no files to process')
@@ -213,7 +217,7 @@ sf.close()
 try:
     xfer_jar = f"{xfer_path}/xfer.jar"
     jna_jar = f"{xfer_path}/jna.jar"
-    print(("trying to call subprocess:\nxfer.jar: "
+    logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
     subprocess.check_call(
         ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
@@ -247,6 +251,9 @@ for obj in objects_to_process:
         report_stats['objects_not_processed'] += 1
     else:
         logger.info('copied %s to %s', obj.key, outfile)
+        report_stats['objects_processed'] += 1
+        report_stats['good_list'].append(outfile)
+
 
 # Remove the temporary local files used to transfer
 try:
