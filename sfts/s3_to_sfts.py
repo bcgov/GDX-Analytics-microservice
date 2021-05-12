@@ -166,7 +166,7 @@ report_stats = {
     'objects_failed_to_sfts':0,
     'objects_list':[],
     's3_good_list':[], 
-    's3_bad_s3_list':[],
+    's3_bad_list':[],
     'sfts_good_list':[],
     'sfts_bad_list':[]
 }
