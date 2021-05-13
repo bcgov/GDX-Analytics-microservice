@@ -416,10 +416,13 @@ def main():
         dictionary_dfs = {}  # keep the dictionaries in storage
         # loop starts at index -1 to process the main metadata table.
 
-        # build an aggregate query which will be used to make one transaction
+        # Build an aggregate query which will be used to make one transaction.
+        # To add a new fields to be parsed, you must add both a lookup table
+        # and a dictionary table. These can be joined in the LookML to 
+        # allow querying the parsed out values in the lookup columns.
         copy_queries = {}
         for i in range(-1, len(columns_lookup)*2):
-            # the metadata table is built once
+            # the main metadata table is built on the first iteration
             if i == -1:
                 column = "metadata"
                 dbtable = "metadata"
@@ -427,7 +430,12 @@ def main():
                 columnlist = columns_metadata
                 df_new = _df.copy()
                 df_new = df_new.reindex(columns = columnlist)   
-            # the column lookup tables are built
+            # The columns_lookup tables are built in the iterations 
+            # for i < len(columns_lookup).
+            # The columns_lookup tables contain key-value pairs.
+            # The key is the node_id from the metadata.
+            # The value is a number assigned to each unique parsed-out value from
+            # the pipe-separated column from the metadata.
             elif i < len(columns_lookup):
                 key = "key"
                 column = columns_lookup[i]
@@ -435,7 +443,11 @@ def main():
                 dbtable = dbtables_dictionaries[i]
                 df_new = to_dict(_df, column)  # make dict a df of this column
                 dictionary_dfs[columns_lookup[i]] = df_new
-            # the metadata tables are built
+            # The metadata tables are built in the i - len(columns_lookup) iterations.
+            # The metadata dictionary tables contain key value pairs. 
+            # The key is the value assigned to the values in the lookup table,
+            # The value is the unique, parsed out values from the pipe-separated 
+            # column from the metadata.
             else:
                 i_off = i - len(columns_lookup)
                 key = None
