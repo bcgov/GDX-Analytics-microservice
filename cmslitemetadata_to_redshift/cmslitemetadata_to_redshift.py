@@ -170,6 +170,7 @@ def main():
         resource.Bucket(bucket).put_object(Key=loc_batchfile + "/" + filename,
                                            Body=csv_buffer.getvalue())
 
+        
     # Create a dictionary dataframe based on a column
     def to_dict(loc_df, section):
         '''build a dictionary type dataframe for a column with nested \
@@ -183,6 +184,7 @@ def main():
         # make a dataframe of the list
         return pd.DataFrame({section: sorted(_l)})
 
+    
     # Check to see if the file has been processed already
     def is_processed(loc_object_summary):
         '''check S3 for objects already processed'''
@@ -207,12 +209,14 @@ def main():
         logger.info("%s has not been processed.", filename)
         return False
 
+    
     def report(data):
         '''reports out the data from the main program loop'''
         # if no objects were processed; do not print a report
         if data["objects"] == 0:
             return
-        print(f'Report {__file__}:')
+        print(f'Report: {__file__}')
+        print(f'Config: {configfile}\n')
         print(f'\nObjects to process: {data["objects"]}')
         print(f'Objects successfully processed: {data["processed"]}')
         print(f'Objects that failed to process: {data["failed"]}')
@@ -225,25 +229,21 @@ def main():
         if data['good_list']:
             for i, meta in enumerate(data['good_list']):
                 print(f"{i}: {meta.key}")
-        else: print('None')
-        print('\nList of objects that failed to process:')
         if data['bad_list']:
+            print('\nList of objects that failed to process:')    
             for i, meta in enumerate(data['bad_list']):
                 print(f"{i}: {meta.key}")
-        else: print('None')
-        print('\nList of objects that were not processed due to early exit:')
         if data['incomplete_list']:
+            print('\nList of objects that were not processed due to early exit:')
             for i, meta in enumerate(data['incomplete_list']):
                 print(f"{i}: {meta.key}")
-        else: print("None")
-        print('\nList of tables that were successfully loaded into Redshift:')
         if data['tables_loaded']:
+            print('\nList of tables that were successfully loaded into Redshift:')
             [print(table) for table in data['tables_loaded']]
-        else: print("None")
-        print('\nList of tables that failed to load into Redshift:')
         if data['table_loads_failed']:
+            print('\nList of tables that failed to load into Redshift:') 
             [print(table) for table in data['table_loads_failed']]
-        else: print("None")
+
 
         # get times from system and convert to Americas/Vancouver for printing
         yvr_dt_end = (yvr_tz
@@ -255,6 +255,7 @@ def main():
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_start}.')
 
+              
     # This bucket scan will find unprocessed objects.
     # objects_to_process will contain zero or one objects if truncate=True;
     # objects_to_process will contain zero or more objects if truncate=False.
