@@ -141,8 +141,8 @@ def report(data):
     print(f'\nItems to process: {data["objects"]}')
     print(f'Objects successfully processed to s3: {data["objects_processed"]}')
     print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
-    print(f'Objects successfully process to sfts: {data["objects_to_sfts"]}')
-    print(f'Objects unsuccessfully process to sfts: {data["objects_failed_to_sfts"]}')
+    print(f'Objects successfully processed to sfts: {data["objects_to_sfts"]}')
+    print(f'Objects unsuccessfully processed to sfts: {data["objects_failed_to_sfts"]}')
 
     # Print all objects loaded into s3/good
     if data['s3_good_list']:
@@ -227,16 +227,15 @@ try:
     jna_jar = f"{xfer_path}/jna.jar"
     logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
-    subprocess.check_call(
+    output = subprocess.check_output(
         ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
          "xfer",
          f"-user:{sfts_user}",
          f"-password:{sfts_pass}",
          f"-s:{sfts_conf}",
-         "filetransfer.gov.bc.ca"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL)
+         "filetransfer.gov.bc.ca"])
     xfer_proc = True
+    logger.info(output)
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
