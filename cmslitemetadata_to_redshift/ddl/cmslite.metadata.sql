@@ -82,10 +82,15 @@ CREATE TABLE IF NOT EXISTS  test.metadata_creators (
 )
 DISTSTYLE EVEN;
 
-CREATE TABLE IF NOT EXISTS  test.metadata_security_groups (
+CREATE TABLE IF NOT EXISTS  test.metadata_defined_security_groups (
     "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
-    "security_group"    VARCHAR(255)    ENCODE LZO,
-    "group_type"        VARCHAR(255)    ENCODE LZO
+    "id"    VARCHAR(255)    ENCODE LZO
+)
+DISTSTYLE EVEN;
+
+CREATE TABLE IF NOT EXISTS  test.metadata_inherited_security_groups (
+    "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
+    "id"    VARCHAR(255)    ENCODE LZO
 )
 DISTSTYLE EVEN;
 
@@ -147,7 +152,8 @@ ALTER TABLE  test.metadata_subjects OWNER TO microservice;
 ALTER TABLE  test.metadata_languages OWNER TO microservice;
 ALTER TABLE  test.metadata_audiences OWNER TO microservice;
 ALTER TABLE  test.metadata_creators OWNER TO microservice;
-ALTER TABLE  test.metadata_security_groups OWNER TO microservice;
+ALTER TABLE  test.metadata_inherited_security_groups OWNER TO microservice;
+ALTER TABLE  test.metadata_defined_security_groups OWNER TO microservice;
 ALTER TABLE  test.metadata OWNER TO microservice;
 ALTER TABLE  test.microservice_log OWNER TO microservice;
 
@@ -166,6 +172,7 @@ GRANT SELECT ON  test.metadata_subjects TO looker;
 GRANT SELECT ON  test.metadata_languages TO looker;
 GRANT SELECT ON  test.metadata_audiences TO looker;
 GRANT SELECT ON  test.metadata_creators TO looker;
-GRANT SELECT ON  test.metadata_security_groups TO looker;
+GRANT SELECT ON  test.metadata_inherited_security_groups TO looker;
+GRANT SELECT ON  test.metadata_defined_security_groups TO looker;
 GRANT SELECT ON  test.metadata TO looker;
 GRANT SELECT ON  test.microservice_log TO looker;
