@@ -142,7 +142,7 @@ def report(data):
     print(f'Objects successfully processed to s3: {data["objects_processed"]}')
     print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
     print(f'Objects successfully processed to sfts: {data["objects_to_sfts"]}')
-    print(f'Objects unsuccessfully processed to sfts: {data["objects_failed_to_sfts"]}')
+    print(f'Objects unsuccessfully processed to sfts: {data["objects_failed_to_sfts"]}\n')
 
     # Print all objects loaded into s3/good
     if data['s3_good_list']:
