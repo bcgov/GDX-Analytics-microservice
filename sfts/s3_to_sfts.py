@@ -235,7 +235,7 @@ try:
          f"-s:{sfts_conf}",
          "filetransfer.gov.bc.ca"])
     xfer_proc = True
-    logger.info(output)
+    logger.info(output.decode("utf-8"))
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
