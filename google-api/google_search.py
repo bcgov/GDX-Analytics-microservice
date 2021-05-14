@@ -420,7 +420,7 @@ for site_item in config_sites:  # noqa: C901
                         search_analytics_response = service.searchanalytics()\
                             .query(siteUrl=site_name, body=bodyvar).execute()
                     except GoogleHttpError:
-                        if retry ==3:
+                        if retry == 11:
                             logger.error(("Failing with HTTP error after 10 "
                                           "retries with query time easening."))
                             report_stats['failed_api'] += 1
@@ -627,18 +627,18 @@ COMMIT;
 """
 
 # Execute the query and log the outcome
-#logger.info(query)
-#with psycopg2.connect(conn_string) as conn:
-#    with conn.cursor() as curs:
-#        try:
-#            curs.execute(query)
-#        except psycopg2.Error:
-#            logger.exception("Google Search PDT loading failed")
-#            report(report_stats)
-#            clean_exit(1,'Could not rebuild PDT in Redshift.')
-#        else:
-#            report_stats['pdt_build_success'] = True
-#            logger.info("Google Search PDT loaded successfully")
-#            report(report_stats)
-#            clean_exit(0,'Finished successfully.')
-report(report_stats)
+logger.info(query)
+with psycopg2.connect(conn_string) as conn:
+    with conn.cursor() as curs:
+        try:
+            curs.execute(query)
+        except psycopg2.Error:
+            logger.exception("Google Search PDT loading failed")
+            report(report_stats)
+            clean_exit(1,'Could not rebuild PDT in Redshift.')
+        else:
+            report_stats['pdt_build_success'] = True
+            logger.info("Google Search PDT loaded successfully")
+            report(report_stats)
+            clean_exit(0,'Finished successfully.')
+
