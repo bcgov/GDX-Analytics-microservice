@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS  cmslite.defined_security_groups (
 )
 DISTSTYLE EVEN;
 
-CREATE TABLE IF NOT EXISTS  cmslite.inherited_security_groups (
+CREATE TABLE IF NOT EXISTS  cmslite.inherited_security_group (
     "id"      BIGINT        ENCODE LZO NOT NULL,
     "value"   VARCHAR(255)  ENCODE ZSTD NOT NULL
 )
