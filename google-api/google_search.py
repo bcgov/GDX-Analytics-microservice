@@ -465,17 +465,18 @@ for site_item in config_sites:  # noqa: C901
                            str(start_dt),str(end_dt),str(max_date_in_data))
 
         # checks if only the header was written (68 bytes in stream)
-        if stream.tell() == 68:
+        #current_size = stream.tell()
+        #print(f'{current_size}')
+        if stream.tell() == 0:
             logger.warning('No data retrieved for %s over date request range '
                            '%s - %s. Skipping s3 object creation and '
                            'Redshift load steps.',
                            site_name, start_dt, end_dt)
-            # continue without writing a file.
-            continue
+            report_stats['no_new_data'] += 1
         else:
         
             # set the file name that will be written to S3
-            # 
+             
             site_fqdn = re.sub(r'^https?:\/\/', '', re.sub(r'\/$', '', site_name))
             outfile = f"googlesearch-{site_fqdn}-{start_dt}-{max_date_in_data}.csv"
             object_key = f"{config_source}/{config_directory}/{outfile}"
@@ -534,7 +535,7 @@ for site_item in config_sites:  # noqa: C901
                                 "%s max_date_in_data == 0"
                                 "Nothing copied to RedShift", site_name)
                             report_stats['no_new_data'] += 1
-#check
+        
         # set last_loaded_date to end_dt to iterate through the next month
         last_loaded_date = end_dt
 
