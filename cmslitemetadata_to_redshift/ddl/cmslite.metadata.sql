@@ -96,13 +96,13 @@ DISTSTYLE EVEN;
 
 CREATE TABLE IF NOT EXISTS  cmslite.metadata_defined_security_groups (
     "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
-    "id"    VARCHAR(255)    ENCODE LZO
+    "id"                VARCHAR(255)    ENCODE LZO
 )
 DISTSTYLE EVEN;
 
 CREATE TABLE IF NOT EXISTS  cmslite.metadata_inherited_security_groups (
     "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
-    "id"    VARCHAR(255)    ENCODE LZO
+    "id"                VARCHAR(255)    ENCODE LZO
 )
 DISTSTYLE EVEN;
 
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "security_label"               VARCHAR(255)                ENCODE LZO,
  "publication_date"             TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "defined_security_groups"      VARCHAR(2047)               ENCODE LZO,
- "inherited_security_groups"     VARCHAR(1023)               ENCODE LZO
+ "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO
 )
 DISTSTYLE EVEN;
 
