@@ -54,7 +54,7 @@
     "audiences",
     "dcterms_creator",
     "defined_security_groups",
-    "inherited_security_group"
+    "inherited_security_groups"
   ],
   "dbtables_dictionaries": [
     "content_types",
@@ -64,7 +64,7 @@
     "audiences",
     "creators",
     "defined_security_groups",
-    "inherited_security_group"
+    "inherited_security_groups"
   ],
   "dbtables_metadata": [
     "metadata_content_types",
