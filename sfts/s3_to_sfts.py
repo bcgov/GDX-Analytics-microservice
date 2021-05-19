@@ -26,6 +26,10 @@ import re
 import logging
 import argparse
 import json
+import time
+import datetime
+from tzlocal import get_localzone
+from pytz import timezone
 import subprocess
 import boto3
 from botocore.exceptions import ClientError
@@ -34,6 +38,12 @@ import lib.logs as log
 logger = logging.getLogger(__name__)
 log.setup()
 
+# Get script start time
+local_tz = get_localzone()
+yvr_tz = timezone('America/Vancouver')
+yvr_dt_start = (yvr_tz
+    .normalize(datetime.datetime.now(local_tz)
+    .astimezone(yvr_tz)))
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
@@ -50,6 +60,8 @@ parser.add_argument('-d', '--debug', help='Run in debug mode.',
 flags = parser.parse_args()
 
 config = flags.conf
+
+configfile = sys.argv[2]
 
 # Parse the CONFIG file as a json object and load its elements as variables
 with open(config) as f:
@@ -110,6 +122,55 @@ def is_processed():
     return False
 
 
+# Will run at end of script to print out accumulated report_stats
+def report(data):
+    '''reports out cumulative script events'''
+    print(f'Report: {__file__}\n')
+    print(f'Config: {configfile}')
+    if data['objects_failed_to_sfts'] or data['objects_not_processed']:
+        print(f'*** ATTN: A failure occured ***')
+    # Get script end time
+    yvr_dt_end = (yvr_tz
+        .normalize(datetime.datetime.now(local_tz)
+        .astimezone(yvr_tz)))
+    print(
+    	'\nMicroservice started at: '
+        f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+    print(f'\nItems to process: {data["objects"]}')
+    print(f'Objects successfully processed to s3: {data["objects_processed"]}')
+    print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
+    print(f'Objects successfully processed to sfts: {data["objects_to_sfts"]}')
+    print(f'Objects unsuccessfully processed to sfts: {data["objects_failed_to_sfts"]}\n')
+
+    # Print all objects loaded into s3/good
+    if data['s3_good_list']:
+        print(f'Objects loaded to S3 /good:')  
+        for i, item in enumerate(data['s3_good_list'], 1):
+            print(f"\n{i}: {item}")
+
+    # Print all objects loaded into s3/bad
+    if data['s3_bad_list']:
+        print(f'\nObjects loaded to S3 /bad:')
+        for i, item in enumerate(data['s3_bad_list'], 1):
+            print(f"\n{i}: {item}")
+
+
+# Reporting variables. Accumulates as the the loop below is traversed
+report_stats = {
+    'objects':0,
+    'objects_processed':0,
+    'objects_not_processed':0,
+    'objects_to_sfts':0,
+    'objects_failed_to_sfts':0,
+    'objects_list':[],
+    's3_good_list':[], 
+    's3_bad_list':[],
+    'sfts_good_list':[],
+    'sfts_bad_list':[]
+}
+
 # This bucket scan will find unprocessed objects matching on the object prefix
 # objects_to_process will contain zero or one objects if truncate = True
 # objects_to_process will contain zero or more objects if truncate = False
@@ -126,6 +187,9 @@ for object_summary in res_bucket.objects.filter(Prefix=prefix):
     if re.search(filename_regex, filename):
         objects_to_process.append(object_summary)
         logger.info('added %a for processing', filename)
+        report_stats['objects'] += 1
+        report_stats['objects_list'].append(object_summary)
+
 
 if not objects_to_process:
     clean_exit(1, 'Failing due to no files to process')
@@ -161,9 +225,9 @@ sf.close()
 try:
     xfer_jar = f"{xfer_path}/xfer.jar"
     jna_jar = f"{xfer_path}/jna.jar"
-    print(("trying to call subprocess:\nxfer.jar: "
+    logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
-    subprocess.check_call(
+    output = subprocess.check_output(
         ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
          "xfer",
          f"-user:{sfts_user}",
@@ -171,9 +235,13 @@ try:
          f"-s:{sfts_conf}",
          "filetransfer.gov.bc.ca"])
     xfer_proc = True
+    logger.info(output.decode("utf-8"))
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
+    report_stats['objects_failed_to_sfts'] += 1
+else:
+    report_stats['objects_to_sfts'] += 1
 
 # copy the processed files to their outfile destination path
 for obj in objects_to_process:
@@ -191,8 +259,13 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
+        report_stats['s3_bad_list'].append(outfile)
+        report_stats['objects_not_processed'] += 1
     else:
         logger.info('copied %s to %s', obj.key, outfile)
+        report_stats['objects_processed'] += 1
+        report_stats['s3_good_list'].append(outfile)
+
 
 # Remove the temporary local files used to transfer
 try:
@@ -200,6 +273,11 @@ try:
 except (os.error, OSError):
     logger.exception('Exception deleting temporary folder:')
     clean_exit(1,'Could not delete tmp folder')
+else:
+    logger.debug('Successfully deleted temporary folder:')
+
+# run report output
+report(report_stats)
 
 if xfer_proc:
     clean_exit(0,'Finished successfully.')
