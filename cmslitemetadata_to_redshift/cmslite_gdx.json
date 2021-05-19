@@ -44,7 +44,7 @@
     "security_label",
     "publication_date",
     "defined_security_groups",
-    "inherited_security_group"
+    "inherited_security_groups"
   ],
   "columns_lookup": [
     "content_types",
@@ -52,9 +52,7 @@
     "dcterms_subjects",
     "dcterms_languages",
     "audiences",
-    "dcterms_creator",
-    "defined_security_groups",
-    "inherited_security_groups"
+    "dcterms_creator"
   ],
   "dbtables_dictionaries": [
     "content_types",
@@ -62,9 +60,7 @@
     "dcterms_subjects",
     "dcterms_languages",
     "audiences",
-    "creators",
-    "defined_security_groups",
-    "inherited_security_groups"
+    "creators"
   ],
   "dbtables_metadata": [
     "metadata_content_types",
@@ -72,9 +68,7 @@
     "metadata_subjects",
     "metadata_languages",
     "metadata_audiences",
-    "metadata_creators",
-    "metadata_defined_security_groups",
-    "metadata_inherited_security_groups"
+    "metadata_creators"
   ],
   "replace": [
     {
