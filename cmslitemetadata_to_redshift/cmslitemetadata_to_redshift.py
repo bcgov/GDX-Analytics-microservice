@@ -748,7 +748,7 @@ INSERT INTO {dbschema}.metadata (
               keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
               eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
               locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
-              publication_date,defined_security_groups,inherited_security_group
+              publication_date,defined_security_groups,inherited_security_groups
         FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
 );
 INSERT INTO {dbschema}.metadata (
@@ -756,7 +756,7 @@ INSERT INTO {dbschema}.metadata (
               keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
               eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
               locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
-              publication_date,defined_security_groups,inherited_security_group
+              publication_date,defined_security_groups,inherited_security_groups
         FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
 );
 INSERT INTO {dbschema}.themes (
