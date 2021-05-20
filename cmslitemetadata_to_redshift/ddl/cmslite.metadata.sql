@@ -44,6 +44,18 @@ CREATE TABLE IF NOT EXISTS  cmslite.creators (
 )
 DISTSTYLE EVEN;
 
+CREATE TABLE IF NOT EXISTS  cmslite.defined_security_groups (
+    "id"      BIGINT        ENCODE LZO NOT NULL,
+    "value"   VARCHAR(255)  ENCODE ZSTD NOT NULL
+)
+DISTSTYLE EVEN;
+
+CREATE TABLE IF NOT EXISTS  cmslite.inherited_security_group (
+    "id"      BIGINT        ENCODE LZO NOT NULL,
+    "value"   VARCHAR(255)  ENCODE ZSTD NOT NULL
+)
+DISTSTYLE EVEN;
+
 -- LOOKUP TABLES
 
 CREATE TABLE IF NOT EXISTS  cmslite.metadata_content_types (
@@ -65,7 +77,7 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata_subjects (
 DISTSTYLE EVEN;
 
 CREATE TABLE IF NOT EXISTS  cmslite.metadata_languages (
-     "node_id"   VARCHAR(255)    ENCODE LZO  NOT NULL,
+    "node_id"   VARCHAR(255)    ENCODE LZO  NOT NULL,
     "id"        BIGINT          ENCODE DELTA NOT NULL
 )
 DISTSTYLE EVEN;
@@ -79,6 +91,18 @@ DISTSTYLE EVEN;
 CREATE TABLE IF NOT EXISTS  cmslite.metadata_creators (
     "node_id"   VARCHAR(255)    ENCODE LZO  NOT NULL,
     "id"        BIGINT          ENCODE DELTA NOT NULL
+)
+DISTSTYLE EVEN;
+
+CREATE TABLE IF NOT EXISTS  cmslite.metadata_defined_security_groups (
+    "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
+    "id"                VARCHAR(255)    ENCODE LZO
+)
+DISTSTYLE EVEN;
+
+CREATE TABLE IF NOT EXISTS  cmslite.metadata_inherited_security_groups (
+    "node_id"           VARCHAR(255)    ENCODE LZO  NOT NULL,
+    "id"                VARCHAR(255)    ENCODE LZO
 )
 DISTSTYLE EVEN;
 
@@ -110,17 +134,17 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "published_by"                 VARCHAR(255)                ENCODE LZO,
  "created_by"                   VARCHAR(255)                ENCODE LZO,
  "modified_by"                  VARCHAR(255)                ENCODE LZO,
- "node_level"                   VARCHAR(10)                 ENCODE LZO,
+ "node_level"                   SMALLINT                    ENCODE LZO,
  "locked_date"                  TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "moved_date"                   TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
- "exclude_from_ia"              VARCHAR(10)                 ENCODE LZO,
- "hide_from_navigation"         VARCHAR(10)                 ENCODE LZO,
- "exclude_from_search_engines"  VARCHAR(10)                 ENCODE LZO,
+ "exclude_from_ia"              BOOLEAN                     ENCODE ZSTD,
+ "hide_from_navigation"         BOOLEAN                     ENCODE ZSTD,
+ "exclude_from_search_engines"  BOOLEAN                     ENCODE ZSTD,
  "security_classification"      VARCHAR(255)                ENCODE LZO,
  "security_label"               VARCHAR(255)                ENCODE LZO,
  "publication_date"             TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "defined_security_groups"      VARCHAR(2047)               ENCODE LZO,
- "inherited_security_group"     VARCHAR(1023)               ENCODE LZO
+ "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO
 )
 DISTSTYLE EVEN;
 
@@ -140,6 +164,8 @@ ALTER TABLE  cmslite.metadata_subjects OWNER TO microservice;
 ALTER TABLE  cmslite.metadata_languages OWNER TO microservice;
 ALTER TABLE  cmslite.metadata_audiences OWNER TO microservice;
 ALTER TABLE  cmslite.metadata_creators OWNER TO microservice;
+ALTER TABLE  cmslite.metadata_inherited_security_groups OWNER TO microservice;
+ALTER TABLE  cmslite.metadata_defined_security_groups OWNER TO microservice;
 ALTER TABLE  cmslite.metadata OWNER TO microservice;
 ALTER TABLE  cmslite.microservice_log OWNER TO microservice;
 
@@ -158,5 +184,7 @@ GRANT SELECT ON  cmslite.metadata_subjects TO looker;
 GRANT SELECT ON  cmslite.metadata_languages TO looker;
 GRANT SELECT ON  cmslite.metadata_audiences TO looker;
 GRANT SELECT ON  cmslite.metadata_creators TO looker;
+GRANT SELECT ON  cmslite.metadata_inherited_security_groups TO looker;
+GRANT SELECT ON  cmslite.metadata_defined_security_groups TO looker;
 GRANT SELECT ON  cmslite.metadata TO looker;
 GRANT SELECT ON  cmslite.microservice_log TO looker;

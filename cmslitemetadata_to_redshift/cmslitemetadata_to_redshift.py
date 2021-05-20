@@ -170,6 +170,7 @@ def main():
         resource.Bucket(bucket).put_object(Key=loc_batchfile + "/" + filename,
                                            Body=csv_buffer.getvalue())
 
+        
     # Create a dictionary dataframe based on a column
     def to_dict(loc_df, section):
         '''build a dictionary type dataframe for a column with nested \
@@ -183,6 +184,7 @@ def main():
         # make a dataframe of the list
         return pd.DataFrame({section: sorted(_l)})
 
+    
     # Check to see if the file has been processed already
     def is_processed(loc_object_summary):
         '''check S3 for objects already processed'''
@@ -207,6 +209,7 @@ def main():
         logger.info("%s has not been processed.", filename)
         return False
 
+    
     def report(data):
         '''reports out the data from the main program loop'''
         # if no objects were processed; do not print a report
@@ -251,6 +254,7 @@ def main():
             [print(table) for table in data['table_loads_failed']]
 
 
+              
     # This bucket scan will find unprocessed objects.
     # objects_to_process will contain zero or one objects if truncate=True;
     # objects_to_process will contain zero or more objects if truncate=False.
@@ -412,10 +416,13 @@ def main():
         dictionary_dfs = {}  # keep the dictionaries in storage
         # loop starts at index -1 to process the main metadata table.
 
-        # build an aggregate query which will be used to make one transaction
+        # Build an aggregate query which will be used to make one transaction.
+        # To add a new fields to be parsed, you must add both a lookup table
+        # and a dictionary table. These can be joined in the LookML to 
+        # allow querying the parsed out values in the lookup columns.
         copy_queries = {}
         for i in range(-1, len(columns_lookup)*2):
-            # the metadata table is built once
+            # the main metadata table is built on the first iteration
             if i == -1:
                 column = "metadata"
                 dbtable = "metadata"
@@ -423,7 +430,12 @@ def main():
                 columnlist = columns_metadata
                 df_new = _df.copy()
                 df_new = df_new.reindex(columns = columnlist)   
-            # the column lookup tables are built
+            # The columns_lookup tables are built in the iterations 
+            # for i < len(columns_lookup).
+            # The columns_lookup tables contain key-value pairs.
+            # The key is the node_id from the metadata.
+            # The value is a number assigned to each unique parsed-out value from
+            # the pipe-separated column from the metadata.
             elif i < len(columns_lookup):
                 key = "key"
                 column = columns_lookup[i]
@@ -431,7 +443,11 @@ def main():
                 dbtable = dbtables_dictionaries[i]
                 df_new = to_dict(_df, column)  # make dict a df of this column
                 dictionary_dfs[columns_lookup[i]] = df_new
-            # the metadata tables are built
+            # The metadata tables are built in the i - len(columns_lookup) iterations.
+            # The metadata dictionary tables contain key value pairs. 
+            # The key is the value assigned to the values in the lookup table,
+            # The value is the unique, parsed out values from the pipe-separated 
+            # column from the metadata.
             else:
                 i_off = i - len(columns_lookup)
                 key = None
@@ -732,7 +748,7 @@ INSERT INTO {dbschema}.metadata (
               keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
               eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
               locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
-              publication_date,defined_security_groups,inherited_security_group
+              publication_date,defined_security_groups,inherited_security_groups
         FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
 );
 INSERT INTO {dbschema}.metadata (
@@ -740,7 +756,7 @@ INSERT INTO {dbschema}.metadata (
               keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
               eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
               locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
-              publication_date,defined_security_groups,inherited_security_group
+              publication_date,defined_security_groups,inherited_security_groups
         FROM {dbschema}.metadata WHERE node_id = 'A2DB016A552E4D3DAD0832B26472BA8E'
 );
 INSERT INTO {dbschema}.themes (
