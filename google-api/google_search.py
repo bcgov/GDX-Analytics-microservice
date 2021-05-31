@@ -464,9 +464,7 @@ for site_item in config_sites:  # noqa: C901
                            'but the max date in the data retrieved was: %s',
                            str(start_dt),str(end_dt),str(max_date_in_data))
 
-        # checks if only the header was written (68 bytes in stream)
-        #current_size = stream.tell()
-        #print(f'{current_size}')
+        #checks if only the header was written (0 bytes in stream)
         if stream.tell() == 0:
             logger.warning('No data retrieved for %s over date request range '
                            '%s - %s. Skipping s3 object creation and '
