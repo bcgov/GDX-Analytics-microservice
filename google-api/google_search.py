@@ -62,7 +62,6 @@ import sys       # to read command line parameters
 import os.path   # file handling
 import io        # file and stream handling
 import logging
-import time
 from tzlocal import get_localzone
 from pytz import timezone
 import signal
@@ -81,9 +80,9 @@ import lib.logs as log
 # Get script start times
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
-yvr_dt_start = (yvr_tz
-                .normalize(datetime.now(local_tz)
-                .astimezone(yvr_tz)))
+yvr_dt_start = (yvr_tz.normalize(
+    datetime.now(local_tz)
+            .astimezone(yvr_tz)))
 
 
 # Ctrl+C
@@ -245,8 +244,8 @@ conn_string = (
 def report(data):
     '''Reports out the data from the main program loop'''
     # Get script end time and convert to Americas/Vancouver for printing
-    yvr_dt_end = (yvr_tz
-                .normalize(datetime.now(local_tz)
+    yvr_dt_end = (yvr_tz.normalize(
+        datetime.now(local_tz)
                 .astimezone(yvr_tz)))
     # If no objects were processed; do not print a report
     if data['no_new_data'] == data['sites']:
@@ -261,7 +260,7 @@ def report(data):
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
     else:
-        print(f'Google Search PDT build failed\n')
+        print('Google Search PDT build failed\n')
     print(
         'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
@@ -274,19 +273,19 @@ def report(data):
 
     # Print all processed sites
     if data['processed']:
-        print(f'Objects loaded to S3 and copied to RedShift:')
+        print('Objects loaded to S3 and copied to RedShift:')
         for i, site in enumerate(data['processed'], 1):
             print(f"\n{i}: {site}")
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
-        print(f'\nList of objects that failed to copy to Redshift:')
+        print('\nList of objects that failed to copy to Redshift:')
         for i, item in enumerate(data['failed_to_rs']):
             print(f'\n{i}: {item}')
 
     # If anything failed do to early exit, print it
     if data['failed_api_call']:
-        print(f'List of sites that were not processed due to early exit:')
+        print('List of sites that were not processed due to early exit:')
         for i, site in enumerate(data['failed_api_call']):
             print(f'\n{i}: {site}')
 
@@ -367,10 +366,11 @@ for site_item in config_sites:  # noqa: C901
         def daterange(start_date, end_date):
             """yields a generator of all dates from startDate to endDate"""
             logger.info("daterange called with startDate: %s and endDate: %s",
-                         start_date, end_date)
+                        start_date, end_date)
             assert end_date >= start_date, (f'start_date: {start_date} '
                                             'cannot exceed end_date: '
-                                            f'{end_date} in daterange generator')
+                                            f'{end_date} in '
+                                            'daterange generator')
             for _n in range(int((end_date - start_date).days) + 1):
                 yield start_date + timedelta(_n)
 
@@ -476,8 +476,10 @@ for site_item in config_sites:  # noqa: C901
 
             # set the file name that will be written to S3
 
-            site_fqdn = re.sub(r'^https?:\/\/', '', re.sub(r'\/$', '', site_name))
-            outfile = f"googlesearch-{site_fqdn}-{start_dt}-{max_date_in_data}.csv"
+            site_fqdn = re.sub(
+                r'^https?:\/\/', '', re.sub(r'\/$', '', site_name))
+            outfile = ("googlesearch-"
+                       f"{site_fqdn}-{start_dt}-{max_date_in_data}.csv")
             object_key = f"{config_source}/{config_directory}/{outfile}"
 
             # Write the stream to an outfile in the S3 bucket with naming
@@ -487,7 +489,7 @@ for site_item in config_sites:  # noqa: C901
             logger.info('PUT_OBJECT: %s:%s', outfile, config_bucket)
             object_summary = resource.ObjectSummary(config_bucket, object_key)
             logger.info('OBJECT LOADED ON: %s, OBJECT SIZE: %s',
-                         object_summary.last_modified, object_summary.size)
+                        object_summary.last_modified, object_summary.size)
 
             # S3 file path for report_stats
             s3_file_path = f's3://{config_bucket}/{object_key}'
@@ -495,7 +497,8 @@ for site_item in config_sites:  # noqa: C901
 
             # Prepare the Redshift COPY command.
             logquery = (
-                f"copy {config_dbtable} FROM 's3://{config_bucket}/{object_key}' "
+                f"copy {config_dbtable} "
+                f"FROM 's3://{config_bucket}/{object_key}' "
                 "CREDENTIALS 'aws_access_key_id={AWS_ACCESS_KEY_ID};"
                 "aws_secret_access_key={AWS_SECRET_ACCESS_KEY}' "
                 "IGNOREHEADER AS 1 MAXERROR AS 0 DELIMITER '|' "
@@ -524,10 +527,11 @@ for site_item in config_sites:  # noqa: C901
                         if max_date_in_data != str(0):
                             report_stats['processed'].append(s3_file_path)
                             logger.info(
-                                "SUCCESS loading %s (%s index) over date range "
-                                "%s to %s into %s. Object key %s.", site_name,
-                                str(index), str(start_dt), str(end_dt),
-                                config_dbtable, object_key.split('/')[-1])
+                                "SUCCESS loading %s (%s index) over date "
+                                "range %s to %s into %s. Object key %s.",
+                                site_name, str(index), str(start_dt),
+                                str(end_dt), config_dbtable,
+                                object_key.split('/')[-1])
                         else:
                             # The s3 object is 68B and max_Date_in data == 0
                             logger.info(
@@ -546,8 +550,9 @@ report_stats['failed_rs'] = len(report_stats['failed_to_rs'])
 
 # Get PDT build start time
 yvr_dt_pdt_start = (yvr_tz
-                    .normalize(datetime.now(local_tz)
-                    .astimezone(yvr_tz)))
+                    .normalize(
+                        datetime.now(local_tz)
+                        .astimezone(yvr_tz)))
 
 # This query will INSERT data that is the result of a JOIN into
 # cmslite.google_pdt, a persistent dereived table which facilitating the LookML
