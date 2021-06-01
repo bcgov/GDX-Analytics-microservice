@@ -462,8 +462,8 @@ for site_item in config_sites:  # noqa: C901
 
         if max_date_in_data < str(end_dt):
             logger.info('The date range in the request spanned %s - %s, '
-                           'but the max date in the data retrieved was: %s',
-                           str(start_dt), str(end_dt), str(max_date_in_data))
+                        'but the max date in the data retrieved was: %s',
+                        str(start_dt), str(end_dt), str(max_date_in_data))
 
         # check if the stream contains no data
         if stream.tell() == 0:
