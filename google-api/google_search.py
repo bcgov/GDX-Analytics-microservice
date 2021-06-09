@@ -593,12 +593,11 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
 ALTER TABLE cmslite.google_pdt_gdxdsd2696 OWNER TO microservice;
 GRANT SELECT ON cmslite.google_pdt_gdxdsd2696 TO looker;
 
-INSERT INTO cmslite.google_pdt_gdxdsd2696
-WITH base_cte AS
-( SELECT
+INSERT INTO test.google_pdt_gdxdsd2696
+SELECT
        gs.*,
-       COALESCE(node_id, '')    AS node_id,
-       Split_part(page, '/', 3) AS page_urlhost,
+       COALESCE(themes.node_id, '')    AS node_id,
+       Split_part(gs.page, '/', 3) AS page_urlhost,
        title,
        theme_id,
        subtheme_id,
@@ -609,8 +608,7 @@ WITH base_cte AS
        subtheme,
        topic,
        subtopic,
-       subsubtopic,
-       ref_site, sc_domain, overlap, start_date, sc_urlhost
+       subsubtopic
 FROM   google.googlesearch AS gs
        LEFT JOIN google.google_sites_gdxdsd2696 r
               ON gs.site = r.ref_site
@@ -622,35 +620,9 @@ FROM   google.googlesearch AS gs
                    ELSE page
                  END = themes.hr_url
             WHERE gs.site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca') -- not sc_domain
-                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.overlap = 't' AND gs.date < r.start_date ) -- overlap
-                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.sc_domain = 't') -- sc_domain
-                OR ( gs.site = 'sc-domain:engage.gov.bc.ca' )
-)
-
-SELECT site,
-date,
-query,
-country,
-device,
-page,
-position,
-clicks,
-ctr,
-impressions,
-node_id,
-page_urlhost,
-title,
-theme_id,
-subtheme_id,
-topic_id,
-subtopic_id,
-subsubtopic_id,
-theme,
-subtheme,
-topic,
-subtopic,
-subsubtopic
-FROM build_cte;
+                OR ( gs.site = 'sc-domain:gov.bc.ca' AND page_urlhost = r.sc_urlhost AND overlap = 't' AND gs.date::date < r.start_date::date ) -- overlap case
+                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.sc_domain = 'f' AND page_urlhost NOT IN ( SELECT sc_urlhost FROM google.google_sites_gdxdsd2696 WHERE sc_urlhost IS NOT NULL ))
+                OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
 COMMIT;
 """
 
