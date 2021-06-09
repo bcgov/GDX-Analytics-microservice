@@ -775,6 +775,50 @@ UPDATE {dbschema}.metadata
     INNER JOIN {dbschema}.metadata as l2 ON l1.parent_node_id = l2.node_id 
     WHERE l1.parent_node_id in (select node_id from {dbschema}.metadata where page_type like 'ASSET_FOLDER');
 COMMIT;
+
+UPDATE {dbschema}.metadata 
+    WITH ids
+    AS (SELECT cm.node_id,
+      cm.title,
+      cm.hr_url,
+      cm.parent_node_id,
+      cm_parent.title AS parent_title,
+      cm.ancestor_nodes,
+      CASE
+        -- page is root folder
+        WHEN cm.parent_node_id LIKE 'CA4CBBBB070F043ACF7FB35FE3FD1081' and page_type like 'ASSET_FOLDER'
+          THEN '||'
+        -- parent folder is root folder
+        -- WHEN cm.parent_node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
+    )
+
+    SET themefolder_id = 
+        CASE WHEN SPLIT_PART(ancestor_nodes,'|',2) NOT LIKE ''
+            THEN SPLIT_PART(ancestor_nodes,'|',2) 
+            ELSE NULL 
+        END
+    SET subthemefolder_id = 
+        CASE WHEN SPLIT_PART(ancestor_nodes,'|',3) NOT LIKE ''
+            THEN SPLIT_PART(ancestor_nodes,'|',3) 
+            ELSE NULL 
+        END
+    SET topicfolder_id = 
+        CASE WHEN SPLIT_PART(ancestor_nodes,'|',4) NOT LIKE ''
+            THEN SPLIT_PART(ancestor_nodes,'|',4) 
+            ELSE NULL 
+        END
+    SET subtopicfolder_id = 
+        CASE WHEN SPLIT_PART(ancestor_nodes,'|',5) NOT LIKE ''
+            THEN SPLIT_PART(ancestor_nodes,'|',5) 
+            ELSE NULL 
+        END
+    SET subsubtopicfolder_id = 
+        CASE WHEN SPLIT_PART(ancestor_nodes,'|',5) NOT LIKE ''
+            THEN SPLIT_PART(ancestor_nodes,'|',5) 
+            ELSE NULL 
+        END
+    FROM {dbschema}.metadata;
+COMMIT;
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):

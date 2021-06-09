@@ -144,7 +144,13 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "security_label"               VARCHAR(255)                ENCODE LZO,
  "publication_date"             TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "defined_security_groups"      VARCHAR(2047)               ENCODE LZO,
- "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO
+ "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO,
+ "themefolder_id"               VARCHAR(255)                ENCODE ZSTD,
+ "subthemefolder_id"            VARCHAR(255)                ENCODE ZSTD,
+ "topicfolder_id"               VARCHAR(255)                ENCODE ZSTD,
+ "subtopicfolder_id"            VARCHAR(255)                ENCODE ZSTD,
+ "subsubtopicfolder_id"         VARCHAR(255)                ENCODE ZSTD
+
 )
 DISTSTYLE EVEN;
 
