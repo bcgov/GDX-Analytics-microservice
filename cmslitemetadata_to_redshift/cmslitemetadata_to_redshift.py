@@ -912,7 +912,7 @@ FROM ids
     LEFT JOIN {dbschema}.metadata AS l5
       ON l5.node_id = ids.level5_id
     )
-    UPDATE {dbschema}.metadata
+    UPDATE {dbschema}.metadata as metadata
     SET themefolder_id = biglist.themefolder_id,
         subthemefolder_id = biglist.subthemefolder_id,
         topicfolder_id = biglist.topicfolder_id,
@@ -924,7 +924,8 @@ FROM ids
         subtopic_folder = biglist.subtopic_folder,
         subsubtopic_folder = biglist.subsubtopic_folder
     FROM biglist
-    WHERE index = 1;    
+    WHERE biglist.index = 1
+    AND metadata.node_id = biglist.node_id;    
 COMMIT;
     """.format(dbschema=dbschema)
 
