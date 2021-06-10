@@ -97,6 +97,7 @@ def pmrp_date_range():
 # a function name which will return the value for that keyword when called.
 SQLPARSE = {
     'pmrp_date_range': pmrp_date_range,
+    'pmrp_qdata_dates': pmrp_qdata_dates,
     }
 
 
