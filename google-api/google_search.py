@@ -594,10 +594,9 @@ ALTER TABLE cmslite.google_pdt_gdxdsd2696 OWNER TO microservice;
 GRANT SELECT ON cmslite.google_pdt_gdxdsd2696 TO looker;
 
 INSERT INTO test.google_pdt_gdxdsd2696
-SELECT
-       gs.*,
-       COALESCE(themes.node_id, '')    AS node_id,
-       Split_part(gs.page, '/', 3) AS page_urlhost,
+SELECT gs.*,
+       COALESCE(themes.node_id, '') AS node_id,
+       SPLIT_PART(gs.page, '/', 3)  AS page_urlhost,
        title,
        theme_id,
        subtheme_id,
@@ -619,11 +618,21 @@ FROM   google.googlesearch AS gs
                    'https://www2.gov.bc.ca/gov/content/home'
                    ELSE page
                  END = themes.hr_url
-            WHERE gs.site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca') -- not sc_domain
-                OR ( gs.site = 'sc-domain:gov.bc.ca' AND page_urlhost = r.sc_urlhost AND overlap = 't' AND gs.date::date < r.start_date::date ) -- overlap case
-                OR ( gs.site = 'sc-domain:gov.bc.ca' AND r.sc_domain = 'f' AND page_urlhost NOT IN ( SELECT sc_urlhost FROM google.google_sites_gdxdsd2696 WHERE sc_urlhost IS NOT NULL ))
-                OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
-COMMIT;
+WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
+        -- Case where data collected by site and sc-domain overlaps
+        OR ( gs.site = 'sc-domain:gov.bc.ca'
+             AND page_urlhost = r.sc_urlhost
+             AND overlap = 't'
+             AND gs.DATE :: DATE < r.start_date :: DATE )
+	    -- All other sc-domain data, excluding sites collected directly
+	    OR ( gs.site = 'sc-domain:gov.bc.ca'
+             AND r.sc_domain = 'f'
+             AND page_urlhost NOT IN (SELECT sc_urlhost
+                                      FROM   google.google_sites_gdxdsd2696
+                                      WHERE  sc_urlhost IS NOT NULL) )
+        OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
+
+COMMIT; 
 """
 
 # Execute the query and log the outcome
