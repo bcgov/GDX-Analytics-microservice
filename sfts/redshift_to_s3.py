@@ -14,6 +14,7 @@
 # Usage         : python redshift_to_s3.py -c config.d/config.json
 #
 import os
+import re
 import logging
 import argparse
 import json
@@ -76,6 +77,7 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
+dates = config['date_list']
 
 def raise_(ex):
     '''to raise generic exceptions'''
@@ -84,10 +86,22 @@ def raise_(ex):
 
 # returns the pmrp_date_range SQL statement to return a BETWEEN clause on date
 def pmrp_date_range():
-    '''geneate a SQL DML sting for a date type BETWEEN clause'''
+    '''generate a SQL DML string for a date type BETWEEN clause'''
     between = "''{}'' AND ''{}''".format(start_date, end_date)
     logger.info('date clause will be between %s', between)
     return between
+
+
+def pmrp_qdata_dates(dates):
+    '''generate a SQL DML string for a date list'''
+    date_list = ''
+    for date in dates:
+    	date_list += str(
+            f"((cfms_poc.welcome_time >= (TIMESTAMP {date})) AND "
+            f"(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP ''{date}'' ))))) OR ")
+    last_or_index = date_list.rfind("OR")
+    new_string = date_list[:last_or_index] + "" + date_list[last_or_index+3:]
+    return new_string
 
 
 # IMPORTANT
