@@ -151,10 +151,10 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "subtopicfolder_id"            VARCHAR(255)                ENCODE ZSTD,
  "subsubtopicfolder_id"         VARCHAR(255)                ENCODE ZSTD,
  "theme_folder"                 VARCHAR(2047)               ENCODE ZSTD,
- "subtheme_folder"           	VARCHAR(2047)               ENCODE ZSTD,
+ "subtheme_folder"              VARCHAR(2047)               ENCODE ZSTD,
  "topic_folder"                 VARCHAR(2047)               ENCODE ZSTD,
  "subtopic_folder"              VARCHAR(2047)               ENCODE ZSTD,
- "subsubtopic_folder"	        VARCHAR(2047)               ENCODE ZSTD
+ "subsubtopic_folder"           VARCHAR(2047)               ENCODE ZSTD
 )
 DISTSTYLE EVEN;
 
