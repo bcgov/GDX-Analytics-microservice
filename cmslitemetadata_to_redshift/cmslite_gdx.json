@@ -44,7 +44,17 @@
     "security_label",
     "publication_date",
     "defined_security_groups",
-    "inherited_security_groups"
+    "inherited_security_groups",
+    "themefolder_id",
+    "subthemefolder_id",
+    "topicfolder_id",
+    "subtopicfolder_id",
+    "subsubtopicfolder_id",
+    "theme_folder",
+    "subtheme_folder",
+    "topic_folder",
+    "subtopic_folder" ,
+    "subsubtopic_folder"
   ],
   "columns_lookup": [
     "content_types",
