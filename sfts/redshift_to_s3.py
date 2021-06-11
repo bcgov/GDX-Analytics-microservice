@@ -92,16 +92,17 @@ def pmrp_date_range():
     return between
 
 
-def pmrp_qdata_dates(dates):
+def pmrp_qdata_dates():
     '''generate a SQL DML string for a date list'''
     date_list = ''
+    query = ''
     for date in dates:
-    	date_list += str(
-            f"((cfms_poc.welcome_time >= (TIMESTAMP {date})) AND "
-            f"(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP ''{date}'' ))))) OR ")
-    last_or_index = date_list.rfind("OR")
-    new_string = date_list[:last_or_index] + "" + date_list[last_or_index+3:]
-    return new_string
+        query += date_list.join(
+        "((cfms_poc.welcome_time >= (TIMESTAMP " + " '" + date + "'" + ")) AND "
+        "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP" + " '" + date + "'" + "))))) OR ")
+    last_or_index = query.rfind("OR")
+    query_string = query[:last_or_index] + "" + query[last_or_index+3:]
+    return query_string
 
 
 # IMPORTANT
@@ -196,7 +197,7 @@ def object_key_builder(key_prefix, *args):
     object_key = '_'.join(str(part) for part in key_parts)
     return object_key
 
-if 'start_date' in config and 'end_date' in config:
+if 'start_date' in config and 'end_date' in config and not dates:
     # set start and end dates, defaulting to min/max if not defined
     start_date = config['start_date']
     end_date = config['end_date']
@@ -221,6 +222,12 @@ if 'start_date' in config and 'end_date' in config:
                    'than end_date: {end_date}.')
 
     object_key = object_key_builder(object_prefix,start_date,end_date)
+
+elif 'date_list' in config:
+    # set dates requested in date_list
+    date_key = "_".join(dates)
+    object_key = object_key_builder(object_prefix, date_key)
+
 else:
     object_key = object_key_builder(object_prefix)
 
