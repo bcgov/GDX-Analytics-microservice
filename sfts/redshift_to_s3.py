@@ -76,7 +76,8 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
-dates = config['date_list']
+if 'date_list' in config:
+    dates = config['date_list']
 
 def raise_(ex):
     '''to raise generic exceptions'''
@@ -196,7 +197,7 @@ def object_key_builder(key_prefix, *args):
     object_key = '_'.join(str(part) for part in key_parts)
     return object_key
 
-if 'start_date' in config and 'end_date' in config and not dates:
+if 'start_date' in config and 'end_date' in config:
     # set start and end dates, defaulting to min/max if not defined
     start_date = config['start_date']
     end_date = config['end_date']
