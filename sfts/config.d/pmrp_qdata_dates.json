@@ -1,10 +1,10 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "pmrp_qdata/daily",
+  "directory": "pmrp_qdata/dates",
   "destination": "processed",
   "object_prefix": "pmrp_qdata",
-  "dml": "pmrp_qdata_daily.sql",
+  "dml": "pmrp_qdata_dates.sql",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
   "extension": ".csv",
