@@ -97,8 +97,8 @@ def pmrp_qdata_dates():
     query = ''
     for date in dates:
         query += date_list.join(
-        "((cfms_poc.welcome_time >= (TIMESTAMP " + " '" + date + "'" + ")) AND "
-        "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP" + " '" + date + "'" + "))))) OR ")
+        "((cfms_poc.welcome_time >= (TIMESTAMP " + "''" + date + "''" + ")) AND "
+        "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP " + "''" + date + "''" + "))))) OR ")
     last_or_index = query.rfind("OR")
     query_string = query[:last_or_index] + "" + query[last_or_index+3:]
     return query_string
