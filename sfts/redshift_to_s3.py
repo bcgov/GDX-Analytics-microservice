@@ -14,7 +14,6 @@
 # Usage         : python redshift_to_s3.py -c config.d/config.json
 #
 import os
-import re
 import logging
 import argparse
 import json
