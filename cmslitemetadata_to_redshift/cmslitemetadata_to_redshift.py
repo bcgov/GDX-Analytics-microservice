@@ -789,25 +789,14 @@ WITH ids
                             '7B239105652B4EBDAB215C59B75A453B',
                             'AFE735F4ADA542ACA830EBC10D179FBE',
                             'D69135AB037140D880A4B0E725D15774') 
-                            and page_type like 'ASSET_FOLDER'
           THEN '||'
-        -- parent folder is root folder
-        WHEN cm.parent_node_id NOT IN'CA4CBBBB070F043ACF7FB35FE3FD1081',
-                            'A9A4B738CE26466C92B45A66DD8C2AFC',
-                            '7B239105652B4EBDAB215C59B75A453B',
-                            'AFE735F4ADA542ACA830EBC10D179FBE',
-                            'D69135AB037140D880A4B0E725D15774') 
-                            and page_type like 'ASSET_FOLDER' 
-                            and ancestor_nodes like '||'
-          THEN '||'
-         -- "first" folder is root: Gov, Intranet, ALC, MCFD or Training SITE
+         -- "first" folder is root folder
          WHEN TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)) IN
                            ('CA4CBBBB070F043ACF7FB35FE3FD1081',
                             'A9A4B738CE26466C92B45A66DD8C2AFC',
                             '7B239105652B4EBDAB215C59B75A453B',
                             'AFE735F4ADA542ACA830EBC10D179FBE',
                             'D69135AB037140D880A4B0E725D15774')
-                            and page_type like 'ASSET_FOLDER' 
           THEN REPLACE(cm.ancestor_nodes, '|' ||
             TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)), '') ||
             cm.parent_node_id || '|' || cm.node_id || '|'
@@ -876,27 +865,27 @@ TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
         l4.title AS subtopic_folder,
         l5.title AS subsubtopic_folder,
     CASE
-        WHEN theme_folder IS NOT NULL
+        WHEN l1.title IS NOT NULL
             THEN level1_id
         ELSE NULL
     END AS themefolder_id,
     CASE
-        WHEN subtheme_folder IS NOT NULL
+        WHEN l2.title IS NOT NULL
             THEN level2_id
     ELSE NULL
   END AS subthemefolder_id,
   CASE
-        WHEN topic_folder IS NOT NULL
+        WHEN l3.title IS NOT NULL
             THEN level3_id
         ELSE NULL
   END AS topicfolder_id,
   CASE
-        WHEN subtopic_folder IS NOT NULL
+        WHEN l4.title IS NOT NULL
             THEN level4_id
         ELSE NULL
   END AS subtopicfolder_id,
   CASE
-        WHEN subsubtopic_folder IS NOT NULL
+        WHEN l5.title IS NOT NULL
             THEN level5_id
         ELSE NULL
   END AS subsubtopicfolder_id
@@ -912,20 +901,21 @@ FROM ids
     LEFT JOIN {dbschema}.metadata AS l5
       ON l5.node_id = ids.level5_id
     )
-    UPDATE {dbschema}.metadata as metadata
+    UPDATE {dbschema}.metadata
     SET themefolder_id = biglist.themefolder_id,
         subthemefolder_id = biglist.subthemefolder_id,
         topicfolder_id = biglist.topicfolder_id,
         subtopicfolder_id = biglist.subtopicfolder_id,
         subsubtopicfolder_id = biglist.subsubtopicfolder_id,
-        themefolder = biglist.themefolder,
+        theme_folder = biglist.theme_folder,
         subtheme_folder = biglist.subtheme_folder,
         topic_folder = biglist.topic_folder,
         subtopic_folder = biglist.subtopic_folder,
         subsubtopic_folder = biglist.subsubtopic_folder
     FROM biglist
     WHERE biglist.index = 1
-    AND metadata.node_id = biglist.node_id;    
+    AND metadata.node_id = biglist.node_id
+    and metadata.page_type like 'ASSET_FOLDER';    
 COMMIT;
     """.format(dbschema=dbschema)
 
