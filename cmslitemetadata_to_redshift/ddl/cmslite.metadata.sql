@@ -145,16 +145,16 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "publication_date"             TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "defined_security_groups"      VARCHAR(2047)               ENCODE LZO,
  "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO,
- "themefolder_id"               VARCHAR(255)                ENCODE ZSTD,
- "subthemefolder_id"            VARCHAR(255)                ENCODE ZSTD,
- "topicfolder_id"               VARCHAR(255)                ENCODE ZSTD,
- "subtopicfolder_id"            VARCHAR(255)                ENCODE ZSTD,
- "subsubtopicfolder_id"         VARCHAR(255)                ENCODE ZSTD,
- "theme_folder"                 VARCHAR(2047)               ENCODE ZSTD,
- "subtheme_folder"              VARCHAR(2047)               ENCODE ZSTD,
- "topic_folder"                 VARCHAR(2047)               ENCODE ZSTD,
- "subtopic_folder"              VARCHAR(2047)               ENCODE ZSTD,
- "subsubtopic_folder"           VARCHAR(2047)               ENCODE ZSTD
+ "asset_theme_id"               VARCHAR(255)                ENCODE ZSTD,
+ "asset_subtheme_id"            VARCHAR(255)                ENCODE ZSTD,
+ "asset_topic_id"               VARCHAR(255)                ENCODE ZSTD,
+ "asset_subtopic_id"            VARCHAR(255)                ENCODE ZSTD,
+ "asset_subsubtopic_id"         VARCHAR(255)                ENCODE ZSTD,
+ "asset_theme"                  VARCHAR(2047)               ENCODE ZSTD,
+ "asset_subtheme"               VARCHAR(2047)               ENCODE ZSTD,
+ "asset_topic"                  VARCHAR(2047)               ENCODE ZSTD,
+ "asset_subtopic"               VARCHAR(2047)               ENCODE ZSTD,
+ "asset_subsubtopic"            VARCHAR(2047)               ENCODE ZSTD
 )
 DISTSTYLE EVEN;
 

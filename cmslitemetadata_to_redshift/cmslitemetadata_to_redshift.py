@@ -859,36 +859,36 @@ TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
     biglist AS (SELECT
         ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
         ids.*,
-        l1.title AS theme_folder,
-        l2.title AS subtheme_folder,
-        l3.title AS topic_folder,
-        l4.title AS subtopic_folder,
-        l5.title AS subsubtopic_folder,
+        l1.title AS asset_theme,
+        l2.title AS asset_subtheme,
+        l3.title AS asset_topic,
+        l4.title AS asset_subtopic,
+        l5.title AS asset_subsubtopic,
     CASE
         WHEN l1.title IS NOT NULL
             THEN level1_id
         ELSE NULL
-    END AS themefolder_id,
+    END AS asset_theme_id,
     CASE
         WHEN l2.title IS NOT NULL
             THEN level2_id
     ELSE NULL
-  END AS subthemefolder_id,
+  END AS asset_subtheme_id,
   CASE
         WHEN l3.title IS NOT NULL
             THEN level3_id
         ELSE NULL
-  END AS topicfolder_id,
+  END AS asset_topic_id,
   CASE
         WHEN l4.title IS NOT NULL
             THEN level4_id
         ELSE NULL
-  END AS subtopicfolder_id,
+  END AS asset_subtopic_id,
   CASE
         WHEN l5.title IS NOT NULL
             THEN level5_id
         ELSE NULL
-  END AS subsubtopicfolder_id
+  END AS asset_subsubtopic_id
 FROM ids
     LEFT JOIN {dbschema}.metadata AS l1
       ON l1.node_id = ids.level1_id
@@ -902,16 +902,16 @@ FROM ids
       ON l5.node_id = ids.level5_id
     )
     UPDATE {dbschema}.metadata
-    SET themefolder_id = biglist.themefolder_id,
-        subthemefolder_id = biglist.subthemefolder_id,
-        topicfolder_id = biglist.topicfolder_id,
-        subtopicfolder_id = biglist.subtopicfolder_id,
-        subsubtopicfolder_id = biglist.subsubtopicfolder_id,
-        theme_folder = biglist.theme_folder,
-        subtheme_folder = biglist.subtheme_folder,
-        topic_folder = biglist.topic_folder,
-        subtopic_folder = biglist.subtopic_folder,
-        subsubtopic_folder = biglist.subsubtopic_folder
+    SET asset_theme_id = biglist.asset_theme_id,
+        asset_subtheme_id = biglist.asset_subtheme_id,
+        asset_topic_id = biglist.asset_topic_id,
+        asset_subtopic_id = biglist.asset_subtopic_id,
+        asset_subsubtopic_id = biglist.asset_subsubtopic_id,
+        asset_theme = biglist.asset_theme,
+        asset_subtheme = biglist.asset_subtheme,
+        asset_topic = biglist.asset_topic,
+        asset_subtopic = biglist.asset_subtopic,
+        asset_subsubtopic = biglist.asset_subsubtopic
     FROM biglist
     WHERE biglist.index = 1
     AND metadata.node_id = biglist.node_id
