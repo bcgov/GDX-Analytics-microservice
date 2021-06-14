@@ -775,23 +775,52 @@ UPDATE {dbschema}.metadata
     INNER JOIN {dbschema}.metadata as l2 ON l1.parent_node_id = l2.node_id 
     WHERE l1.parent_node_id in (select node_id from {dbschema}.metadata where page_type like 'ASSET_FOLDER');
 
--- Update IA for asset folders in metadata table
-WITH ids
+    DROP TABLE IF EXISTS {dbschema}.asset_themes;
+    CREATE TABLE IF NOT EXISTS {dbschema}.asset_themes (
+      "node_id"	       VARCHAR(255),
+      "title"		   VARCHAR(2047),
+      "hr_url"	       VARCHAR(2047),
+      "parent_node_id" VARCHAR(255),
+      "parent_title"   VARCHAR(2047),
+      "asset_theme_id"	   VARCHAR(255),
+      "asset_subtheme_id"	   VARCHAR(255),
+      "asset_topic_id"	   VARCHAR(255),
+      "asset_subtopic_id"	   VARCHAR(255),
+      "asset_subsubtopic_id" VARCHAR(255),
+      "asset_theme"		   VARCHAR(2047),
+      "asset_subtheme"	   VARCHAR(2047),
+      "asset_topic"		   VARCHAR(2047),
+      "asset_subtopic"	   VARCHAR(2047),
+      "asset_subsubtopic"	   VARCHAR(2047)
+    );
+    ALTER TABLE {dbschema}.asset_themes OWNER TO microservice;
+    GRANT SELECT ON {dbschema}.asset_themes TO looker;
+
+    INSERT INTO {dbschema}.asset_themes
+    WITH ids
     AS (SELECT cm.node_id,
       cm.title,
+      cm.hr_url,
       cm.parent_node_id,
       cm_parent.title AS parent_title,
       cm.ancestor_nodes,
       CASE
-        -- current folder is root folder
+        -- page is root: Gov, Intranet, ALC, MCFD or Training SITE
+        WHEN cm.node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
+                            'A9A4B738CE26466C92B45A66DD8C2AFC',
+                            '7B239105652B4EBDAB215C59B75A453B',
+                            'AFE735F4ADA542ACA830EBC10D179FBE',
+                            'D69135AB037140D880A4B0E725D15774')
+          THEN '||'
+        -- parent page is root: Gov, Intranet, ALC, MCFD or Training SITE
         WHEN cm.parent_node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
                             'A9A4B738CE26466C92B45A66DD8C2AFC',
                             '7B239105652B4EBDAB215C59B75A453B',
                             'AFE735F4ADA542ACA830EBC10D179FBE',
-                            'D69135AB037140D880A4B0E725D15774') 
-          THEN '||'
-         -- "first" folder is root folder
-         WHEN TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)) IN
+                            'D69135AB037140D880A4B0E725D15774')
+          THEN '|' || cm.node_id || '|'
+        -- "first" page is root: Gov, Intranet, ALC, MCFD or Training SITE
+        WHEN TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)) IN
                            ('CA4CBBBB070F043ACF7FB35FE3FD1081',
                             'A9A4B738CE26466C92B45A66DD8C2AFC',
                             '7B239105652B4EBDAB215C59B75A453B',
@@ -800,7 +829,12 @@ WITH ids
           THEN REPLACE(cm.ancestor_nodes, '|' ||
             TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)), '') ||
             cm.parent_node_id || '|' || cm.node_id || '|'
-         WHEN cm.ancestor_nodes = '||'
+        -- an exception for assets, push the parent node to level2 and
+        -- leave the node out of the hierarchy
+        WHEN cm.ancestor_nodes = '||' AND cm.page_type = 'ASSET'
+          THEN cm.ancestor_nodes || cm.parent_node_id
+        -- no ancestor nodes
+        WHEN cm.ancestor_nodes = '||'
           THEN '|' || cm.parent_node_id || '|' || cm.node_id || '|'
         ELSE cm.ancestor_nodes || cm.parent_node_id || '|' || cm.node_id || '|'
       END AS full_tree_nodes,
@@ -854,41 +888,44 @@ TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
         ELSE NULL
       END AS level5_id
     FROM {dbschema}.metadata AS cm
-     LEFT JOIN {dbschema}.metadata AS cm_parent
-       ON cm_parent.node_id = cm.parent_node_id),
-    biglist AS (SELECT
-        ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
-        ids.*,
-        l1.title AS asset_theme,
-        l2.title AS asset_subtheme,
-        l3.title AS asset_topic,
-        l4.title AS asset_subtopic,
-        l5.title AS asset_subsubtopic,
-    CASE
-        WHEN l1.title IS NOT NULL
-            THEN level1_id
-        ELSE NULL
-    END AS asset_theme_id,
-    CASE
-        WHEN l2.title IS NOT NULL
-            THEN level2_id
+      LEFT JOIN {dbschema}.metadata AS cm_parent
+        ON cm_parent.node_id = cm.parent_node_id
+    WHERE cm.page_type like 'ASSET_FOLDER),
+biglist
+  AS (SELECT
+    ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
+    ids.*,
+    CASE 
+    l1.title AS asset_theme,
+    l2.title AS asset_subtheme,
+    l3.title AS asset_topic,
+    l4.title AS asset_subtopic,
+    l5.title AS asset_subsubtopic,
+  CASE
+    WHEN asset_theme IS NOT NULL
+      THEN level1_ID
     ELSE NULL
-  END AS asset_subtheme_id,
+  END AS asset_theme_ID,
   CASE
-        WHEN l3.title IS NOT NULL
-            THEN level3_id
-        ELSE NULL
-  END AS asset_topic_id,
+    WHEN asset_subtheme IS NOT NULL
+      THEN level2_ID
+    ELSE NULL
+  END AS asset_subtheme_ID,
   CASE
-        WHEN l4.title IS NOT NULL
-            THEN level4_id
-        ELSE NULL
-  END AS asset_subtopic_id,
+    WHEN asset_topic IS NOT NULL
+      THEN level3_ID
+    ELSE NULL
+  END AS asset_topic_ID,
   CASE
-        WHEN l5.title IS NOT NULL
-            THEN level5_id
-        ELSE NULL
-  END AS asset_subsubtopic_id
+    WHEN asset_subtopic IS NOT NULL
+      THEN level4_ID
+    ELSE NULL
+  END AS asset_subtopic_ID,
+  CASE
+    WHEN asset_subsubtopic IS NOT NULL
+      THEN level5_ID
+    ELSE NULL
+  END AS asset_subsubtopic_ID
 FROM ids
     LEFT JOIN {dbschema}.metadata AS l1
       ON l1.node_id = ids.level1_id
@@ -900,23 +937,25 @@ FROM ids
       ON l4.node_id = ids.level4_id
     LEFT JOIN {dbschema}.metadata AS l5
       ON l5.node_id = ids.level5_id
-    )
-    UPDATE {dbschema}.metadata
-    SET asset_theme_id = biglist.asset_theme_id,
-        asset_subtheme_id = biglist.asset_subtheme_id,
-        asset_topic_id = biglist.asset_topic_id,
-        asset_subtopic_id = biglist.asset_subtopic_id,
-        asset_subsubtopic_id = biglist.asset_subsubtopic_id,
-        asset_theme = biglist.asset_theme,
-        asset_subtheme = biglist.asset_subtheme,
-        asset_topic = biglist.asset_topic,
-        asset_subtopic = biglist.asset_subtopic,
-        asset_subsubtopic = biglist.asset_subsubtopic
-    FROM biglist
-    WHERE biglist.index = 1
-    AND metadata.node_id = biglist.node_id
-    and metadata.page_type like 'ASSET_FOLDER';    
-COMMIT;
+)
+SELECT node_id,
+       title,
+       hr_url,
+       parent_node_id,
+       parent_title,
+       asset_theme_id,
+       asset_subtheme_id,
+       asset_topic_id,
+       asset_subtopic_id,
+       asset_subsubtopic_id,
+       asset_theme,
+       asset_subtheme,
+       asset_topic,
+       asset_subtopic,
+       asset_subsubtopic
+FROM biglist
+WHERE index = 1;
+
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
