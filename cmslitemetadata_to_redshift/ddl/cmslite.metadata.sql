@@ -144,17 +144,7 @@ CREATE TABLE IF NOT EXISTS  cmslite.metadata (
  "security_label"               VARCHAR(255)                ENCODE LZO,
  "publication_date"             TIMESTAMP WITHOUT TIME ZONE ENCODE AZ64,
  "defined_security_groups"      VARCHAR(2047)               ENCODE LZO,
- "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO,
- "asset_theme_id"               VARCHAR(255)                ENCODE ZSTD,
- "asset_subtheme_id"            VARCHAR(255)                ENCODE ZSTD,
- "asset_topic_id"               VARCHAR(255)                ENCODE ZSTD,
- "asset_subtopic_id"            VARCHAR(255)                ENCODE ZSTD,
- "asset_subsubtopic_id"         VARCHAR(255)                ENCODE ZSTD,
- "asset_theme"                  VARCHAR(2047)               ENCODE ZSTD,
- "asset_subtheme"               VARCHAR(2047)               ENCODE ZSTD,
- "asset_topic"                  VARCHAR(2047)               ENCODE ZSTD,
- "asset_subtopic"               VARCHAR(2047)               ENCODE ZSTD,
- "asset_subsubtopic"            VARCHAR(2047)               ENCODE ZSTD
+ "inherited_security_groups"    VARCHAR(1023)               ENCODE LZO
 )
 DISTSTYLE EVEN;
 
