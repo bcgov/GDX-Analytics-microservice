@@ -895,7 +895,6 @@ biglist
   AS (SELECT
     ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
     ids.*,
-    CASE 
     l1.title AS asset_theme,
     l2.title AS asset_subtheme,
     l3.title AS asset_topic,
