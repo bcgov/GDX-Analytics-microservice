@@ -44,17 +44,7 @@
     "security_label",
     "publication_date",
     "defined_security_groups",
-    "inherited_security_groups",
-    "asset_theme_id",
-    "asset_subtheme_id",
-    "asset_topic_id",
-    "asset_subtopic_id",
-    "asset_subsubtopic_id",
-    "asset_theme",
-    "asset_subtheme",
-    "asset_topic",
-    "asset_subtopic" ,
-    "asset_subsubtopic"
+    "inherited_security_groups"
   ],
   "columns_lookup": [
     "content_types",
