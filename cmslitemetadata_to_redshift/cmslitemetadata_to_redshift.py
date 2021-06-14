@@ -890,7 +890,7 @@ TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
     FROM {dbschema}.metadata AS cm
       LEFT JOIN {dbschema}.metadata AS cm_parent
         ON cm_parent.node_id = cm.parent_node_id
-    WHERE cm.page_type like 'ASSET_FOLDER),
+    WHERE cm.page_type like 'ASSET_FOLDER'),
 biglist
   AS (SELECT
     ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
