@@ -73,9 +73,15 @@ with psycopg2.connect(conn_string) as conn:
             logger.exception((
                 'Error: failed to execute the transaction '
                 'to prepare the google_mybusiness_servicebc_derived PDT'))
+            print(
+                'Error: failed to execute the transaction '
+                'to prepare the google_mybusiness_servicebc_derived PDT')
             sys.exit(1)
         else:
             logger.info((
                 'Success: executed the transaction '
                 'to prepare the google_mybusiness_servicebc_derived PDT'))
+            print(
+                'Success: executed the transaction '
+                'to prepare the google_mybusiness_servicebc_derived PDT')
             sys.exit(0)
