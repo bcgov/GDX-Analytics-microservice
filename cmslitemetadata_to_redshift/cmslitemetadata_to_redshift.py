@@ -805,7 +805,15 @@ UPDATE {dbschema}.metadata
       cm.hr_url,
       cm.parent_node_id,
       cm_parent.title AS parent_title,
-      cm.ancestor_nodes,
+      CASE 
+        WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes LIKE '||' 
+            THEN '|' || cm_parent.parent_node_id || '|'
+        WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes LIKE ''
+            THEN cm_parent.ancestor_nodes || cm_parent.parent_node_id || '|'
+         WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes NOT LIKE '' AND cm_parent.ancestor_nodes NOT LIKE '||'
+            THEN cm_parent.ancestor_nodes || cm_parent.parent_node_id || '|'
+        ELSE cm.ancestor_nodes
+      END AS ancestor_folders,
       CASE
         -- page is root: Gov, Intranet, ALC, MCFD or Training SITE
         WHEN cm.node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
@@ -822,23 +830,18 @@ UPDATE {dbschema}.metadata
                             'D69135AB037140D880A4B0E725D15774')
           THEN '|' || cm.node_id || '|'
         -- "first" page is root: Gov, Intranet, ALC, MCFD or Training SITE
-        WHEN TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)) IN
+        WHEN TRIM(SPLIT_PART(ancestor_folders, '|', 2)) IN
                            ('CA4CBBBB070F043ACF7FB35FE3FD1081',
                             'A9A4B738CE26466C92B45A66DD8C2AFC',
                             '7B239105652B4EBDAB215C59B75A453B',
                             'AFE735F4ADA542ACA830EBC10D179FBE',
                             'D69135AB037140D880A4B0E725D15774')
-          THEN REPLACE(cm.ancestor_nodes, '|' ||
-            TRIM(SPLIT_PART(cm.ancestor_nodes, '|', 2)), '') ||
+          THEN REPLACE(ancestor_folders, '|' ||
+            TRIM(SPLIT_PART(ancestor_folders, '|', 2)), '') ||
             cm.parent_node_id || '|' || cm.node_id || '|'
-        -- an exception for assets, push the parent node to level2 and
-        -- leave the node out of the hierarchy
-        WHEN cm.ancestor_nodes = '||' AND cm.page_type = 'ASSET'
-          THEN cm.ancestor_nodes || cm.parent_node_id
-        -- no ancestor nodes
-        WHEN cm.ancestor_nodes = '||'
+        WHEN ancestor_folders = '||' 
           THEN '|' || cm.parent_node_id || '|' || cm.node_id || '|'
-        ELSE cm.ancestor_nodes || cm.parent_node_id || '|' || cm.node_id || '|'
+        ELSE ancestor_folders || cm.parent_node_id || '|'
       END AS full_tree_nodes,
       -- The first SPLIT_PART of full_tree_nodes is always blank as the
       -- string has '|' on each end
