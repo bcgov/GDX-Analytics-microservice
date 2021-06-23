@@ -7,7 +7,7 @@ The GDX Analytics microservice repository is the working space for the suite of 
 
 ## Features
 
-This repository has been structured to support packaging and distrubution. Pipenv is required as a dependency manager, and Python 3.7 to build the virtual environments. Each microservice script is stored in a subdirectory, and each subdirectory contains a README files detailing how to run the microservice. A folder named `lib` provides shared component modules. Under each microservice, `lib` gets installed into the Pipenv as an editable package, and then is imported by its relative path.
+This repository has been structured to support packaging and distrubution. Pipenv is required as a dependency manager, and Python 3.7 to build the virtual environments. Each microservice script is stored in a subdirectory, and each subdirectory contains a README file detailing how to run the microservice. A folder named `lib` provides shared component modules. Under each microservice, `lib` gets installed into the Pipenv as an editable package, and then is imported by its relative path.
 
 ## Project Status
 
