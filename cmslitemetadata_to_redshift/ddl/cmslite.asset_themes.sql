@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS cmslite.themes (
+CREATE TABLE IF NOT EXISTS cmslite.asset_themes (
 	"node_id"	VARCHAR(255),
 	"title"		VARCHAR(2047),
 	"hr_url"	VARCHAR(2047),
@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS cmslite.themes (
 	"asset_subtopic"	VARCHAR(2047),
 	"asset_subsubtopic"	VARCHAR(2047)
 );      
-ALTER TABLE cmslite.themes OWNER TO microservice;
-GRANT SELECT ON cmslite.themes TO looker;
+ALTER TABLE cmslite.asset_themes OWNER TO microservice;
+GRANT SELECT ON cmslite.asseat_themes TO looker;
