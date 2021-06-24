@@ -674,7 +674,9 @@ TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
       END AS level5_id
     FROM {dbschema}.metadata AS cm
       LEFT JOIN {dbschema}.metadata AS cm_parent
-        ON cm_parent.node_id = cm.parent_node_id),
+        ON cm_parent.node_id = cm.parent_node_id
+        WHERE cm.page_type NOT LIKE 'ASSET_FOLDER'
+        AND cm.page_type NOT LIKE 'ASSET'),
 biglist
   AS (SELECT
     ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
@@ -774,7 +776,191 @@ UPDATE {dbschema}.metadata
     FROM {dbschema}.metadata as l1 
     INNER JOIN {dbschema}.metadata as l2 ON l1.parent_node_id = l2.node_id 
     WHERE l1.parent_node_id in (select node_id from {dbschema}.metadata where page_type like 'ASSET_FOLDER');
-COMMIT;
+
+    DROP TABLE IF EXISTS {dbschema}.asset_themes;
+    CREATE TABLE IF NOT EXISTS {dbschema}.asset_themes (
+      "node_id"	       VARCHAR(255),
+      "title"		   VARCHAR(2047),
+      "hr_url"	       VARCHAR(2047),
+      "parent_node_id" VARCHAR(255),
+      "parent_title"   VARCHAR(2047),
+      "asset_theme_id"	   VARCHAR(255),
+      "asset_subtheme_id"	   VARCHAR(255),
+      "asset_topic_id"	   VARCHAR(255),
+      "asset_subtopic_id"	   VARCHAR(255),
+      "asset_subsubtopic_id" VARCHAR(255),
+      "asset_theme"		   VARCHAR(2047),
+      "asset_subtheme"	   VARCHAR(2047),
+      "asset_topic"		   VARCHAR(2047),
+      "asset_subtopic"	   VARCHAR(2047),
+      "asset_subsubtopic"	   VARCHAR(2047)
+    );
+    ALTER TABLE {dbschema}.asset_themes OWNER TO microservice;
+    GRANT SELECT ON {dbschema}.asset_themes TO looker;
+
+    INSERT INTO {dbschema}.asset_themes
+    WITH ids
+    AS (SELECT cm.node_id,
+      cm.title,
+      cm.hr_url,
+      cm.parent_node_id,
+      cm_parent.title AS parent_title,
+      CASE 
+        WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes LIKE '||' 
+            THEN '|' || cm_parent.parent_node_id || '|'
+        WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes LIKE ''
+            THEN cm_parent.ancestor_nodes || cm_parent.parent_node_id || '|'
+         WHEN cm.page_type LIKE 'ASSET' AND cm_parent.ancestor_nodes NOT LIKE '' AND cm_parent.ancestor_nodes NOT LIKE '||'
+            THEN cm_parent.ancestor_nodes || cm_parent.parent_node_id || '|'
+        ELSE cm.ancestor_nodes
+      END AS ancestor_folders,
+      CASE
+        -- page is root: Gov, Intranet, ALC, MCFD or Training SITE
+        WHEN cm.node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
+                            'A9A4B738CE26466C92B45A66DD8C2AFC',
+                            '7B239105652B4EBDAB215C59B75A453B',
+                            'AFE735F4ADA542ACA830EBC10D179FBE',
+                            'D69135AB037140D880A4B0E725D15774')
+          THEN '||'
+        -- parent page is root: Gov, Intranet, ALC, MCFD or Training SITE
+        WHEN cm.parent_node_id IN ('CA4CBBBB070F043ACF7FB35FE3FD1081',
+                            'A9A4B738CE26466C92B45A66DD8C2AFC',
+                            '7B239105652B4EBDAB215C59B75A453B',
+                            'AFE735F4ADA542ACA830EBC10D179FBE',
+                            'D69135AB037140D880A4B0E725D15774')
+          THEN '|' || cm.node_id || '|'
+        -- "first" page is root: Gov, Intranet, ALC, MCFD or Training SITE
+        WHEN TRIM(SPLIT_PART(ancestor_folders, '|', 2)) IN
+                           ('CA4CBBBB070F043ACF7FB35FE3FD1081',
+                            'A9A4B738CE26466C92B45A66DD8C2AFC',
+                            '7B239105652B4EBDAB215C59B75A453B',
+                            'AFE735F4ADA542ACA830EBC10D179FBE',
+                            'D69135AB037140D880A4B0E725D15774')
+          THEN REPLACE(ancestor_folders, '|' ||
+            TRIM(SPLIT_PART(ancestor_folders, '|', 2)), '') ||
+            cm.parent_node_id || '|' || cm.node_id || '|'
+        WHEN ancestor_folders = '||' 
+          THEN '|' || cm.parent_node_id || '|' || cm.node_id || '|'
+        ELSE ancestor_folders || cm.parent_node_id || '|'
+      END AS full_tree_nodes,
+      -- The first SPLIT_PART of full_tree_nodes is always blank as the
+      -- string has '|' on each end
+      CASE
+        WHEN TRIM(SPLIT_PART(full_tree_nodes, '|', 2)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 2))
+        ELSE NULL
+      END AS level1_id,
+      CASE
+        WHEN TRIM(SPLIT_PART(full_tree_nodes, '|', 3)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 3))
+        ELSE NULL
+      END AS level2_id,
+      --  exception for Service BC pages:
+      -- "promote" FD6DB5BA2A5248038EEF54D9F9F37C4D as a topic and
+      -- raise up its children as sub-topics
+      CASE
+        WHEN TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) =
+          'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+          THEN 'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+        WHEN TRIM(SPLIT_PART(full_tree_nodes, '|', 4)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 4))
+        ELSE NULL
+      END AS level3_id,
+      CASE
+        WHEN
+TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) =
+'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+          AND TRIM(SPLIT_PART(full_tree_nodes, '|', 8)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 8))
+        WHEN
+TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
+'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+          AND TRIM(SPLIT_PART(full_tree_nodes, '|', 5)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 5))
+        ELSE NULL
+      END AS level4_id,
+      CASE
+        WHEN
+TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) =
+'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+          AND TRIM(SPLIT_PART(full_tree_nodes, '|', 9)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 9))
+        WHEN
+TRIM(SPLIT_PART(full_tree_nodes, '|', 7)) <>
+'FD6DB5BA2A5248038EEF54D9F9F37C4D'
+          AND TRIM(SPLIT_PART(full_tree_nodes, '|', 6)) <> ''
+          THEN TRIM(SPLIT_PART(full_tree_nodes, '|', 6))
+        ELSE NULL
+      END AS level5_id
+    FROM {dbschema}.metadata AS cm
+      LEFT JOIN {dbschema}.metadata AS cm_parent
+        ON cm_parent.node_id = cm.parent_node_id
+    WHERE cm.page_type like 'ASSET_FOLDER'
+    OR cm.page_type LIKE 'ASSET'),
+biglist
+  AS (SELECT
+    ROW_NUMBER () OVER ( PARTITION BY ids.node_id ) AS index,
+    ids.*,
+    l1.title AS asset_theme,
+    l2.title AS asset_subtheme,
+    l3.title AS asset_topic,
+    l4.title AS asset_subtopic,
+    l5.title AS asset_subsubtopic,
+  CASE
+    WHEN asset_theme IS NOT NULL
+      THEN level1_ID
+    ELSE NULL
+  END AS asset_theme_ID,
+  CASE
+    WHEN asset_subtheme IS NOT NULL
+      THEN level2_ID
+    ELSE NULL
+  END AS asset_subtheme_ID,
+  CASE
+    WHEN asset_topic IS NOT NULL
+      THEN level3_ID
+    ELSE NULL
+  END AS asset_topic_ID,
+  CASE
+    WHEN asset_subtopic IS NOT NULL
+      THEN level4_ID
+    ELSE NULL
+  END AS asset_subtopic_ID,
+  CASE
+    WHEN asset_subsubtopic IS NOT NULL
+      THEN level5_ID
+    ELSE NULL
+  END AS asset_subsubtopic_ID
+FROM ids
+    LEFT JOIN {dbschema}.metadata AS l1
+      ON l1.node_id = ids.level1_id
+    LEFT JOIN {dbschema}.metadata AS l2
+      ON l2.node_id = ids.level2_id
+    LEFT JOIN {dbschema}.metadata AS l3
+      ON l3.node_id = ids.level3_id
+    LEFT JOIN {dbschema}.metadata AS l4
+      ON l4.node_id = ids.level4_id
+    LEFT JOIN {dbschema}.metadata AS l5
+      ON l5.node_id = ids.level5_id
+)
+SELECT node_id,
+       title,
+       hr_url,
+       parent_node_id,
+       parent_title,
+       asset_theme_id,
+       asset_subtheme_id,
+       asset_topic_id,
+       asset_subtopic_id,
+       asset_subsubtopic_id,
+       asset_theme,
+       asset_subtheme,
+       asset_topic,
+       asset_subtopic,
+       asset_subsubtopic
+FROM biglist
+WHERE index = 1;
+
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
