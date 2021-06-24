@@ -16,4 +16,4 @@ CREATE TABLE IF NOT EXISTS cmslite.asset_themes (
 	"asset_subsubtopic"	VARCHAR(2047)
 );      
 ALTER TABLE cmslite.asset_themes OWNER TO microservice;
-GRANT SELECT ON cmslite.asseat_themes TO looker;
+GRANT SELECT ON cmslite.asset_themes TO looker;
