@@ -120,6 +120,14 @@
     {
       "name": "https://bcparks.ca/",
       "start_date_default": "2021-06-15"
+    },
+    {
+      "name": "https://tickets.gov.bc.ca/",
+      "start_date_default": "2021-07-04"
+    },
+    {
+      "name": "https://violationtickets.gov.bc.ca/",
+      "start_date_default": "2021-07-04"
     }
   ]
 }
