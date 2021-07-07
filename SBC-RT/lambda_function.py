@@ -18,7 +18,7 @@ REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
 REDSHIFT_ENDPOINT = os.environ['REDSHIFT_ENDPOINT']
 
 with open('./serviceBCOfficeList.json') as json_file:
-    serviceCenters = json.load(json_file)
+    service_centers = json.load(json_file)
 
 
 def lambda_handler(event, context):
@@ -32,8 +32,8 @@ def lambda_handler(event, context):
         if 'id' in event['queryStringParameters']:
             office_ids = event['queryStringParameters']['id'].split(",")
     else:
-        for serviceCenter in serviceCenters:
-            office_ids.append(serviceCenter['cfms_poc.office_id'])
+        for service_center in service_centers:
+            office_ids.append(service_center['cfms_poc.office_id'])
     
     
     rs_query = "SELECT office_id, time_per AS time FROM servicebc.servetime;"
@@ -121,11 +121,11 @@ def query_elasticsearch_realtime(office_ids):
             Q('range', derived_tstamp={'lt': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
-            s = Search(using=client, index=index).filter(params)
+            add_citizen_search_result = Search(using=client, index=index).filter(params)
         except Exception as e:
             print(e)
     
-        addCitizenCount = s.count()
+        add_citizen_count = add_citizen_search_result.count()
     
         # Query for number of customerleft events.
         params = Q('term', app_id='TheQ') & \
@@ -136,10 +136,10 @@ def query_elasticsearch_realtime(office_ids):
             Q('range', derived_tstamp={'lt': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
-            s = Search(using=client, index=index).filter(params)
+            customer_left_search_result = Search(using=client, index=index).filter(params)
         except Exception as e:
             print(e)
-        customerLeft = s.count()
+        customer_left_count = customer_left_search_result.count()
     
         # Query for number of finish events.
         params = Q('term', app_id='TheQ') & \
@@ -150,12 +150,12 @@ def query_elasticsearch_realtime(office_ids):
             Q('range', derived_tstamp={'lt': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
-            s = Search(using=client, index=index).filter(params)
+            finish_events_search_result = Search(using=client, index=index).filter(params)
         except Exception as e:
             print(e)
-        finish = s.count()
+        finish_events_count = finish_events_search_result.count()
 
-        anchordate = datetime.datetime.now() - timedelta(hours=1)
+        now_minus_1_hour = datetime.datetime.now() - timedelta(hours=1)
         
         # Query for all front-office events in the last hour
         params = Q('term', app_id='TheQ') & \
@@ -163,15 +163,15 @@ def query_elasticsearch_realtime(office_ids):
                          id}) & \
             ~Q('term', **{'unstruct_event_ca_bc_gov_cfmspoc_chooseservice_3.program_name':'back-office'}) & \
             ~Q('term', **{'unstruct_event_ca_bc_gov_cfmspoc_chooseservice_3.channel':'Back Office'}) & \
-            Q('range', derived_tstamp={'gte': anchordate}) & \
+            Q('range', derived_tstamp={'gte': now_minus_1_hour}) & \
             Q('range', derived_tstamp={'lt': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
-            s = Search(using=client, index=index).filter(params)
+            events_search_result = Search(using=client, index=index).filter(params)
         except Exception as e:
             print(e)
     
-        events = s.execute()
+        events = events_search_result.execute()
         agent_list = []
         for event in events:
             # pull out any agent id that appears in the result set from the last hour
@@ -180,7 +180,7 @@ def query_elasticsearch_realtime(office_ids):
         
         
          # Calculate the current number of citizens in this office line
-        line_size = addCitizenCount - (customerLeft + finish)
+        line_size = add_citizen_count - (customer_left_count + finish_events_count)
 
         office_result = {
             "office_id": id,
