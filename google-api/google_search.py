@@ -563,8 +563,8 @@ query = """
 -- perform this as a transaction.
 -- Either the whole query completes, or it leaves the old table intact
 BEGIN;
-DROP TABLE IF EXISTS cmslite.google_pdt_gdxdsd2696;
-CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
+DROP TABLE IF EXISTS cmslite.google_pdt;
+CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         site              VARCHAR(255)    ENCODE ZSTD,
         date              date            ENCODE AZ64,
         query             VARCHAR(2048)   ENCODE ZSTD,
@@ -590,10 +590,10 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt_gdxdsd2696 (
         subsubtopic       VARCHAR(2047)   ENCODE ZSTD)
         COMPOUND SORTKEY (date,page_urlhost,theme,page,clicks);
 
-ALTER TABLE cmslite.google_pdt_gdxdsd2696 OWNER TO microservice;
-GRANT SELECT ON cmslite.google_pdt_gdxdsd2696 TO looker;
+ALTER TABLE cmslite.google_pdt OWNER TO microservice;
+GRANT SELECT ON cmslite.google_pdt TO looker;
 
-INSERT INTO test.google_pdt_gdxdsd2696
+INSERT INTO test.google_pdt
 SELECT gs.*,
        COALESCE(themes.node_id, '') AS node_id,
        SPLIT_PART(gs.page, '/', 3)  AS page_urlhost,
@@ -609,7 +609,7 @@ SELECT gs.*,
        subtopic,
        subsubtopic
 FROM   google.googlesearch AS gs
-       LEFT JOIN google.google_sites_gdxdsd2696 r
+       LEFT JOIN google.google_sites r
               ON gs.site = r.ref_site
        -- fix for misreporting of redirected front page URL in Google search
        LEFT JOIN cmslite.themes AS themes
@@ -628,7 +628,7 @@ WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
 	    OR ( gs.site = 'sc-domain:gov.bc.ca'
              AND r.sc_domain = 'f'
              AND page_urlhost NOT IN (SELECT sc_urlhost
-                                      FROM   google.google_sites_gdxdsd2696
+                                      FROM   google.google_sites
                                       WHERE  sc_urlhost IS NOT NULL) )
         OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
 
