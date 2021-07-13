@@ -296,6 +296,7 @@ query = r'''
         OR (request_string LIKE '%TradeBCPortal/media%'
             AND asset_source LIKE 'TIBC')
     );
+    TRUNCATE {schema_name}.asset_downloads;
     COMMIT;
 '''.format(schema_name=schema_name,
            asset_host=asset_host,
