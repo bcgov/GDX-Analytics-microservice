@@ -101,7 +101,8 @@ def pmrp_qdata_dates():
         "((cfms_poc.welcome_time >= (TIMESTAMP " + "''" + date + "''" + ")) AND "
         "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP " + "''" + date + "''" + "))))) OR ")
     last_or_index = query.rfind("OR")
-    query_string = query[:last_or_index] + "" + query[last_or_index+3:]
+    query_string = query[:last_or_index]
+    print(query_string)
     return query_string
 
 
@@ -226,7 +227,9 @@ if 'start_date' in config and 'end_date' in config:
 elif 'date_list' in config:
     # set dates requested in date_list
     date_key = "_".join(dates)
-    object_key = object_key_builder(object_prefix, date_key)
+    temp_key = object_key_builder(object_prefix, date_key)
+    # restrict object name length
+    object_key = temp_key[:255] if len(temp_key) > 255 else temp_key
 
 else:
     object_key = object_key_builder(object_prefix)
