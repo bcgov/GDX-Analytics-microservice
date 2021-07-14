@@ -101,7 +101,10 @@ asset_host = data['asset_host']
 asset_source = data['asset_source']
 asset_scheme_and_authority = data['asset_scheme_and_authority']
 dbtable = data['dbtable']
-
+truncate = data['truncate']
+truncate_intermediate_table = ''
+if (truncate):
+    truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
 conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
@@ -296,11 +299,13 @@ query = r'''
         OR (request_string LIKE '%TradeBCPortal/media%'
             AND asset_source LIKE 'TIBC')
     );
+    {truncate_intermediate_table}
     COMMIT;
 '''.format(schema_name=schema_name,
            asset_host=asset_host,
            asset_source=asset_source,
-           asset_scheme_and_authority=asset_scheme_and_authority)
+           asset_scheme_and_authority=asset_scheme_and_authority,
+           truncate_intermediate_table=truncate_intermediate_table)
 
 # Reporting variables
 report_stats = {
@@ -321,9 +326,8 @@ if spdb.query(query):
     report_stats['good_list'].append(table_name)
 else:
     report_stats['failed'] += 1
-    report_stats['bad'] += 1
     report_stats['bad_list'].append(table_name)
-    report_stats['incomplete_list'].remove(table_name)
+    report_stats['incomplete_list'].append(table_name)
     clean_exit(1, f'Query failed to load {table_name}, '
                'no further processing.')
 spdb.close_connection()
