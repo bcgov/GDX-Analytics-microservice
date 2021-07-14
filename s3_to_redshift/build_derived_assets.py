@@ -299,7 +299,7 @@ query = r'''
         OR (request_string LIKE '%TradeBCPortal/media%'
             AND asset_source LIKE 'TIBC')
     );
-    '{truncate_intermediate_table}'
+    {truncate_intermediate_table}
     COMMIT;
 '''.format(schema_name=schema_name,
            asset_host=asset_host,
