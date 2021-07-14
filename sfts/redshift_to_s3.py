@@ -76,6 +76,8 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
+if 'date_list' in config:
+    dates = config['date_list']
 
 def raise_(ex):
     '''to raise generic exceptions'''
@@ -84,10 +86,24 @@ def raise_(ex):
 
 # returns the pmrp_date_range SQL statement to return a BETWEEN clause on date
 def pmrp_date_range():
-    '''geneate a SQL DML sting for a date type BETWEEN clause'''
+    '''generate a SQL DML string for a date type BETWEEN clause'''
     between = "''{}'' AND ''{}''".format(start_date, end_date)
     logger.info('date clause will be between %s', between)
     return between
+
+
+def pmrp_qdata_dates():
+    '''generate a SQL DML string for a date list'''
+    date_list = ''
+    query = ''
+    for date in dates:
+        query += date_list.join(
+        "((cfms_poc.welcome_time >= (TIMESTAMP " + "''" + date + "''" + ")) AND "
+        "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP " + "''" + date + "''" + "))))) OR ")
+    last_or_index = query.rfind("OR")
+    query_string = query[:last_or_index]
+    print(query_string)
+    return query_string
 
 
 # IMPORTANT
@@ -97,6 +113,7 @@ def pmrp_date_range():
 # a function name which will return the value for that keyword when called.
 SQLPARSE = {
     'pmrp_date_range': pmrp_date_range,
+    'pmrp_qdata_dates': pmrp_qdata_dates,
     }
 
 
@@ -206,6 +223,14 @@ if 'start_date' in config and 'end_date' in config:
                    'than end_date: {end_date}.')
 
     object_key = object_key_builder(object_prefix,start_date,end_date)
+
+elif 'date_list' in config:
+    # set dates requested in date_list
+    date_key = "_".join(dates)
+    temp_key = object_key_builder(object_prefix, date_key)
+    # restrict object name length
+    object_key = temp_key[:255] if len(temp_key) > 255 else temp_key
+
 else:
     object_key = object_key_builder(object_prefix)
 
