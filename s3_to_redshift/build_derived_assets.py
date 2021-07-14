@@ -103,7 +103,7 @@ asset_scheme_and_authority = data['asset_scheme_and_authority']
 dbtable = data['dbtable']
 truncate = data['truncate']
 truncate_intermediate_table = ''
-if not (truncate):
+if (truncate):
     truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
 conn_string = """
