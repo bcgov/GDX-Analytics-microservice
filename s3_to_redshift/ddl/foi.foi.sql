@@ -40,3 +40,4 @@ CREATE TABLE IF NOT EXISTS foi.foi
  )
  DISTSTYLE EVEN;
  ALTER TABLE foi.foi owner to microservice;
+ GRANT SELECT ON foi.foi TO "looker";
