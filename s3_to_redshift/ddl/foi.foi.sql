@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS foi.foi
          "extension" VARCHAR(255)   ENCODE zstd,
          "exec_cmts" VARCHAR(255)   ENCODE zstd,
          "no_pages_delivered" INTEGER   ENCODE zstd,
-	     "no_pages_in_request" INTEGER   ENCODE zstd,
+	 "no_pages_in_request" INTEGER   ENCODE zstd,
          "start_fyr" VARCHAR(255)   ENCODE zstd,
          "end_fyr" VARCHAR(255)   ENCODE zstd,
          "start_fqtr" VARCHAR(255)   ENCODE zstd,
