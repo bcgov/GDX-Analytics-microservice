@@ -593,7 +593,7 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
 ALTER TABLE cmslite.google_pdt OWNER TO microservice;
 GRANT SELECT ON cmslite.google_pdt TO looker;
 
-INSERT INTO test.google_pdt
+INSERT INTO cmslite.google_pdt
 SELECT gs.*,
        COALESCE(themes.node_id, '') AS node_id,
        SPLIT_PART(gs.page, '/', 3)  AS page_urlhost,
@@ -624,8 +624,8 @@ WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
              AND page_urlhost = r.sc_urlhost
              AND overlap = 't'
              AND gs.DATE :: DATE < r.start_date :: DATE )
-	    -- All other sc-domain data, excluding sites collected directly
-	    OR ( gs.site = 'sc-domain:gov.bc.ca'
+	-- All other sc-domain data, excluding sites collected directly
+	OR ( gs.site = 'sc-domain:gov.bc.ca'
              AND r.sc_domain = 'f'
              AND page_urlhost NOT IN (SELECT sc_urlhost
                                       FROM   google.google_sites
