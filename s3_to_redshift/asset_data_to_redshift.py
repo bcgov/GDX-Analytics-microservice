@@ -404,6 +404,8 @@ for object_summary in objects_to_process:
             report(report_stats)
             clean_exit(1, f'Bad file {object_summary.key} in objects to '
                        'process, no further processing.')
+    else:
+        report_stats['processed'] += 1
 
     # Check for an empty file. If it's empty, accept it as bad and skip
     # to the next object to process
@@ -534,6 +536,7 @@ COMMIT;
     spdb = RedShift.snowplow(batchfile)
     if spdb.query(query):
         outfile = goodfile
+        report_stats['loaded'] += 1
     else:
         outfile = badfile
     spdb.close_connection()

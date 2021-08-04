@@ -69,7 +69,7 @@ def report(data):
     # if no objects were processed; do not print a report
     if data["objects"] == 0:
         return
-    print(f'Report {__file__}:')
+    print(f'\nReport {__file__}:')
     print(f'\nConfig: {configfile}')
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
@@ -94,7 +94,7 @@ def report(data):
     if data['incomplete_list']:
         print('\nList of tables that were not processed due to early exit:')
         [print(table) for table in data['incomplete_list']]
-
+    print(f'\n-----------------\n')
 
 schema_name = data['schema_name']
 asset_host = data['asset_host']
