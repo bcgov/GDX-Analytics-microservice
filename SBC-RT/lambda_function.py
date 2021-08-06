@@ -121,7 +121,8 @@ def query_elasticsearch_realtime(office_ids):
             Q('term', **{'contexts_ca_bc_gov_cfmspoc_office_1.office_id':
                          id}) & \
             Q('range', derived_tstamp={'gte': anchordate}) & \
-            Q('range', derived_tstamp={'lte': "now"})
+            Q('range', derived_tstamp={'lte': "now"}) & \
+            Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             add_citizen_search_result = Search(using=client, index=index).filter(params)
         except Exception as e:
@@ -149,7 +150,7 @@ def query_elasticsearch_realtime(office_ids):
             Q('term', **{'contexts_ca_bc_gov_cfmspoc_office_1.office_id':
                          id}) & \
             Q('range', derived_tstamp={'gte': anchordate}) & \
-            Q('range', derived_tstamp={'lt': "now"}) & \
+            Q('range', derived_tstamp={'lte': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             finish_events_search_result = Search(using=client, index=index).filter(params)
