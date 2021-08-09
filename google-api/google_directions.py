@@ -361,8 +361,8 @@ for account in validated_accounts:
     label_lookup = {
         i['name']: {
             'locationName': i['locationName'],
-            'locality': i['address']['locality'],
-            'postalCode': i['address']['postalCode']
+            'locality': i.get('address', {}).get('locality'),
+            'postalCode': i.get('address', {}).get('postalCode')
             } for i in locations['locations']}
 
     # batched_location_names is a list of lists
