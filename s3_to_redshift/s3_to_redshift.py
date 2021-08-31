@@ -446,7 +446,28 @@ for object_summary in objects_to_process:
     # ensure ints on columns defined as such
     if 'dtype_dic_ints' in data:
         for thisfield in data['dtype_dic_ints']:
-            df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
+            try:
+                df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
+            except TypeError:
+                logger.exception('column %s cannot be cast as Integer type ',
+                                 df[thisfield])
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary)
+                logger.warning('Keying to badfile and proceeding.')
+                outfile = badfile
+                try:
+                    client.copy_object(
+                        Bucket=f"{bucket}",
+                        CopySource=f"{bucket}/{object_summary.key}",
+                        Key=outfile)
+                except ClientError:
+                    logger.exception("S3 transfer failed")
+                report(report_stats)
+                clean_exit(
+                    1,f'Bad file {object_summary.key} in objects to process, '
+                    'no further processing.')
 
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
