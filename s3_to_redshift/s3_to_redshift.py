@@ -443,14 +443,14 @@ for object_summary in objects_to_process:
                 pd.to_datetime(df[thisfield['field']],
                                format=thisfield['format'])
 
-    # ensure ints on columns defined as such
+    # Cast the config-defined dtype_dic_ints columns as Pandas Int64 types
     if 'dtype_dic_ints' in data:
         for thisfield in data['dtype_dic_ints']:
             try:
                 df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
             except TypeError:
                 logger.exception('column %s cannot be cast as Integer type ',
-                                 df[thisfield])
+                                 thisfield)
                 report_stats['failed'] += 1
                 report_stats['bad'] += 1
                 report_stats['bad_list'].append(object_summary)
@@ -467,6 +467,7 @@ for object_summary in objects_to_process:
                 report(report_stats)
                 clean_exit(
                     1,f'Bad file {object_summary.key} in objects to process, '
+                    f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
 
     # Put the full data set into a buffer and write it
