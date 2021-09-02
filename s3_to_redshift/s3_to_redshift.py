@@ -464,6 +464,21 @@ for object_summary in objects_to_process:
     # if truncate is not true then the query remains as just the copy command
     if truncate:
         scratch_start = """
+        
+        If file =  All_data_1.csv {
+df = pd.DataFrame(columns=['A'])
+Empty DataFrame
+
+Columns: [Added Date, Removed Date ]
+Index: []
+ 
+pd.concat([df,pd.DataFrame(columns=list('columns'))])
+
+Empty DataFrame
+Columns: [columns, Added Date, Removed Date]
+Index: []
+}
+        
 BEGIN;
 -- Clean up from last run if necessary
 DROP TABLE IF EXISTS {0}_scratch;
