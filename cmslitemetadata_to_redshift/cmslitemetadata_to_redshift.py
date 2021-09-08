@@ -744,7 +744,7 @@ SELECT node_id,
        subsubtopic
 FROM biglist
 WHERE index = 1;
---- fix for https://www2.gov.bc.ca/getvaccinated.html
+--- fix for https://www2.gov.bc.ca/getvaccinated.html (note that there are two extra entries for this one)
 INSERT INTO {dbschema}.metadata (
     SELECT 'A2DB016A552E4D3DAD0832B264700000' AS node_id,parent_node_id,ancestor_nodes, hr_url,
               keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
@@ -779,19 +779,6 @@ INSERT INTO {dbschema}.metadata (
               locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
               publication_date,defined_security_groups,inherited_security_groups
         FROM {dbschema}.metadata WHERE node_id = '465BA70BBD2441D2A79F06B4907118C5'
-);
-INSERT INTO {dbschema}.metadata (
-    SELECT '465BA70BBD2441D2A79F06B490700000' AS node_id,parent_node_id,ancestor_nodes, hr_url,
-              keywords,description,page_type,folder_name,synonyms,dcterms_creator,modified_date,created_date,updated_date,published_date,title,nav_title,
-              eng_nav_title,sitekey,site_id,language_name,language_code,page_status,published_by,created_by,modified_by,node_level,
-              locked_date,moved_date,exclude_from_ia,hide_from_navigation,exclude_from_search_engines,security_classification,security_label,
-              publication_date,defined_security_groups,inherited_security_groups
-        FROM {dbschema}.metadata WHERE node_id = '465BA70BBD2441D2A79F06B4907118C5'
-);
-INSERT INTO {dbschema}.themes (
-    SELECT '465BA70BBD2441D2A79F06B490700000' AS node_id, title, hr_url, parent_node_id, 
-              parent_title, theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme, subtheme, topic, subtopic, subsubtopic 
-        FROM {dbschema}.themes WHERE node_id  = '465BA70BBD2441D2A79F06B4907118C5'
 );
 INSERT INTO {dbschema}.themes (
     SELECT '465BA70BBD2441D2A79F06B490700000' AS node_id, title, hr_url, parent_node_id, 
