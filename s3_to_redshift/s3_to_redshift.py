@@ -98,6 +98,7 @@ if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
+ldb_sku = data['ldb_sku']
 
 
 # set up S3 connection
@@ -324,9 +325,16 @@ for object_summary in objects_to_process:
         csv_string = linefeed.join(parsed_list)
         logger.info("%s parsed successfully", object_summary.key)
 
+  
+  
+  
     # This is not an apache access log
     if 'access_log_parse' not in data:
         csv_string = body.read()
+
+
+
+
 
     # Check that the file decodes as UTF-8. If it fails move to bad and end
     try:
@@ -526,6 +534,19 @@ COMMIT;
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
     logger.info("finished %s", object_summary.key)
+
+if 'ldb_sku' in data:
+    #run sql statments here
+
+
+
+
+
+
+
+
+
+
 
 report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')
