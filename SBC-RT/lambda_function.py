@@ -18,12 +18,13 @@ REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
 REDSHIFT_ENDPOINT = os.environ['REDSHIFT_ENDPOINT']
 
 with open('./serviceBCOfficeList.json') as json_file:
+    # Get the list of Service Centers and their IDs
     service_centers = json.load(json_file)
 
 
 def lambda_handler(event, context):
-    # access query string parameters: event['queryStringParameters']['param']
-    # access path parameters: event['pathParameters']['param']
+    # To access query string parameters: event['queryStringParameters']['param']
+    # To access path parameters: event['pathParameters']['param']
     
     
     office_ids = []
@@ -36,10 +37,12 @@ def lambda_handler(event, context):
             office_ids.append(service_center['cfms_poc.office_id'])
     
     
+    # Query Redshift and Elastic Search
     rs_query = "SELECT office_id, time_per AS time FROM servicebc.servetime;"
     rs_result = query_redshift(rs_query)
     es_result = query_elasticsearch_realtime(office_ids)
 
+    # Generate the API response using the data from Redshift and ElasticSearch
     times = {}
     for row in rs_result:
         times[row[0]] = row[1] # row[0] is the office_id and row[1] is the time calculation
@@ -56,6 +59,7 @@ def lambda_handler(event, context):
             
         api_response_data.append({"office_id": office_id, "current_line_length": current_line_length, "estimated_wait": estimated_wait })
 
+    # Return the API response data
     return {
         "statusCode": 200,
         "headers": {"content-type": "application/json"},
@@ -98,17 +102,16 @@ def query_redshift(query_string):
     return result
 
 
-# Queries ElasticSearch for the number of citizens in line
-# for a given office, and returns the result
 def query_elasticsearch_realtime(office_ids):
+    # Queries ElasticSearch for:
+    #   - the number of citizens in line for a given office
+    #   - the number of front-of-office events for a given office   
+    # It then returns the results.
     anchordate = date.today().strftime("%Y-%m-%d")
     client = Elasticsearch(endpoint)
 
     results_list = []
     for id in office_ids:
-        #for serviceCenter in serviceCenters:
-        #    if serviceCenter["cfms_poc.office_name"] == office:
-        #        office_id = serviceCenter['cfms_poc.office_id']
     
         # Query for number of addcitizen events.
         # Note: Uses IANA time zone code 'America/Vancouver'
@@ -118,7 +121,7 @@ def query_elasticsearch_realtime(office_ids):
             Q('term', **{'contexts_ca_bc_gov_cfmspoc_office_1.office_id':
                          id}) & \
             Q('range', derived_tstamp={'gte': anchordate}) & \
-            Q('range', derived_tstamp={'lt': "now"}) & \
+            Q('range', derived_tstamp={'lte': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             add_citizen_search_result = Search(using=client, index=index).filter(params)
@@ -133,7 +136,7 @@ def query_elasticsearch_realtime(office_ids):
             Q('term', **{'contexts_ca_bc_gov_cfmspoc_office_1.office_id':
                          id}) & \
             Q('range', derived_tstamp={'gte': anchordate}) & \
-            Q('range', derived_tstamp={'lt': "now"}) & \
+            Q('range', derived_tstamp={'lte': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             customer_left_search_result = Search(using=client, index=index).filter(params)
@@ -147,7 +150,7 @@ def query_elasticsearch_realtime(office_ids):
             Q('term', **{'contexts_ca_bc_gov_cfmspoc_office_1.office_id':
                          id}) & \
             Q('range', derived_tstamp={'gte': anchordate}) & \
-            Q('range', derived_tstamp={'lt': "now"}) & \
+            Q('range', derived_tstamp={'lte': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             finish_events_search_result = Search(using=client, index=index).filter(params)
@@ -155,6 +158,7 @@ def query_elasticsearch_realtime(office_ids):
             print(e)
         finish_events_count = finish_events_search_result.count()
 
+        # Calculate timedelta for one hour ago to now
         now_minus_1_hour = datetime.datetime.now() - timedelta(hours=1)
         
         # Query for all front-office events in the last hour
@@ -164,7 +168,7 @@ def query_elasticsearch_realtime(office_ids):
             ~Q('term', **{'unstruct_event_ca_bc_gov_cfmspoc_chooseservice_3.program_name':'back-office'}) & \
             ~Q('term', **{'unstruct_event_ca_bc_gov_cfmspoc_chooseservice_3.channel':'Back Office'}) & \
             Q('range', derived_tstamp={'gte': now_minus_1_hour}) & \
-            Q('range', derived_tstamp={'lt': "now"}) & \
+            Q('range', derived_tstamp={'lte': "now"}) & \
             Q('range', derived_tstamp={'time_zone': "America/Vancouver"})
         try:
             events_search_result = Search(using=client, index=index).filter(params)
@@ -176,6 +180,8 @@ def query_elasticsearch_realtime(office_ids):
         for event in events:
             # pull out any agent id that appears in the result set from the last hour
             agent_list.append(event['contexts_ca_bc_gov_cfmspoc_agent_3'][0]['agent_id'])
+            
+        # Get the unique set of agent IDs for the last hour
         num_agents = len(list(set(agent_list)))
         
         

@@ -358,11 +358,12 @@ for account in validated_accounts:
     location_names_list = [i['name'] for i in locations['locations']]
 
     # construct the label lookup and apply formatting if any
+    # if not present, locality and postalCode will default to none
     label_lookup = {
         i['name']: {
             'locationName': i['locationName'],
-            'locality': i['address']['locality'],
-            'postalCode': i['address']['postalCode']
+            'locality': i.get('address', {}).get('locality'),
+            'postalCode': i.get('address', {}).get('postalCode')
             } for i in locations['locations']}
 
     # batched_location_names is a list of lists
