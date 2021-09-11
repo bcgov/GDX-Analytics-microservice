@@ -55,18 +55,6 @@
       "Status Code",
       "Inventory Code"
     ],
-    "dtype_dic_bools": [
-      "Price Override",
-      "Availability Override",
-      "Whitelist",
-      "Blacklist",
-      "Kosher",
-      "Organic",
-      "VQA",
-      "Craft Beer",
-      "BCL Select",
-      "New"
-    ],
     "dtype_dic_strings": [
       "Product Name",
       "Image",
