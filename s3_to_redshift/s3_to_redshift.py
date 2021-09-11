@@ -98,7 +98,7 @@ if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
-ldb_sku = data['ldb_sku']
+ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
 
 
 # set up S3 connection
@@ -325,16 +325,9 @@ for object_summary in objects_to_process:
         csv_string = linefeed.join(parsed_list)
         logger.info("%s parsed successfully", object_summary.key)
 
-  
-  
-  
     # This is not an apache access log
     if 'access_log_parse' not in data:
         csv_string = body.read()
-
-
-
-
 
     # Check that the file decodes as UTF-8. If it fails move to bad and end
     try:
@@ -477,7 +470,7 @@ for object_summary in objects_to_process:
                     1,f'Bad file {object_summary.key} in objects to process, '
                     f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
-
+        
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
     csv_buffer = StringIO()
@@ -545,6 +538,140 @@ COMMIT;
         report_stats['loaded'] += 1
     else:
         outfile = badfile
+
+    # Logic for specific case handling for LDB files
+    if ldb_sku and outfile == goodfile:
+        # There are 2 tables: microservice.ldb_sku and microservice.ldb_sku_csv.
+        # microservice.ldb_sku_csv is loaded with new data from latest CSV processed (in the steps above).
+        # microservice.ldb_sku is the table for Looker read and has additional date_added and date_removed columns.
+        # The logic to load ldb_sku is based on it's differences from ldb_sku_csv.
+        #
+        # ldb_sku is updated according to ldb_sku_csv. In a transaction:
+        #  1 - SKU in ldb_sku and not in ldb_sku_csv: date_removed = today,
+        #  2 - SKU match: update content from ldb_sku_csv (accounts for changes in info),
+        #  3 - SKU in ldb_sku_csv and not in ldb_sku: append to ldb_sku and date_added = today.
+        #
+        # on failure: outfile = badfile, report(report_stats), and clean_exit(1).
+        # on success, end loop.
+
+        ldb_cursor = spdb.connection.cursor()
+
+        ldb_cursor.execute("""
+
+BEGIN;
+
+-- When a SKU is not in ldb_sku_csv, if it's in the prod table set a date_removed as today
+-- End result: same number of rows in ldb_sku. Only changes 'date_removed' column if the csv didn't have that sku.
+
+UPDATE microservice.ldb_sku
+    SET date_removed = CURRENT_DATE
+WHERE
+    sku NOT IN ( SELECT sku FROM microservice.ldb_sku_csv ) AND
+    date_removed IS NULL;
+
+-- when SKUs match between the two tables, update PROD to match new data from CSV
+-- End result: no new rows, only updates the data fields on every matching SKU row, as copied from the csv.
+--             the sku, date_added, and date_removed fields are not affected, but every other field may be.
+
+UPDATE microservice.ldb_sku SET
+    product_name = ldb_sku_csv.product_name,
+    image = ldb_sku_csv.image,
+    body = ldb_sku_csv.body,
+    volume = ldb_sku_csv.volume,
+    bottles_per_pack = ldb_sku_csv.bottles_per_pack,
+    regular_price = ldb_sku_csv.regular_price,
+    lto_price = ldb_sku_csv.lto_price,
+    lto_start = ldb_sku_csv.lto_start,
+    lto_end = ldb_sku_csv.lto_end,
+    price_override = ldb_sku_csv.price_override,
+    store_count = ldb_sku_csv.store_count,
+    inventory = ldb_sku_csv.inventory,
+    availability_override = ldb_sku_csv.availability_override,
+    whitelist = ldb_sku_csv.whitelist,
+    blacklist = ldb_sku_csv.blacklist,
+    upc = ldb_sku_csv.upc,
+    all_upcs = ldb_sku_csv.all_upcs,
+    alcohol = ldb_sku_csv.alcohol,
+    kosher = ldb_sku_csv.kosher,
+    organic = ldb_sku_csv.organic,
+    sweetness = ldb_sku_csv.sweetness,
+    vqa = ldb_sku_csv.vqa,
+    craft_beer = ldb_sku_csv.craft_beer,
+    bcl_select = ldb_sku_csv.bcl_select,
+    new = ldb_sku_csv.new,
+    rating = ldb_sku_csv.rating,
+    votes = ldb_sku_csv.votes,
+    product_type = ldb_sku_csv.product_type,
+    category = ldb_sku_csv.category,
+    sub_category = ldb_sku_csv.sub_category,
+    country = ldb_sku_csv.country,
+    region = ldb_sku_csv.region,
+    sub_region = ldb_sku_csv.sub_region,
+    grape_variety = ldb_sku_csv.grape_variety,
+    restriction_code = ldb_sku_csv.restriction_code,
+    status_code = ldb_sku_csv.status_code,
+    inventory_code = ldb_sku_csv.inventory_code
+WHERE
+    sku IN ( SELECT sku FROM microservice.ldb_sku_csv );
+
+-- When there is a new SKU add it into the prod table date_added = today
+-- End result: new rows are inserted to the ldb_sku table if the csv had new SKUs.
+
+INSERT INTO microservice.ldb_sku VALUES (
+    ldb_sku_csv.sku,
+    ldb_sku_csv.product_name,
+    ldb_sku_csv.image,
+    ldb_sku_csv.body,
+    ldb_sku_csv.volume,
+    ldb_sku_csv.bottles_per_pack,
+    ldb_sku_csv.regular_price,
+    ldb_sku_csv.lto_price,
+    ldb_sku_csv.lto_start,
+    ldb_sku_csv.lto_end,
+    ldb_sku_csv.price_override,
+    ldb_sku_csv.store_count,
+    ldb_sku_csv.inventory,
+    ldb_sku_csv.availability_override,
+    ldb_sku_csv.whitelist,
+    ldb_sku_csv.blacklist,
+    ldb_sku_csv.upc,
+    ldb_sku_csv.all_upcs,
+    ldb_sku_csv.alcohol,
+    ldb_sku_csv.kosher,
+    ldb_sku_csv.organic,
+    ldb_sku_csv.sweetness,
+    ldb_sku_csv.vqa,
+    ldb_sku_csv.craft_beer,
+    ldb_sku_csv.bcl_select,
+    ldb_sku_csv.new,
+    ldb_sku_csv.rating,
+    ldb_sku_csv.votes,
+    ldb_sku_csv.product_type,
+    ldb_sku_csv.category,
+    ldb_sku_csv.sub_category,
+    ldb_sku_csv.country,
+    ldb_sku_csv.region,
+    ldb_sku_csv.sub_region,
+    ldb_sku_csv.grape_variety,
+    ldb_sku_csv.restriction_code,
+    ldb_sku_csv.status_code,
+    ldb_sku_csv.inventory_code,
+    CURRENT_DATE AS date_added,
+    NULL AS date_removed
+    
+    FROM microservice.ldb_sku_csv
+    WHERE ldb_sku_csv.sku NOT IN (
+        SELECT sku FROM microservice.ldb_sku
+    )
+);
+
+COMMIT;
+"""
+)
+
+        # Did it fail? sent file to 'bad'.
+        # Did it work? now we can proceed.
+
     spdb.close_connection()
 
     # copy the object to the S3 outfile (processed/good/ or processed/bad/)
@@ -571,19 +698,6 @@ COMMIT;
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
     logger.info("finished %s", object_summary.key)
-
-if 'ldb_sku' in data:
-    #run sql statments here
-
-
-
-
-
-
-
-
-
-
 
 report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')
