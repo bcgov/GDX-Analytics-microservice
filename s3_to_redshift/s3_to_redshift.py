@@ -470,7 +470,7 @@ for object_summary in objects_to_process:
                     1,f'Bad file {object_summary.key} in objects to process, '
                     f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
-        
+
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
     csv_buffer = StringIO()
@@ -486,22 +486,7 @@ for object_summary in objects_to_process:
     # replace the existing table data with the new data in one commit
     # if truncate is not true then the query remains as just the copy command
     if truncate:
-        scratch_start = """
-        
-        If file =  All_data_1.csv {
-df = pd.DataFrame(columns=['A'])
-Empty DataFrame
-
-Columns: [Added Date, Removed Date ]
-Index: []
- 
-pd.concat([df,pd.DataFrame(columns=list('columns'))])
-
-Empty DataFrame
-Columns: [columns, Added Date, Removed Date]
-Index: []
-}
-        
+        scratch_start = """     
 BEGIN;
 -- Clean up from last run if necessary
 DROP TABLE IF EXISTS {0}_scratch;
