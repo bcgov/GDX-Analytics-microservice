@@ -46,6 +46,43 @@
       "Status Code",
       "Inventory Code"
     ],
+    "dtype_dic_ints": [
+      "sku",
+      "bottles_per_pack",
+      "store_count",
+      "inventory",
+      "votes",
+      "status_code",
+      "inventory_code"
+    ],
+    "dtype_dic_bools": [
+      "price_override",
+      "availability_override",
+      "whitelist",
+      "blacklist",
+      "kosher",
+      "organic",
+      "vqa",
+      "craft_beer",
+      "bcl_select",
+      "new"
+    ],
+    "dtype_dic_strings": [
+      "product_name",
+      "image",
+      "body",
+      "upc",
+      "all_upcs",
+      "sweetness",
+      "product_type",
+      "category",
+      "sub_category",
+      "country",
+      "region",
+      "sub_region",
+      "grape_variety",
+      "restriction_code"
+    ],
     "delim": ",",
     "truncate": true
   }
