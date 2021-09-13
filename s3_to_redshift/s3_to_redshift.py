@@ -654,7 +654,7 @@ COMMIT;
         with spdb.connection as conn:
             with conn.cursor() as curs:
                 try:
-                    curs.execute(query)
+                    curs.execute(ldb_query)
                 except RedShift.psycopg2.Error as err:
                     logger.error(
                         "Loading LDB SKU to RedShift failed.")
