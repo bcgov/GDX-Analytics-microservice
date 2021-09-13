@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS microservice.ldb_sku_csv
 "vqa" BOOLEAN ENCODE ZSTD,
 "craft_beer" BOOLEAN ENCODE ZSTD,
 "bcl_select" BOOLEAN ENCODE ZSTD,
-"new" BOOLEAN ENCODE ZSTD,
+"new_flag" BOOLEAN ENCODE ZSTD,
 "rating" NUMERIC(2,1) ENCODE ZSTD,
 "votes" INTEGER ENCODE ZSTD,
 "product_type" VARCHAR(19) ENCODE ZSTD,

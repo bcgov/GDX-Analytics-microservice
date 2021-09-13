@@ -581,7 +581,7 @@ UPDATE microservice.ldb_sku SET
     vqa = ldb_sku_csv.vqa,
     craft_beer = ldb_sku_csv.craft_beer,
     bcl_select = ldb_sku_csv.bcl_select,
-    new = ldb_sku_csv.new,
+    "new" = ldb_sku_csv.new,
     rating = ldb_sku_csv.rating,
     votes = ldb_sku_csv.votes,
     product_type = ldb_sku_csv.product_type,
@@ -594,8 +594,9 @@ UPDATE microservice.ldb_sku SET
     restriction_code = ldb_sku_csv.restriction_code,
     status_code = ldb_sku_csv.status_code,
     inventory_code = ldb_sku_csv.inventory_code
+FROM microservice.ldb_sku_csv
 WHERE
-    sku IN ( SELECT sku FROM microservice.ldb_sku_csv );
+    ldb_sku.sku IN ( SELECT sku FROM microservice.ldb_sku_csv );
 
 -- When there is a new SKU add it into the prod table date_added = today
 -- End result: new rows are inserted to the ldb_sku table if the csv had new SKUs.
@@ -655,7 +656,7 @@ COMMIT;
             with conn.cursor() as curs:
                 try:
                     curs.execute(ldb_query)
-                except RedShift.psycopg2.Error as err:
+                except Exception as err:
                     logger.error(
                         "Loading LDB SKU to RedShift failed.")
                     spdb.print_psycopg2_exception(err)
