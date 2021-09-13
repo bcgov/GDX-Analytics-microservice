@@ -539,9 +539,7 @@ COMMIT;
         # on failure: outfile = badfile, report(report_stats), and clean_exit(1).
         # on success, end loop.
 
-        ldb_cursor = spdb.connection.cursor()
-
-        ldb_cursor.execute("""
+        ldb_query = """
 
 BEGIN;
 
@@ -652,10 +650,20 @@ INSERT INTO microservice.ldb_sku VALUES (
 
 COMMIT;
 """
-)
 
-        # Did it fail? sent file to 'bad'.
-        # Did it work? now we can proceed.
+        with spdb.connection as conn:
+            with conn.cursor() as curs:
+                try:
+                    curs.execute(query)
+                except RedShift.psycopg2.Error as err:
+                    logger.error(
+                        "Loading LDB SKU to RedShift failed.")
+                    spdb.print_psycopg2_exception(err)
+                    outfile == badfile
+                else:
+                    logger.info(
+                        "Loaded LDB SKU to RedShift successfully")
+                    outfile == goodfile
 
     spdb.close_connection()
 

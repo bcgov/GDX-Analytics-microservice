@@ -72,5 +72,6 @@
       "Restriction Code"
     ],
     "delim": ",",
-    "truncate": true
+    "truncate": true,
+    "ldb_sku": true
   }
