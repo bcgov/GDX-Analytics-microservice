@@ -627,7 +627,7 @@ INSERT INTO microservice.ldb_sku VALUES (
     ldb_sku_csv.vqa,
     ldb_sku_csv.craft_beer,
     ldb_sku_csv.bcl_select,
-    ldb_sku_csv.new,
+    ldb_sku_csv.new_flag,
     ldb_sku_csv.rating,
     ldb_sku_csv.votes,
     ldb_sku_csv.product_type,
