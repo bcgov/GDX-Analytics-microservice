@@ -581,7 +581,7 @@ UPDATE microservice.ldb_sku SET
     vqa = ldb_sku_csv.vqa,
     craft_beer = ldb_sku_csv.craft_beer,
     bcl_select = ldb_sku_csv.bcl_select,
-    "new" = ldb_sku_csv.new,
+    new_flag = ldb_sku_csv.new_flag,
     rating = ldb_sku_csv.rating,
     votes = ldb_sku_csv.votes,
     product_type = ldb_sku_csv.product_type,
