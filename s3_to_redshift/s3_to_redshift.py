@@ -596,12 +596,13 @@ UPDATE microservice.ldb_sku SET
     inventory_code = ldb_sku_csv.inventory_code
 FROM microservice.ldb_sku_csv
 WHERE
-    ldb_sku.sku IN ( SELECT sku FROM microservice.ldb_sku_csv );
+    ldb_sku.sku = ldb_sku_csv.sku;
 
 -- When there is a new SKU add it into the prod table date_added = today
 -- End result: new rows are inserted to the ldb_sku table if the csv had new SKUs.
 
-INSERT INTO microservice.ldb_sku VALUES (
+INSERT INTO microservice.ldb_sku (
+SELECT
     ldb_sku_csv.sku,
     ldb_sku_csv.product_name,
     ldb_sku_csv.image,
@@ -643,11 +644,10 @@ INSERT INTO microservice.ldb_sku VALUES (
     CURRENT_DATE AS date_added,
     NULL AS date_removed
     
-    FROM microservice.ldb_sku_csv
-    WHERE ldb_sku_csv.sku NOT IN (
-        SELECT sku FROM microservice.ldb_sku
-    )
-);
+FROM microservice.ldb_sku_csv
+WHERE ldb_sku_csv.sku NOT IN (
+    SELECT sku FROM microservice.ldb_sku
+));
 
 COMMIT;
 """
