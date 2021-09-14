@@ -3,7 +3,7 @@
     "source": "client",
     "destination": "processed",
     "directory": "gdxdsd_3874_ldb_sku",
-    "doc": "ldb_sku_20210910.csv",
+    "doc": "ldb_sku_*.csv",
     "dbtable": "microservice.ldb_sku_csv",
     "column_count": 38,
     "columns": [
