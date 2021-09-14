@@ -657,14 +657,14 @@ COMMIT;
                 try:
                     curs.execute(ldb_query)
                 except Exception as err:
+                    outfile = badfile
                     logger.error(
                         "Loading LDB SKU to RedShift failed.")
                     spdb.print_psycopg2_exception(err)
-                    outfile == badfile
                 else:
                     logger.info(
                         "Loaded LDB SKU to RedShift successfully")
-                    outfile == goodfile
+                    outfile = goodfile
 
     spdb.close_connection()
 
