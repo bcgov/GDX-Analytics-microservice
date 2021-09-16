@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS google.googlesearch (
-    site        VARCHAR(255)    ENCODE ZSTD,
+    site        VARCHAR(255)    SORTKEY ENCODE ZSTD,
     date        DATE            ENCODE AZ64,
     query       VARCHAR(2048)   ENCODE ZSTD,
     country     VARCHAR(255)    ENCODE ZSTD,
