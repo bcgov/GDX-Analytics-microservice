@@ -486,7 +486,7 @@ for object_summary in objects_to_process:
     # replace the existing table data with the new data in one commit
     # if truncate is not true then the query remains as just the copy command
     if truncate:
-        scratch_start = """     
+        scratch_start = """
 BEGIN;
 -- Clean up from last run if necessary
 DROP TABLE IF EXISTS {0}_scratch;
