@@ -554,7 +554,8 @@ WHERE
 
 -- when SKUs match between the two tables, update PROD to match new data from CSV
 -- End result: no new rows, only updates the data fields on every matching SKU row, as copied from the csv.
---             the sku, date_added, and date_removed fields are not affected, but every other field may be.
+--             if the sku found in the csv had previously been assigned a date_removed, that will revert to NULL.
+--             the sku, and date_added fields are not affected, but every other field may be.
 
 UPDATE microservice.ldb_sku SET
     product_name = ldb_sku_csv.product_name,
@@ -593,7 +594,8 @@ UPDATE microservice.ldb_sku SET
     grape_variety = ldb_sku_csv.grape_variety,
     restriction_code = ldb_sku_csv.restriction_code,
     status_code = ldb_sku_csv.status_code,
-    inventory_code = ldb_sku_csv.inventory_code
+    inventory_code = ldb_sku_csv.inventory_code,
+    date_removed = NULL
 FROM microservice.ldb_sku_csv
 WHERE
     ldb_sku.sku = ldb_sku_csv.sku;
