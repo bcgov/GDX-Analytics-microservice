@@ -1,7 +1,7 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "sdpr_unload/daily",
+  "directory": "theq_sdpr/daily",
   "destination": "processed",
   "object_prefix": "sdpr",
   "dml": "sdpr_last_full_day.sql",
