@@ -1007,9 +1007,9 @@ def main():
 #             outfile = badfile
 #         spdb.close_connection()
 
-#     logger.info("finished %s", object_summary.key)
-#     report(report_stats)
-#     clean_exit(0,'Succesfully finished cmslitemetadata_to_redshift.')
+    logger.info("finished %s", object_summary.key)
+    report(report_stats)
+    clean_exit(0,'Succesfully finished cmslitemetadata_to_redshift.')
 
 
 if __name__ == '__main__':
