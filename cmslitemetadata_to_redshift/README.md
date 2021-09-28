@@ -10,6 +10,17 @@ The CMS Lite Metadata to Redshift microservice requires a `json` configuration f
 python s3_to_redshift.py configfile.json
 ```
 
+## Testing files
+
+There are two test files that can be used for bulding test tables and a config file to run the script as required. cmslite_test.json reference the test schema in redshift and point to a test directory s3://sp-ca-bc-gov-131565110619-12-microservices/client/test_3958_cmslite/ in s3. 
+
+test.cmslite_test.sql will build required tables under the test schema in redshift.
+
+Usage : 
+
+pipenv install --ignore-pipfile
+pipenv run python cmslitemetadata_to_redshift.py cmslite_test.json
+
 ### Overview
 
 This microservice was built from the [S3 to Redshift microservice](/microservices/s3_to_redshift/). The input `csv` for this microservice to consume is prepared by the Content Management Framework servers containing metadata pertaining to pages in the CMS Lite system. The processing steps are very similar to the [S3 to Redshift microservice](/microservices/s3_to_redshift/) with some notable feature additions to nested metadata in the input file that result in lookup tables and dictionary tables.
