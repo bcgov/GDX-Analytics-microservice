@@ -2,7 +2,7 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "gdxdsd_3874_ldb_sku",
+    "directory": "ldb_sku",
     "doc": "ldb_sku_.*.csv",
     "dbtable": "microservice.ldb_sku_csv",
     "column_count": 38,
