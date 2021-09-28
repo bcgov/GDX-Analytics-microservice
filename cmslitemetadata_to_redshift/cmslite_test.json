@@ -2,7 +2,7 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "test_3958_cmslite",
+    "directory": "test_cmslite",
     "doc": "cmslite.csv",
     "dbschema": "test",
     "dbtable": "metadata",

@@ -12,7 +12,7 @@ python s3_to_redshift.py configfile.json
 
 ## Testing files
 
-There are two test files that can be used for bulding test tables and a config file to run the script as required. cmslite_test.json reference the test schema in redshift and point to a test directory s3://sp-ca-bc-gov-131565110619-12-microservices/client/test_3958_cmslite/ in s3. 
+There are two test files that can be used for bulding test tables and a config file to run the script as required. cmslite_test.json reference the test schema in redshift and point to a test directory s3://sp-ca-bc-gov-131565110619-12-microservices/client/test_cmslite/ in s3. 
 
 test.cmslite_test.sql will build required tables under the test schema in redshift.
 
