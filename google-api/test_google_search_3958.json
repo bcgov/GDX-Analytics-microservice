@@ -9,10 +9,7 @@
             "name": "https://efficiencybc.ca/",
             "start_date_default": "2021-09-21"
           },
-        {
-            "name": "https://news.gov.bc.ca/",
-            "start_date_default": "2021-09-21"
-          },
+      
         {
         "name": "https://violationtickets.gov.bc.ca/",
         "start_date_default": "2021-09-21"
