@@ -32,7 +32,7 @@ log.setup()
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
 yvr_dt_start = (yvr_tz
-    .normalize(datetime.datetime.now(local_tz)
+    .normalize(datetime.now(local_tz)
     .astimezone(yvr_tz)))
 
 def clean_exit(code, message):
@@ -63,6 +63,7 @@ parser.add_argument('-d', '--debug', help='Run in debug mode.',
 flags = parser.parse_args()
 
 config = flags.conf
+config_file = sys.argv[2]
 
 # Load configuration json file as a dictionary
 with open(config) as f:
@@ -214,31 +215,25 @@ def report(data):
     if data['failed_redshift_queries'] or data['failed_unloads']:
         print(f'*** ATTN: A failure occured ***\n')
     print(f'Report: {__file__}\n')
-    print(f'Config: {config}\n')
+    print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
-    print(f'Requested Dates: {dates}' if dates else f'{start_date}-{end_date}')
+    #start_date = ''
+    print(f'Requested Dates: {start_date} to {end_date}' if start_date else f'{dates}')
     # Get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
-        .normalize(datetime.datetime.now(local_tz)
+        .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
     print(
     	'\nMicroservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
-    print(f'\nObjects to Load to S3: {data["objects"]}')
-    print(f'Objects loaded to S3: {data["good"]}\n')
-
-    # Print all fully processed locations in good
-    print(f'Objects loaded RedShift and to S3 /good:')
-    if data['good_list']:
-        for i, item in enumerate(data['good_list'], 1):
-            print(f"\n{i}: {item}")
+        f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
+    print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'objects':0,
+    'objects':1,  #Script runs on a per object basis
     'processed':0,
     'redshift_queries': 0,
     'failed_redshift_queries':0,
@@ -339,10 +334,13 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
+            report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
             logger.info(
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, source_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
+            report(report_stats)
             clean_exit(0,'Finished succesfully.')
+
