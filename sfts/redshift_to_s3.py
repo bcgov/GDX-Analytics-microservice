@@ -19,6 +19,8 @@ import argparse
 import json
 import sys
 from datetime import datetime, date, timedelta
+from tzlocal import get_localzone
+from pytz import timezone
 import psycopg2
 import boto3
 import lib.logs as log
@@ -26,6 +28,12 @@ import lib.logs as log
 logger = logging.getLogger(__name__)
 log.setup()
 
+# Get script start time
+local_tz = get_localzone()
+yvr_tz = timezone('America/Vancouver')
+yvr_dt_start = (yvr_tz
+    .normalize(datetime.datetime.now(local_tz)
+    .astimezone(yvr_tz)))
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
@@ -125,10 +133,12 @@ def return_query(local_query):
                 local_curs.execute(local_query)
             except psycopg2.Error:
                 logger.exception("psycopg2.Error:")
+                report_stats['failed_redshift_queries'] += 1
                 clean_exit(1, 'Failed psycopg2 query attempt.')
             else:
                 response = local_curs.fetchone()[0]
                 logger.info("returned: %s", response)
+                report_stats['good_redshift_queries'] += 1
     return response
 
 
@@ -197,6 +207,45 @@ def object_key_builder(key_prefix, *args):
     key_parts.append(nowtime)
     object_key = '_'.join(str(part) for part in key_parts)
     return object_key
+
+# Will run at end of script to print out accumulated report_stats
+def report(data):
+    '''reports out the data from the main program loop'''
+    if data['failed_redshift_queries'] or data['failed_unloads']:
+        print(f'*** ATTN: A failure occured ***\n')
+    print(f'Report: {__file__}\n')
+    print(f'Config: {config}\n')
+    print(f'DML: {dml_file}\n')
+    print(f'Requested Dates: {dates}' if dates else f'{start_date}-{end_date}')
+    # Get times from system and convert to Americas/Vancouver for printing
+    yvr_dt_end = (yvr_tz
+        .normalize(datetime.datetime.now(local_tz)
+        .astimezone(yvr_tz)))
+    print(
+    	'\nMicroservice started at: '
+        f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+        f'elapsing: {yvr_dt_end - yvr_dt_start}.')
+    print(f'\nObjects to Load to S3: {data["objects"]}')
+    print(f'Objects loaded to S3: {data["good"]}\n')
+
+    # Print all fully processed locations in good
+    print(f'Objects loaded RedShift and to S3 /good:')
+    if data['good_list']:
+        for i, item in enumerate(data['good_list'], 1):
+            print(f"\n{i}: {item}")
+
+
+# Reporting variables. Accumulates as the the loop below is traversed
+report_stats = {
+    'objects':0,
+    'processed':0,
+    'redshift_queries': 0,
+    'failed_redshift_queries':0,
+    'good_redshift_queries':0,
+    'sucessful_unloads':0,
+    'failed_unloads':0
+}
 
 if 'start_date' in config and 'end_date' in config:
     # set start and end dates, defaulting to min/max if not defined
@@ -289,9 +338,11 @@ with psycopg2.connect(conn_string) as conn:
             logger.exception("psycopg2.Error:")
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
+            report_stats['failed_unloads'] += 1
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
             logger.info(
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, source_prefix, object_key)
+            report_stats['sucessful_unloads'] += 1
             clean_exit(0,'Finished succesfully.')
