@@ -618,18 +618,31 @@ FROM   google.googlesearch AS gs
                    'https://www2.gov.bc.ca/gov/content/home'
                    ELSE page
                  END = themes.hr_url
-WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
-        -- Case where data collected by site and sc-domain overlaps
-        OR ( gs.site = 'sc-domain:gov.bc.ca'
-             AND page_urlhost = r.sc_urlhost
-             AND gs.DATE :: DATE < r.start_date :: DATE )
-	-- All other sc-domain data, excluding sites collected directly
-	OR ( gs.site = 'sc-domain:gov.bc.ca'
-             AND r.sc_domain = 'f'
-             AND page_urlhost NOT IN (SELECT sc_urlhost
-                                      FROM   google.google_sites
-                                      WHERE  sc_urlhost IS NOT NULL) )
-        OR ( gs.site = 'sc-domain:engage.gov.bc.ca' );
+WHERE
+        gs.site NOT IN (
+            'sc-domain:gov.bc.ca',
+            'sc-domain:engage.gov.bc.ca'
+        )
+    -- Case where data collected by site and sc-domain overlaps
+        OR (
+            gs.site = 'sc-domain:gov.bc.ca'
+            AND page_urlhost = r.sc_urlhost
+            AND gs.DATE :: DATE < r.start_date :: DATE
+        )
+    -- All other sc-domain data, excluding sites collected directly
+        OR (
+            gs.site = 'sc-domain:gov.bc.ca'
+            AND r.sc_domain = 'f'
+            AND page_urlhost NOT IN (
+            SELECT
+                sc_urlhost
+            FROM
+                google.google_sites
+            WHERE
+                sc_urlhost IS NOT NULL
+            )
+    )
+    OR (gs.site = 'sc-domain:engage.gov.bc.ca');
 
 COMMIT; 
 """
