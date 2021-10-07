@@ -622,7 +622,6 @@ WHERE  gs.site NOT IN ( 'sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca' )
         -- Case where data collected by site and sc-domain overlaps
         OR ( gs.site = 'sc-domain:gov.bc.ca'
              AND page_urlhost = r.sc_urlhost
-             AND overlap = 't'
              AND gs.DATE :: DATE < r.start_date :: DATE )
 	-- All other sc-domain data, excluding sites collected directly
 	OR ( gs.site = 'sc-domain:gov.bc.ca'
