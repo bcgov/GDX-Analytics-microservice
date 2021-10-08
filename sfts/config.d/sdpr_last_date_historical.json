@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "theq_sdpr/historical",
+  "destination": "processed",
+  "object_prefix": "sdpr",
+  "dml": "sdpr_last_date_historical.sql",
+  "header": true,
+  "extension": ".csv"
+}
