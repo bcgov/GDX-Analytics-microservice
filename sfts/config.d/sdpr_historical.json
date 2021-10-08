@@ -4,7 +4,7 @@
   "directory": "theq_sdpr/historical",
   "destination": "processed",
   "object_prefix": "sdpr",
-  "dml": "sdpr_last_date_historical.sql",
+  "dml": "sdpr_historical.sql",
   "header": true,
   "extension": ".csv"
 }
