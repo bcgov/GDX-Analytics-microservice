@@ -27,7 +27,7 @@ SELECT * FROM (
         AVG((1.00 * theq_sdpr_poc.hold_duration)/(60*60*24) ) AS "theq_sdpr_poc.hold_duration_per_service_average"
     FROM
         "derived"."theq_sdpr_step1" AS "theq_sdpr_poc"
-    WHERE ((( "welcome_time" ) < ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
+    WHERE ((( "welcome_time" ) < ((DATEADD(day,0, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
     GROUP BY
         1,
         2,
