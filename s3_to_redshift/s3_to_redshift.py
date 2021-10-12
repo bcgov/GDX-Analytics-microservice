@@ -165,6 +165,8 @@ def report(data):
         return
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}\n')
+    if data['failed'] or data['bad']:
+        print(f'*** ATTN: A failure occurred. Please investigate logs/{__file__} ***\n')    
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
@@ -687,6 +689,7 @@ COMMIT;
         report_stats['bad'] += 1
         report_stats['bad_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
+        report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
