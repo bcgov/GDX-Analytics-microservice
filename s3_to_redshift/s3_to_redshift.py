@@ -157,7 +157,6 @@ def is_processed(this_object_summary):
     logger.info('%s has not been processed.', this_filename)
     return False
 
-internal_err = ''
 
 def report(data):
     '''reports out the data from the main program loop'''
