@@ -48,7 +48,7 @@ class RedShift:
         if str(err.pgcode) == 'XX000':
             self.logger.info(
                 "To begin investigating this database error, connect to the "
-                "%s database with adminitrative credentials, then execute:\n"
+                "%s database with administrative credentials, then execute:\n"
                 "> SELECT TOP 1 * FROM stl_load_errors WHERE filename LIKE "
                 "'%%%s%%';", self.dbname, self.batchfile)
 
