@@ -166,7 +166,7 @@ def report(data):
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}\n')
     if data['failed'] or data['bad']:
-        print(f'*** ATTN: A failure occured. Please investigate logs/{__file__} ***\n')    
+        print(f'*** ATTN: A failure occurred. Please investigate logs/{__file__} ***\n')    
     # get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
