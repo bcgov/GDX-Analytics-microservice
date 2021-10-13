@@ -561,7 +561,6 @@ query = """
 -- Either the whole query completes, or it leaves the old table intact
 BEGIN;
 DROP TABLE IF EXISTS cmslite.google_pdt;
-
 CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         site              VARCHAR(255)    ENCODE ZSTD,
         date              date            ENCODE AZ64,
@@ -592,42 +591,57 @@ ALTER TABLE cmslite.google_pdt OWNER TO microservice;
 GRANT SELECT ON cmslite.google_pdt TO looker;
 
 INSERT INTO cmslite.google_pdt
-      SELECT gs.*,
-          COALESCE(node_id,'') AS node_id,
-          SPLIT_PART(page, '/',3) as page_urlhost,
-          title,
-          theme_id, subtheme_id, topic_id, subtopic_id, subsubtopic_id, theme,
-          subtheme, topic, subtopic, subsubtopic
-      FROM google.googlesearch AS gs
-      -- fix for misreporting of redirected front page URL in Google search
-      LEFT JOIN cmslite.themes AS themes ON
-        CASE WHEN page = 'https://www2.gov.bc.ca/'
-            THEN 'https://www2.gov.bc.ca/gov/content/home'
-            ELSE page
-            END = themes.hr_url
-        WHERE site NOT IN ('sc-domain:gov.bc.ca', 'sc-domain:engage.gov.bc.ca')
-            OR ( site = 'sc-domain:gov.bc.ca' AND page_urlhost = 'www.responsibleservicebc.gov.bc.ca' AND date < '2020-12-23') -- use the wildcard before 2020-12-23
-            OR ( site = 'sc-domain:gov.bc.ca' AND page_urlhost = 'digital.gov.bc.ca' AND date < '2020-10-13') -- use the wildcard before 2020-10-13
-            OR ( site = 'sc-domain:gov.bc.ca' AND page_urlhost = 'cannabis.gov.bc.ca' AND date < '2021-01-17') -- use the wildcard before 2021-01-17
-            OR (
-                site = 'sc-domain:gov.bc.ca' AND page_urlhost NOT IN (
-                'healthgateway.gov.bc.ca',
-                'engage.gov.bc.ca',
-                'feedback.engage.gov.bc.ca',
-                'www2.gov.bc.ca',
-                'www.engage.gov.bc.ca',
-                'curriculum.gov.bc.ca',
-                'studentsuccess.gov.bc.ca',
-                'news.gov.bc.ca',
-                'bcforhighschool.gov.bc.ca',
-                'www.responsibleservicebc.gov.bc.ca',
-                'digital.gov.bc.ca',
-                'cannabis.gov.bc.ca'
-              )
+SELECT gs.*,
+       COALESCE(themes.node_id, '') AS node_id,
+       SPLIT_PART(gs.page, '/', 3)  AS page_urlhost,
+       title,
+       theme_id,
+       subtheme_id,
+       topic_id,
+       subtopic_id,
+       subsubtopic_id,
+       theme,
+       subtheme,
+       topic,
+       subtopic,
+       subsubtopic
+FROM   google.googlesearch AS gs
+       LEFT JOIN google.google_sites r
+              ON gs.site = r.ref_site
+       -- fix for misreporting of redirected front page URL in Google search
+       LEFT JOIN cmslite.themes AS themes
+              ON CASE
+                   WHEN page = 'https://www2.gov.bc.ca/' THEN
+                   'https://www2.gov.bc.ca/gov/content/home'
+                   ELSE page
+                 END = themes.hr_url
+WHERE
+        gs.site NOT IN (
+            'sc-domain:gov.bc.ca',
+            'sc-domain:engage.gov.bc.ca'
+        )
+    -- Case where data collected by site and sc-domain overlaps
+        OR (
+            gs.site = 'sc-domain:gov.bc.ca'
+            AND page_urlhost = r.sc_urlhost
+            AND gs.DATE :: DATE < r.start_date :: DATE
+        )
+    -- All other sc-domain data, excluding sites collected directly
+        OR (
+            gs.site = 'sc-domain:gov.bc.ca'
+            AND r.sc_domain = 'f'
+            AND page_urlhost NOT IN (
+            SELECT
+                sc_urlhost
+            FROM
+                google.google_sites
+            WHERE
+                sc_urlhost IS NOT NULL
             )
-            OR (site = 'sc-domain:engage.gov.bc.ca');
+    )
+    OR (gs.site = 'sc-domain:engage.gov.bc.ca');
 
-COMMIT;
+COMMIT; 
 """
 
 # Execute the query and log the outcome
