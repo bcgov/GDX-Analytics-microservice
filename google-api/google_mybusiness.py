@@ -435,7 +435,12 @@ for account in validated_accounts:
 
         # We constrain API calls to one location at a time, so
         # there is only one element in the locationMetrics list:
-        metrics = reportInsights['locationMetrics'][0]['metricValues']
+        try:
+            metrics = reportInsights['locationMetrics'][0]['metricValues']
+        except KeyError:
+            logger.exception(
+                    'Error. Could not find location %s', loc['locationName'])
+            continue
 
         for metric in metrics:
             metric_name = metric['metric'].lower()
