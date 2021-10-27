@@ -807,7 +807,8 @@ UPDATE {dbschema}.metadata
       "asset_subtheme"	   VARCHAR(2047),
       "asset_topic"		   VARCHAR(2047),
       "asset_subtopic"	   VARCHAR(2047),
-      "asset_subsubtopic"	   VARCHAR(2047)
+      "asset_subsubtopic"	   VARCHAR(2047),
+      "sitekey"           VARCHAR(20)
     );
     ALTER TABLE {dbschema}.asset_themes OWNER TO microservice;
     GRANT SELECT ON {dbschema}.asset_themes TO looker;
@@ -944,7 +945,8 @@ biglist
     WHEN asset_subsubtopic IS NOT NULL
       THEN level5_ID
     ELSE NULL
-  END AS asset_subsubtopic_ID
+  END AS asset_subsubtopic_ID,
+  l1.sitekey as sitekey
 FROM ids
     LEFT JOIN {dbschema}.metadata AS l1
       ON l1.node_id = ids.level1_id
@@ -971,7 +973,8 @@ SELECT node_id,
        asset_subtheme,
        asset_topic,
        asset_subtopic,
-       asset_subsubtopic
+       asset_subsubtopic,
+       sitekey
 FROM biglist
 WHERE index = 1;
 
