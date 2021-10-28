@@ -78,5 +78,5 @@
     "schema_name": "microservice",
     "asset_host": "app.britishcolumbia.ca",
     "asset_source": "TIBC",
-    "asset_scheme_and_authority": "http://app.britishcolumbia.ca/"
+    "asset_scheme_and_authority": "http://app.britishcolumbia.ca"
 }
