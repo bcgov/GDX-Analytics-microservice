@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS cmslite.asset_themes (
 	"asset_subtheme"	VARCHAR(2047),
 	"asset_topic"		VARCHAR(2047),
 	"asset_subtopic"	VARCHAR(2047),
-	"asset_subsubtopic"	VARCHAR(2047)
+	"asset_subsubtopic"	VARCHAR(2047),
+	"sitekey"			VARCHAR(20)
 );      
 ALTER TABLE cmslite.asset_themes OWNER TO microservice;
 GRANT SELECT ON cmslite.asset_themes TO looker;
