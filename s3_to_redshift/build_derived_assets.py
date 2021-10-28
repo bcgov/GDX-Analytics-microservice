@@ -287,7 +287,7 @@ query = r'''
         -- be filtered out
         WHERE '{asset_scheme_and_authority}' NOT IN (
             'https://www.workbc.ca',
-            'http://app.britishcolumbia.ca/',
+            'http://app.britishcolumbia.ca',
             'https://www.britishcolumbia.ca',
             'https://www.british-columbia.cn',
             'https://www.britishcolumbia.jp',
