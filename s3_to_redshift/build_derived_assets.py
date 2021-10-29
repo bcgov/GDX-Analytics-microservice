@@ -344,7 +344,6 @@ query = r'''
     {truncate_intermediate_table}
     COMMIT;
 '''.format(schema_name=schema_name,
-           asset_host=asset_host,
            asset_source=asset_source,
            asset_scheme_and_authority=asset_scheme_and_authority,
            truncate_intermediate_table=truncate_intermediate_table)
