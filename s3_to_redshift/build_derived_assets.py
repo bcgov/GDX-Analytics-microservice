@@ -118,15 +118,15 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 query = r'''
     BEGIN;
     SET SEARCH_PATH TO '{schema_name}';
-    INSERT INTO test.asset_downloads_derived 
+    INSERT INTO {schema_name}.asset_downloads_derived 
     WITH asset_metadata AS (
         SELECT 
             hr_url, 
             sitekey 
         FROM cmslite.metadata
         WHERE page_type LIKE 'ASSET'
-    )
-    , biglist AS (
+    ),
+    derived AS (
         SELECT 
             asset_metadata.hr_url AS asset_url,   
             assets.date_timestamp::TIMESTAMP,
@@ -135,7 +135,7 @@ query = r'''
             assets.referrer,
             assets.return_size,
             assets.status_code,
-            SUBSTRING(REGEXP_SUBSTR(hr_url, '//[A-Za-z0-9_\.]+'),3) as asset_host,
+            SUBSTRING(REGEXP_SUBSTR(asset_url, '//[A-Za-z0-9_\.]+'),3) as asset_host,
             -- strip down the asset_url by removing host, query, etc,
             -- then use a regex to get the filename from the remaining path.
             REGEXP_SUBSTR(
@@ -241,7 +241,6 @@ query = r'''
         REGEXP_SUBSTR(assets.referrer, '[^/]+\\\.[^/:]+')
         AS referrer_urlhost_derived,
         assets.referrer_medium,
-
         SPLIT_PART(
             SPLIT_PART(
                 REGEXP_SUBSTR(
@@ -341,7 +340,7 @@ query = r'''
         asset_url_nopar,
         asset_url_nopar_case_insensitive,
         truncated_asset_url_nopar_case_insensitive
-    FROM biglist;
+    FROM derived;
     {truncate_intermediate_table}
     COMMIT;
 '''.format(schema_name=schema_name,
