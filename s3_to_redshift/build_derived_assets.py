@@ -118,28 +118,36 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 query = r'''
     BEGIN;
     SET SEARCH_PATH TO '{schema_name}';
-    INSERT INTO asset_downloads_derived (
-        SELECT '{asset_scheme_and_authority}' ||
-            SPLIT_PART(assets.request_string, ' ',2)
-            AS asset_url,
-        assets.date_timestamp::TIMESTAMP,
-        assets.ip AS ip_address,
-        assets.request_response_time,
-        assets.referrer,
-        assets.return_size,
-        assets.status_code,
-        -- strip down the asset_url by removing host, query, etc,
-        -- then use a regex to get the filename from the remaining path.
-        REGEXP_SUBSTR(
-            REGEXP_REPLACE(
-              SPLIT_PART(
-                SPLIT_PART(
-                  SPLIT_PART(
-                    asset_url, '{asset_host}' , 2),
-                  '?', 1),
-                '#', 1),
-              '(.aspx)$'),
-        '([^\/]+\.[A-Za-z0-9]+)$') AS asset_file,
+    INSERT INTO {schema_name}.asset_downloads_derived 
+    WITH asset_metadata AS (
+        SELECT 
+            hr_url, 
+            sitekey 
+        FROM cmslite.metadata
+        WHERE page_type LIKE 'ASSET'
+    ),
+    biglist AS (
+        SELECT 
+            asset_metadata.hr_url AS asset_url,   
+            assets.date_timestamp::TIMESTAMP,
+            assets.ip AS ip_address,
+            assets.request_response_time,
+            assets.referrer,
+            assets.return_size,
+            assets.status_code,
+            SUBSTRING(REGEXP_SUBSTR(hr_url, '//[A-Za-z0-9_\.]+'),3) as asset_host,
+            -- strip down the asset_url by removing host, query, etc,
+            -- then use a regex to get the filename from the remaining path.
+            REGEXP_SUBSTR(
+                REGEXP_REPLACE(
+                    SPLIT_PART(
+                        SPLIT_PART(
+                            SPLIT_PART(
+                                asset_url, asset_host , 2),
+                            '?', 1),
+                        '#', 1),
+                    '(.aspx)$'),
+                '([^\/]+\.[A-Za-z0-9]+)$') AS asset_file,
         -- strip down the asset_url by removing host, query, etc, then use
         -- a regex to get the file extension from the remaining path.
         CASE
@@ -152,7 +160,7 @@ query = r'''
                   '?', 1),
                 '#', 1),
               '(.aspx)$'),
-            '{asset_host}', 2) LIKE '%.%'
+            asset_host, 2) LIKE '%.%'
           THEN REGEXP_SUBSTR(
             SPLIT_PART(
               REGEXP_REPLACE(
@@ -163,13 +171,12 @@ query = r'''
                     '?', 1),
                   '#', 1),
                 '(.aspx)$'),
-              '{asset_host}', 2),
+              asset_host, 2),
             '([^\.]+$)')
           ELSE NULL
         END AS asset_ext,
         assets.user_agent_http_request_header,
         assets.request_string,
-        '{asset_host}' as asset_host,
         '{asset_source}' as asset_source,
         CASE
             WHEN assets.referrer is NULL THEN TRUE
@@ -178,7 +185,7 @@ query = r'''
         CASE
             WHEN
                 REGEXP_SUBSTR(assets.referrer, '[^/]+\\\.[^/:]+')
-                <> '{asset_host}'
+                <> asset_host
             THEN TRUE
             ELSE FALSE
             END AS offsite_download,
@@ -234,6 +241,7 @@ query = r'''
         REGEXP_SUBSTR(assets.referrer, '[^/]+\\\.[^/:]+')
         AS referrer_urlhost_derived,
         assets.referrer_medium,
+
         SPLIT_PART(
             SPLIT_PART(
                 REGEXP_SUBSTR(
@@ -298,7 +306,42 @@ query = r'''
             AND asset_source LIKE 'TIBC')
         OR (request_string LIKE '%TradeBCPortal/media%'
             AND asset_source LIKE 'TIBC')
-    );
+    ) SELECT 
+        asset_url,
+        date_timestamp,
+        ip_address,
+        request_response_time,
+        referrer,
+        return_size,
+        status_code,
+        asset_file,
+        asset_ext,
+        user_agent_http_request_header,
+        request_string,
+        asset_host,
+        sitekey,
+        asset_source,
+        direct_download,
+        offsite_download,
+        is_efficiencybc_dev,
+        is_government,
+        is_mobile,
+        device,
+        os_family,
+        os_version,
+        browser_family,
+        browser_version,
+        referrer_urlhost_derived,
+        referrer_medium,
+        referrer_urlpath,
+        referrer_urlquery,
+        referrer_urlscheme,
+        page_referrer_display_url,
+        asset_url_case_insensitive,
+        asset_url_nopar,
+        asset_url_nopar_case_insensitive,
+        truncated_asset_url_nopar_case_insensitive
+    FROM biglist;
     {truncate_intermediate_table}
     COMMIT;
 '''.format(schema_name=schema_name,
