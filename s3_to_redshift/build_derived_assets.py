@@ -108,12 +108,12 @@ if (truncate):
 
 add_sitekey = ''
 if (asset_source == 'CMSLite'):
-    add_sitekey = '''UPDATE '{schema_name}'.asset_downloads_derived 
+    add_sitekey = '''UPDATE microservice.asset_downloads_derived 
         SET asset_host = (select cm.sitekey 
         FROM cmslite.metadata cm 
             LEFT JOIN microservice.asset_downloads_derived add ON cm.title = add.asset_file) 
         WHERE asset_source = 'CMSLite';
-    '''.format(schema_name=schema_name)
+    '''
 
 conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
