@@ -121,7 +121,8 @@ query = r'''
     INSERT INTO {schema_name}.asset_downloads_derived 
     WITH asset_metadata AS (
         SELECT 
-            hr_url, 
+            hr_url,
+            title,
             sitekey 
         FROM cmslite.metadata
         WHERE page_type LIKE 'ASSET'
@@ -290,6 +291,8 @@ query = r'''
                 '%20',' ')
             AS truncated_asset_url_nopar_case_insensitive
             FROM {schema_name}.asset_downloads AS assets
+            LEFT JOIN assets_metadata 
+                ON assets_metadata.title = assets.asset_file
             -- Asset files not in the getmedia folder for workbc must
             -- be filtered out
             WHERE '{asset_scheme_and_authority}' NOT IN (
