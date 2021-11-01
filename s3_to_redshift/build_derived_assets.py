@@ -106,6 +106,7 @@ truncate_intermediate_table = ''
 if (truncate):
     truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
+add_sitekey = ''
 if (asset_source == 'CMSLite'):
     add_sitekey = '''UPDATE {schema_name}.asset_downloads_derived 
         SET sitekey = (select cm.sitekey 
