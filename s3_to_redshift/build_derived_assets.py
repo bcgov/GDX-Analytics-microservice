@@ -109,7 +109,7 @@ if (truncate):
 add_sitekey = ''
 if (asset_source == 'CMSLite'):
     add_sitekey = '''UPDATE {schema_name}.asset_downloads_derived 
-        SET sitekey = (select cm.sitekey 
+        SET asset_host = (select cm.sitekey 
         FROM cmslite.metadata cm 
             LEFT JOIN microservice.asset_downloads_derived add ON cm.title = add.asset_file) 
         WHERE asset_source = 'CMSLite';'''
@@ -314,7 +314,8 @@ query = r'''
            asset_host=asset_host,
            asset_source=asset_source,
            asset_scheme_and_authority=asset_scheme_and_authority,
-           truncate_intermediate_table=truncate_intermediate_table)
+           truncate_intermediate_table=truncate_intermediate_table,
+           add_sitekey=add_sitekey)
 
 # Reporting variables
 report_stats = {

@@ -32,8 +32,7 @@ CREATE TABLE IF NOT EXISTS microservice.asset_downloads_derived
   "asset_url_case_insensitive" VARCHAR(4095) ENCODE ZSTD,
   "asset_url_nopar" VARCHAR(4095) ENCODE ZSTD,
   "asset_url_nopar_case_insensitive" VARCHAR(4095) ENCODE ZSTD,
-  "truncated_asset_url_nopar_case_insensitive" VARCHAR(4095) ENCODE ZSTD,
-  "sitekey" VARCHAR(20) ENCODE ZSTD
+  "truncated_asset_url_nopar_case_insensitive" VARCHAR(4095) ENCODE ZSTD
 );
 
 GRANT SELECT ON microservice.asset_downloads_derived TO "looker";
