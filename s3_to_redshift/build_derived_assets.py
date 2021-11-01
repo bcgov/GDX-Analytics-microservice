@@ -111,7 +111,7 @@ if (asset_source == 'CMSLite'):
     add_sitekey = '''UPDATE microservice.asset_downloads_derived 
         SET asset_host = (select cm.sitekey 
         FROM cmslite.metadata cm 
-            LEFT JOIN microservice.asset_downloads_derived add ON cm.title = add.asset_file) 
+            LEFT JOIN microservice.asset_downloads_derived add ON cm.hr_url = add.asset_url) 
         WHERE asset_source = 'CMSLite';
     '''
 
