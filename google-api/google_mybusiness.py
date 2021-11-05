@@ -147,7 +147,7 @@ conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
 # Setup OAuth 2.0 flow for the Google My Business API
 API_NAME = 'mybusiness'
 API_VERSION = 'v4'
-DISCOVERY_URI = 'https://mybusiness.googleapis.com/$discovery/rest?version=v4'
+DISCOVERY_URI = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
 
 
 # Google API Access requires a browser-based authentication step to create
