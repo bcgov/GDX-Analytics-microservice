@@ -165,8 +165,7 @@ if CLIENT_SECRET is None or AUTHORIZATION is None or CONFIG is None:
 # then brower based Google Account validation will be required
 API_NAME = 'searchconsole'
 API_VERSION = 'v1'
-DISCOVERY_URI = ('https://www.googleapis.com/'
-                 'discovery/v1/apis/webmasters/v3/rest')
+DISCOVERY_URI = 'https://searchconsole.googleapis.com/$discovery/rest'
 
 flow_scope = 'https://www.googleapis.com/auth/webmasters.readonly'
 flow = flow_from_clientsecrets(
