@@ -405,7 +405,7 @@ def main():
                           lambda x: x.strftime(
                               thisfield['format']) if not pd.isnull(x) else '')                      
         except ValueError as _e:
-          print(f'\n**An Error Occured**\n{str(_e)}\n')
+          print(f'\n**An Error Occurred**\n{str(_e)}\n')
           outfile = badfile
           logger.exception('Exception parsing %s', object_summary.key)
           report_stats['failed'] += 1
