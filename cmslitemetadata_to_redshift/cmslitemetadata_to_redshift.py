@@ -378,30 +378,48 @@ def main():
         # Note that this overrides the columns in the file, and will give an
         # error if the wrong number of columns is present.
         # It will not validate the existing column names.
-        _df.columns = columns
+        
+        try:
+          _df.columns = columns
 
-        # Run rename to change column names
-        if 'rename' in data:
-            for thisfield in data['rename']:
-                if thisfield['old'] in _df.columns:
-                    _df.rename(columns={thisfield['old']: thisfield['new']},
-                               inplace=True)
+          # Run rename to change column names
+          if 'rename' in data:
+              for thisfield in data['rename']:
+                  if thisfield['old'] in _df.columns:
+                      _df.rename(columns={thisfield['old']: thisfield['new']},
+                                inplace=True)
 
-        # Run replace on some fields to clean the data up
-        if 'replace' in data:
-            for thisfield in data['replace']:
-                _df[thisfield['field']].str.replace(thisfield['old'],
-                                                    thisfield['new'])
+          # Run replace on some fields to clean the data up
+          if 'replace' in data:
+              for thisfield in data['replace']:
+                  _df[thisfield['field']].str.replace(thisfield['old'],
+                                                      thisfield['new'])
 
-        # Clean up date fields, for each field listed in the dateformat array
-        # named "field" apply "format". Leaves null entries as blanks instead
-        # of NaT.
-        if 'dateformat' in data:
-            for thisfield in data['dateformat']:
-                _df[thisfield['field']] = pd.to_datetime(
-                    _df[thisfield['field']]).apply(
-                        lambda x: x.strftime(
-                            thisfield['format']) if not pd.isnull(x) else '')
+          # Clean up date fields, for each field listed in the dateformat array
+          # named "field" apply "format". Leaves null entries as blanks instead
+          # of NaT.
+          if 'dateformat' in data:
+              for thisfield in data['dateformat']:
+                  _df[thisfield['field']] = pd.to_datetime(
+                      _df[thisfield['field']]).apply(
+                          lambda x: x.strftime(
+                              thisfield['format']) if not pd.isnull(x) else '')                      
+        except pandas.errors.ParserError:
+          outfile = badfile
+          logger.exception('Exception parsing %s', object_summary.key)
+          report_stats['failed'] += 1
+          report_stats['bad'] += 1
+          report_stats['bad_list'].append(object_summary)
+          report_stats['incomplete_list'].remove(object_summary)
+          try:
+                client.copy_object(Bucket=f"{bucket}",
+                               CopySource=f"{bucket}/{object_summary.key}",
+                               Key=outfile)
+          except ClientError:
+            logger.exception("S3 transfer to processed/bad has failed")
+          report(report_stats)
+          clean_exit(1, f'{object_summary.key} not parsable. Check data format.')
+          
 
         # We loop over the columns listed in the JSON configuration file.
         # There are three sets of values that should match to consider:
