@@ -119,13 +119,13 @@ query = r'''
     BEGIN;
     SET SEARCH_PATH TO '{schema_name}';
     INSERT INTO asset_downloads_derived (
+        SELECT '{asset_scheme_and_authority}' ||
+            SPLIT_PART(assets.request_string, ' ',2)
+            AS asset_url,
         CASE
             WHEN request_string LIKE '%/assets/download/%' AND referrer LIKE '%mcfd%' THEN 'mcfd'
             ELSE 'intranet'
         END AS asset_host,
-        SELECT '{asset_scheme_and_authority}' ||
-            SPLIT_PART(assets.request_string, ' ',2)
-            AS asset_url,
         assets.date_timestamp::TIMESTAMP,
         assets.ip AS ip_address,
         assets.request_response_time,
