@@ -122,10 +122,6 @@ query = r'''
         SELECT '{asset_scheme_and_authority}' ||
             SPLIT_PART(assets.request_string, ' ',2)
             AS asset_url,
-        CASE
-            WHEN request_string LIKE '%/assets/download/%' AND referrer LIKE '%mcfd%' THEN 'mcfd'
-            ELSE 'intranet'
-        END AS asset_host,
         assets.date_timestamp::TIMESTAMP,
         assets.ip AS ip_address,
         assets.request_response_time,
@@ -173,7 +169,10 @@ query = r'''
         END AS asset_ext,
         assets.user_agent_http_request_header,
         assets.request_string,
-        '{asset_host}' as asset_host,
+        CASE
+            WHEN request_string LIKE '%/assets/download/%' AND referrer LIKE '%mcfd%' THEN 'mcfd'
+            ELSE 'intranet'
+        END AS asset_host,
         '{asset_source}' as asset_source,
         CASE
             WHEN assets.referrer is NULL THEN TRUE
