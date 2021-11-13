@@ -171,7 +171,7 @@ query = r'''
         assets.request_string,
         CASE
             WHEN request_string LIKE '%/assets/download/%' AND referrer LIKE '%mcfd%' THEN 'mcfd'
-            ELSE 'intranet'
+            ELSE '{asset_host}'
         END AS asset_host,
         '{asset_source}' as asset_source,
         CASE
