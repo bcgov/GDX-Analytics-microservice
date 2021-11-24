@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS cmslite.embc_language_matrix
+( 
+  "title" VARCHAR(255) ENCODE ZSTD NOT NULL,
+  "english" VARCHAR(255) ENCODE ZSTD NOT NULL,
+  "punjabi" VARCHAR(255) ENCODE ZSTD,
+  "french" VARCHAR(255) ENCODE ZSTD,
+  "spanish" VARCHAR(255) ENCODE ZSTD,
+  "tc" VARCHAR(255) ENCODE ZSTD,
+  "sc" VARCHAR(255) ENCODE ZSTD,
+  "farsi" VARCHAR(255) ENCODE ZSTD,
+  "tagalog" VARCHAR(255) ENCODE ZSTD,
+  "korean" VARCHAR(255) ENCODE ZSTD,
+  "arabicc" VARCHAR(255) ENCODE ZSTD,
+  "vietnamese" VARCHAR(255) ENCODE ZSTD,
+  "japanese" VARCHAR(255) ENCODE ZSTD,
+  "hindi" VARCHAR(255) ENCODE ZSTD
+);
+
+GRANT SELECT ON cmslite.embc_language_matrix TO "looker";
