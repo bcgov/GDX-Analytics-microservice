@@ -2,9 +2,9 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "assets_tibc",
+    "directory": "veenu_test",
     "doc": "tibc-app.*",
-    "dbtable": "microservice.asset_downloads",
+    "dbtable": "test.asset_downloads",
     "column_count": 16,
     "columns": [
       "ip",
@@ -38,7 +38,8 @@
       "Source Translated Port"
     ],
     "delim": "|",
-    "truncate": true,
+    "truncate_asset_downloads": true,
+   
     "dateformat": [
       {
         "field": "date/timestamp",
@@ -75,7 +76,7 @@
       "linefeed": "\r\n",
       "ua_parse": {}
     },
-    "schema_name": "microservice",
+    "schema_name": "test",
     "asset_host": "app.britishcolumbia.ca",
     "asset_source": "TIBC",
     "asset_scheme_and_authority": "http://app.britishcolumbia.ca"
