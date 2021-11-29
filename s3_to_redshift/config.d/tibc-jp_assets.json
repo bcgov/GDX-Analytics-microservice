@@ -38,7 +38,8 @@
       "Source Translated Port"
     ],
     "delim": "|",
-    "truncate": true,
+    "truncate": false,
+    "truncate_asset_downloads": true,
     "dateformat": [
       {
         "field": "date/timestamp",
