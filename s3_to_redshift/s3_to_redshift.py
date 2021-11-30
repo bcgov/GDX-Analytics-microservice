@@ -17,7 +17,8 @@
 #
 
 import re  # regular expressions
-from io import StringIO
+from io import StringIO, BytesIO
+import openpyxl
 import os  # to read environment variables
 import os.path  # file handling
 import json  # to read json config files
@@ -256,7 +257,9 @@ for object_summary in objects_to_process:
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
     body = obj['Body']
-
+    print(f'Body Object: {body}') # deleteme
+    csv = False
+    xlsx = False
     # Create an object to hold the data while parsing
     csv_string = ''
 
@@ -268,6 +271,7 @@ for object_summary in objects_to_process:
             inline_pattern = data['access_log_parse']['string_repl']['pattern']
             inline_replace = data['access_log_parse']['string_repl']['replace']
         body_stringified = body.read()
+        print(f'Body Stringfield: {body_stringified}') # deleteme
         # perform regex replacements by line
         for line in body_stringified.splitlines():
             if data['access_log_parse']['string_repl']:
@@ -329,56 +333,83 @@ for object_summary in objects_to_process:
 
     # This is not an apache access log
     if 'access_log_parse' not in data:
-        csv_string = body.read()
+        if obj['ResponseMetadata']['HTTPHeaders']['content-type'].endswith('sheet'):
+            xlsx_decoded = pd.read_excel(BytesIO(body.read()))
+            print(type(xlsx_decoded)) # deleteme
+            xlsx = True
+            print(f'XLSX String: {csv_string}')
+        else:
+            csv = True
+            csv_string = body.read()
+            print(f'File is CSV')  # deleteme
 
-    # Check that the file decodes as UTF-8. If it fails move to bad and end
-    try:
-        csv_string = csv_string.decode('utf-8')
-    except UnicodeDecodeError as _e:
-        report_stats['failed'] += 1
-        report_stats['bad'] += 1
-        report_stats['bad_list'].append(object_summary)
-        report_stats['incomplete_list'].remove(object_summary)
-        e_object = _e.object.splitlines()
-        logger.exception(
-            ''.join((
-                "Decoding UTF-8 failed for file {0}\n"
-                .format(object_summary.key),
-                "The input file stopped parsing after line {0}:\n{1}\n"
-                .format(len(e_object), e_object[-1]),
-                "Keying to badfile and stopping.\n")))
-        try:
-            client.copy_object(
-                Bucket="sp-ca-bc-gov-131565110619-12-microservices",
-                CopySource=(
-                    "sp-ca-bc-gov-131565110619-12-microservices/"
-                    f"{object_summary.key}"
-                ),
-                Key=badfile)
-        except Exception as _e:
-            logger.exception("S3 transfer failed. %s", str(_e))
-        report(report_stats)
-        clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
-                   'no further processing.')
+            # Check that the file decodes as UTF-8. If it fails move to bad and end
+            try:
+                csv_string = csv_string.decode('utf-8')
+            except UnicodeDecodeError as _e:
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary)
+                e_object = _e.object.splitlines()
+                logger.exception(
+                    ''.join((
+                        "Decoding UTF-8 failed for file {0}\n"
+                        .format(object_summary.key),
+                        "The input file stopped parsing after line {0}:\n{1}\n"
+                        .format(len(e_object), e_object[-1]),
+                        "Keying to badfile and stopping.\n")))
+                try:
+                    client.copy_object(
+                        Bucket="sp-ca-bc-gov-131565110619-12-microservices",
+                        CopySource=(
+                            "sp-ca-bc-gov-131565110619-12-microservices/"
+                            f"{object_summary.key}"
+                        ),
+                        Key=badfile)
+                except Exception as _e:
+                    logger.exception("S3 transfer failed. %s", str(_e))
+                report(report_stats)
+                clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
+                           'no further processing.')
 
     # Check for an empty file. If it's empty, accept it as bad and skip
     # to the next object to process
     try:
         if no_header:
-            df = pd.read_csv(
-                StringIO(csv_string),
-                sep=delim,
-                index_col=False,
-                dtype=dtype_dic,
-                usecols=range(column_count),
-                header=None)
+            if csv:
+                df = pd.read_csv(
+                    StringIO(csv_string),
+                    sep=delim,
+                    index_col=False,
+                    dtype=dtype_dic,
+                    usecols=range(column_count),
+                    header=None)
+            else:
+                df = xlsx_decoded
+                    #pd.read_excel(BytesIO(body.read()))
+                    #engine="pyxlsb",
+                    #index_col=False,
+                    #dtype=dtype_dic,
+                    #usecols=range(column_count),
+                    #header=None)
+                print('NO HEADER XLSX') # deleteme
         else:
-            df = pd.read_csv(
-                StringIO(csv_string),
-                sep=delim,
-                index_col=False,
-                dtype=dtype_dic,
-                usecols=range(column_count))
+            if csv:
+                df = pd.read_csv(
+                    StringIO(csv_string),
+                    sep=delim,
+                    index_col=False,
+                    dtype=dtype_dic,
+                    usecols=range(column_count))
+            else:
+                df = xlsx_decoded
+                    #pd.read_excel(BytesIO(body.read()))
+                    #engine="pyxlsb",
+                    #index_col=False,
+                    #dtype=dtype_dic,
+                    #usecols=range(column_count))
+                print('HEADER XLSX') # deleteme
     except pandas.errors.EmptyDataError as _e:
         logger.exception('exception reading %s', object_summary.key)
         report_stats['failed'] += 1
@@ -421,6 +452,8 @@ for object_summary in objects_to_process:
                    'no further processing.')
 
     # map the dataframe column names to match the columns from the configuation
+    print(df)  # deleteme
+    print(len(df.columns))  # deleteme
     df.columns = columns
 
     # Truncate strings according to config set column string length limits
