@@ -415,7 +415,8 @@ for object_summary in objects_to_process:
             sep=delim,
             index_col=False,
             dtype=dtype_dic,
-            usecols=range(column_count))
+            usecols=range(column_count),
+            names=columns)
     except pandas.errors.EmptyDataError as _e:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
@@ -458,14 +459,12 @@ for object_summary in objects_to_process:
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
-    # map the dataframe column names to match the columns from the configuation
-    df.columns = columns
-
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            try: 
+            try:
                 df[key] = df[key].str.slice(0, value)
+                logger.info(f'Truncated {key} column to {value} characters')
             except AttributeError:
                 logger.debug(f'Could not enforce string limit on {df[key]} in {object_summary.key}.')
 
