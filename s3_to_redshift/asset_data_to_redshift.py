@@ -459,9 +459,6 @@ for object_summary in objects_to_process:
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
-    # map the dataframe column names to match the columns from the configuation
-    # df.columns = columns
-
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
