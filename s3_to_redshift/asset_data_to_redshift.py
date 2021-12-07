@@ -258,9 +258,9 @@ for object_summary in objects_to_process:
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
-    # The file is an empty upload. Key to goodfile and continue
+    # The file is an empty upload. Key to badfile and continue
     if(obj['ContentLength'] == 0):
-        logger.info('%s is empty, keying to goodfile and proceeding.',
+        logger.info('%s is empty, keying to badfile and proceeding.',
                      object_summary.key)
         outfile = goodfile
         try:
@@ -270,14 +270,13 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report_stats['empty'] += 1
-        report_stats['good'] += 1
-        report_stats['good_list'].append(object_summary)
+        report_stats['bad'] += 1
+        report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
         report(report_stats)
-        continue
-#        clean_exit(0, f'Empty file {object_summary.key} in objects to process, '
-#                   'continuing processing next object.')
+        clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
+                   'no further processing.')
                    
 
     body = obj['Body']
