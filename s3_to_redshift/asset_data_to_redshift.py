@@ -262,7 +262,7 @@ for object_summary in objects_to_process:
     if(obj['ContentLength'] == 0):
         logger.info('%s is empty, keying to badfile and proceeding.',
                      object_summary.key)
-        outfile = goodfile
+        outfile = badfile
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
