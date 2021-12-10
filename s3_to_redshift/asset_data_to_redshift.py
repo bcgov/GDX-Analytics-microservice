@@ -70,6 +70,7 @@ with open(configfile) as f:
     data = json.load(f)
 
 # get variables from config file
+empty_files_ok = data['empty_files_ok']
 bucket = data['bucket']
 source = data['source']
 destination = data['destination']
@@ -259,7 +260,7 @@ for object_summary in objects_to_process:
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
     # The file is an empty upload. Key to badfile and continue
-    if(obj['ContentLength'] == 0):
+    if ((obj['ContentLength'] == 0) and (not empty_files_ok)):
         logger.info('%s is empty, keying to badfile and proceeding.',
                      object_summary.key)
         outfile = badfile
@@ -277,7 +278,23 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
                    'no further processing.')
-                   
+    elif(obj['ContentLength'] == 0 and empty_files_ok):
+        logger.info('%s is empty, keying to goodfile and proceeding.',
+                     object_summary.key)
+        outfile = goodfile
+        try:
+            client.copy_object(Bucket=f"{bucket}",
+                               CopySource=f"{bucket}/{object_summary.key}",
+                               Key=outfile)
+        except ClientError:
+            logger.exception("S3 transfer failed")
+        report_stats['empty'] += 1
+        report_stats['good'] += 1
+        report_stats['good_list'].append(object_summary)
+        report_stats['empty_list'].append(object_summary)
+        report_stats['incomplete_list'].remove(object_summary)
+        report(report_stats)
+        continue      
 
     body = obj['Body']
 
