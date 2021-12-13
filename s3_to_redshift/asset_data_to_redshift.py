@@ -262,7 +262,7 @@ for object_summary in objects_to_process:
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
-    # The file is an empty upload. Key to badfile and continue
+    # The file is an empty upload. Key to badfile and stop processing further.
     if ((obj['ContentLength'] == 0) and (not empty_files_ok)):
         logger.info('%s is empty, keying to badfile and proceeding.',
                      object_summary.key)
@@ -281,7 +281,7 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
                    'no further processing.')
-    # The file is empty. Key to goodfile and continue
+    # The file is empty. Key to goodfile and continue processing next files.
     elif(obj['ContentLength'] == 0 and empty_files_ok):
         logger.info('%s is empty, keying to goodfile and proceeding.',
                      object_summary.key)

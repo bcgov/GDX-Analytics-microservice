@@ -69,6 +69,7 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"delim"`: specify the character that deliminates data in the input `csv`.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data.
 - `"truncate_asset_downloads"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated after the derived table has been built from the intermediate table.
+- `"empty_files_ok"`: boolean (`true` or `false`) that determines emtly files are ok to process and will be put in good folder when flag is set to true. The default behaviour when flag is not set or set to false is that empty files are bad and processing stops when they are hit.
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
   - `"field"`: a column name containing datetime format data.
   - `"format"`: strftime to parse time. See [strftime documentation](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) for more information on choices.
