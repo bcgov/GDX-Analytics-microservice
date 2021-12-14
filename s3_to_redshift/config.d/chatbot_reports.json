@@ -1,0 +1,39 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "chatbot_citz",
+  "doc": "Pass2.*csv",
+  "dbtable": "microservice.chatbot_reports",
+  "column_count": 13,
+  "columns": [
+    "conf_score",
+    "sentiment_score",
+    "sentiment_magnitude",
+    "sessionorigin",
+    "conversation_index",
+    "conversation_length",
+    "conversation_duration",
+    "session_id",
+    "timestamp",
+    "matched_intent",
+    "training_result",
+    "conversation_rating",
+    "issue"
+  ],
+  "dtype_dic_ints": [
+  ],
+  "dtype_dic_strings": [
+    "conf_score"
+  ],
+  "delim": "|",
+  "truncate": false,
+  "dateformat": [
+      {
+        "field": "timestamp",
+        "format": "%Y-%m-%d %H:%M:%S"
+      }
+  ],
+  "quote_level" : 3,
+  "ignore_encoding_errors" : true
+}
