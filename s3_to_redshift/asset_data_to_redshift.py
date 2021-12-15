@@ -70,10 +70,6 @@ with open(configfile) as f:
     data = json.load(f)
 
 # get variables from config file
-if 'empty_files_ok' in data:
-    empty_files_ok = data['empty_files_ok']
-else:
-    empty_files_ok = False
 bucket = data['bucket']
 source = data['source']
 destination = data['destination']
@@ -262,27 +258,8 @@ for object_summary in objects_to_process:
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
-    # The file is an empty upload. Key to badfile and stop processing further.
-    if ((obj['ContentLength'] == 0) and (not empty_files_ok)):
-        logger.info('%s is empty, keying to badfile and proceeding.',
-                     object_summary.key)
-        outfile = badfile
-        try:
-            client.copy_object(Bucket=f"{bucket}",
-                               CopySource=f"{bucket}/{object_summary.key}",
-                               Key=outfile)
-        except ClientError:
-            logger.exception("S3 transfer failed")
-        report_stats['empty'] += 1
-        report_stats['bad'] += 1
-        report_stats['bad_list'].append(object_summary)
-        report_stats['empty_list'].append(object_summary)
-        report_stats['incomplete_list'].remove(object_summary)
-        report(report_stats)
-        clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
-                   'no further processing.')
-    # The file is empty. Key to goodfile and continue processing next files.
-    elif(obj['ContentLength'] == 0 and empty_files_ok):
+    # The file is an empty upload. Key to goodfile and continue
+    if(obj['ContentLength'] == 0):
         logger.info('%s is empty, keying to goodfile and proceeding.',
                      object_summary.key)
         outfile = goodfile
@@ -297,7 +274,9 @@ for object_summary in objects_to_process:
         report_stats['good_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
-        continue      
+        report(report_stats)
+        clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
+                   'no further processing.')
 
     body = obj['Body']
 
