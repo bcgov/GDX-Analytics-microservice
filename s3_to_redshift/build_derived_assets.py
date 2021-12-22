@@ -105,6 +105,9 @@ truncate = data['truncate']
 truncate_intermediate_table = ''
 if (truncate):
     truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
+truncate_intermediate_table = ''
+if (truncate):
+    truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
 conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
