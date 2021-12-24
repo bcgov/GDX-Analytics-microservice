@@ -161,7 +161,9 @@ def is_processed(object_summary):
 
 def cleanup(object_keys, path):
    for key in object_keys:
+        print(f'key:{key}')
         filename = f'{destination}/{path}/{key}'
+        print(f'filename:{filename}')
         client.delete_object(Bucket=bucket, Key=filename)
 
 
@@ -262,16 +264,13 @@ report_stats['objects'] = len(objects_to_process)
 report_stats['incomplete_list'] = objects_to_process.copy()
 # list to keep track of objects
 good_objects = []
-
-for object_summary in objects_to_process:
-    good_objects.append(object_summary.key)
+path = ''
 
 # process the objects that were found during the earlier directory pass
 for object_summary in objects_to_process:
     batchfile = destination + "/batch/" + object_summary.key
     goodfile = destination + "/good/" + object_summary.key
     badfile = destination + "/bad/" + object_summary.key
-    path = ''
 
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
@@ -579,6 +578,10 @@ COMMIT;
             + object_summary.key, Key=outfile)
     except ClientError:
         logger.exception("S3 transfer failed")
+    else:
+        if outfile == goodfile:
+            path = 'good'
+            good_objects.append(object_summary.key)
     if outfile == badfile:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
@@ -590,7 +593,6 @@ COMMIT;
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
-    path = 'good'
     logger.info("finished %s", object_summary.key)
     logger.info("finished %s", object_summary.key)
 
