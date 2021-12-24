@@ -158,6 +158,13 @@ def is_processed(object_summary):
     return False
 
 
+
+def cleanup(object_keys, path):
+   for key in object_keys:
+        filename = f'{destination}/{path}/{key}'
+        client.delete_object(Bucket=bucket, Key=filename)
+
+
 def report(data):
     '''reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
@@ -253,21 +260,34 @@ report_stats = {
 
 report_stats['objects'] = len(objects_to_process)
 report_stats['incomplete_list'] = objects_to_process.copy()
+# list to keep track of objects
+good_objects = []
+
+for object_summary in objects_to_process:
+    good_objects.append(object_summary.key)
 
 # process the objects that were found during the earlier directory pass
 for object_summary in objects_to_process:
     batchfile = destination + "/batch/" + object_summary.key
     goodfile = destination + "/good/" + object_summary.key
     badfile = destination + "/bad/" + object_summary.key
+    path = ''
 
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
     # The file is an empty upload. Key to badfile and stop processing further.
     if ((obj['ContentLength'] == 0) and (not empty_files_ok)):
-        logger.info('%s is empty, keying to badfile and proceeding.',
+        logger.info('%s is empty, keying to badfile and no further processing.',
                      object_summary.key)
         outfile = badfile
+
+        try:
+            if good_objects:
+                cleanup(good_objects, path)
+        except ClientError:
+            logger.exception("S3 delete failed")
+
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
@@ -279,9 +299,15 @@ for object_summary in objects_to_process:
         report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
+
         report(report_stats)
         clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
                    'no further processing.')
+    elif((obj['ContentLength'] == 0) and (empty_files_ok)):
+        logger.info('%s is empty, but empty files are set to be ok.',
+                     object_summary.key)
+        report_stats['empty'] += 1
+        report_stats['empty_list'].append(object_summary)
 
     body = obj['Body']
 
@@ -564,8 +590,15 @@ COMMIT;
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
+    path = 'good'
     logger.info("finished %s", object_summary.key)
     logger.info("finished %s", object_summary.key)
+
+
+
+
+
+
 
 report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')
