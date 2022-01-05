@@ -286,20 +286,14 @@ query = r'''
             '%20',' ')
         AS truncated_asset_url_nopar_case_insensitive
          FROM {schema_name}.asset_downloads AS assets
-        -- Asset files not in the getmedia folder for workbc must
-        -- be filtered out
-        WHERE '{asset_scheme_and_authority}' NOT IN (
+        -- Asset files not in the getmedia folder for TIBC and
+        -- workbc must be filtered out
+       WHERE '{asset_scheme_and_authority}' NOT IN (
             'https://www.workbc.ca',
-            'http://app.britishcolumbia.ca',
-            'https://www.britishcolumbia.ca',
-            'https://www.british-columbia.cn',
-            'https://www.britishcolumbia.jp',
-            'https://www.britishcolumbia.kr')
+            'https://www.britishcolumbia.ca')
         OR (request_string LIKE '%getmedia%'
             AND asset_url LIKE 'https://www.workbc.ca%')
-        OR (request_string LIKE '%getmedia%'
-            AND asset_source LIKE 'TIBC')
-        OR (request_string LIKE '%TradeBCPortal/media%'
+        OR (request_string LIKE '%wp-content/uploads%' 
             AND asset_source LIKE 'TIBC')
     );
     {truncate_intermediate_table}
