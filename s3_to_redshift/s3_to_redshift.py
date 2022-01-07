@@ -334,7 +334,7 @@ for object_summary in objects_to_process:
     # This is not an apache access log
     if 'access_log_parse' not in data:
         if obj['ResponseMetadata']['HTTPHeaders']['content-type'].endswith('sheet'):
-            xlsx_decoded = pd.read_excel(BytesIO(body.read()))
+            xlsx_decoded = pd.read_excel(BytesIO(body.read()), dtype=dtype_dic, parse_dates=True)
             print(type(xlsx_decoded)) # deleteme
             xlsx = True
             print(f'XLSX String: {csv_string}')
