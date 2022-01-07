@@ -111,7 +111,6 @@ def pmrp_qdata_dates():
         "(cfms_poc.welcome_time < ((DATEADD(day,1, TIMESTAMP " + "''" + date + "''" + "))))) OR ")
     last_or_index = query.rfind("OR")
     query_string = query[:last_or_index]
-    print(query_string)
     return query_string
 
 
@@ -218,13 +217,13 @@ def report(data):
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
     if 'start_date' and 'end_date' in config:
-        print(f'Requested Dates: {start_date} to {end_date}')
+        print(f'Requested Dates: {start_date} to {end_date}\n')
     # Get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
     print(
-    	'\nMicroservice started at: '
+    	f'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
