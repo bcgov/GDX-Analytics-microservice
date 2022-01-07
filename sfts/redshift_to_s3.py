@@ -217,8 +217,8 @@ def report(data):
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
-    #start_date = ''
-    print(f'Requested Dates: {start_date} to {end_date}' if start_date else f'{dates}')
+    if 'start_date' and 'end_date' in config:
+        print(f'Requested Dates: {start_date} to {end_date}')
     # Get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
