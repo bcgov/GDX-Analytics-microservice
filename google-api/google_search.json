@@ -4,6 +4,7 @@
   "destination": "processed",
   "directory": "google_gdx",
   "dbtable": "google.googlesearch",
+  "dml": "cmslite.google_pdt.sql",
   "sites": [
     {
       "name": "https://www2.gov.bc.ca/"
