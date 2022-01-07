@@ -257,7 +257,6 @@ for object_summary in objects_to_process:
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
     body = obj['Body']
-    print(f'Body Object: {body}') # deleteme
     csv = False
     xlsx = False
     # Create an object to hold the data while parsing
@@ -271,7 +270,6 @@ for object_summary in objects_to_process:
             inline_pattern = data['access_log_parse']['string_repl']['pattern']
             inline_replace = data['access_log_parse']['string_repl']['replace']
         body_stringified = body.read()
-        print(f'Body Stringfield: {body_stringified}') # deleteme
         # perform regex replacements by line
         for line in body_stringified.splitlines():
             if data['access_log_parse']['string_repl']:
@@ -334,14 +332,13 @@ for object_summary in objects_to_process:
     # This is not an apache access log
     if 'access_log_parse' not in data:
         if obj['ResponseMetadata']['HTTPHeaders']['content-type'].endswith('sheet'):
-            xlsx_decoded = pd.read_excel(BytesIO(body.read()), dtype=dtype_dic, parse_dates=True)
-            print(type(xlsx_decoded)) # deleteme
+            xlsx_decoded = pd.read_excel(BytesIO(body.read()),
+                                            dtype=dtype_dic,
+                                            parse_dates=True)
             xlsx = True
-            print(f'XLSX String: {csv_string}')
         else:
             csv = True
             csv_string = body.read()
-            print(f'File is CSV')  # deleteme
 
             # Check that the file decodes as UTF-8. If it fails move to bad and end
             try:
@@ -393,7 +390,6 @@ for object_summary in objects_to_process:
                     #dtype=dtype_dic,
                     #usecols=range(column_count),
                     #header=None)
-                print('NO HEADER XLSX') # deleteme
         else:
             if csv:
                 df = pd.read_csv(
@@ -409,7 +405,6 @@ for object_summary in objects_to_process:
                     #index_col=False,
                     #dtype=dtype_dic,
                     #usecols=range(column_count))
-                print('HEADER XLSX') # deleteme
     except pandas.errors.EmptyDataError as _e:
         logger.exception('exception reading %s', object_summary.key)
         report_stats['failed'] += 1
@@ -452,8 +447,6 @@ for object_summary in objects_to_process:
                    'no further processing.')
 
     # map the dataframe column names to match the columns from the configuation
-    print(df)  # deleteme
-    print(len(df.columns))  # deleteme
     df.columns = columns
 
     # Truncate strings according to config set column string length limits
