@@ -184,7 +184,9 @@ http = credentials.authorize(httplib2.Http())
 
 # Build the service object
 service = build(
-    API_NAME, API_VERSION, http=http, discoveryServiceUrl=DISCOVERY_URI)
+    API_NAME, API_VERSION, http=http,
+    discoveryServiceUrl=DISCOVERY_URI, cache_discovery=False)
+
 # site_list_response = service.sites().list().execute()
 
 # set up the S3 resource
