@@ -239,9 +239,6 @@ conn_string = (
     f"user='{pguser}' "
     f"password={pgpass}")
 
-# get sql for pdt build
-pdt_query = open('dml/{}'.format(dml_file), 'r').read()
-
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''Reports out the data from the main program loop'''
@@ -556,11 +553,10 @@ yvr_dt_pdt_start = (yvr_tz
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
 
-# This query will INSERT data that is the result of a JOIN into
-# cmslite.google_pdt, a persistent dereived table which facilitating the LookML
-query = """
-{pdt_query}
-""".format(pdt_query=pdt_query)
+# This query will INSERT INTO cmslite.google_pdt
+# cmslite.google_pdt, a derived table built from google.googlesearch
+# Get sql for pdt build form dml folder
+query = open('dml/{}'.format(dml_file), 'r').read()
 
 # Execute the query and log the outcome
 logger.info(query)
