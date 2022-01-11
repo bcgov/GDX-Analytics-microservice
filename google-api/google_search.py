@@ -221,10 +221,12 @@ config_dbtable = config['dbtable']
 config_source = config['source']
 config_directory = config['directory']
 dml_file = config['dml']
+
+# Create S3 client and resouce
 client = boto3.client('s3')
 resource = boto3.resource('s3')
 
-# set up the Redshift connection
+# Set up the Redshift connection
 dbname = 'snowplow'
 host = 'redshift.analytics.gov.bc.ca'
 port = 5439
