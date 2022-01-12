@@ -101,7 +101,7 @@ if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
-
+truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
 resource = boto3.resource('s3')  # high-level object-oriented API
@@ -527,6 +527,13 @@ for object_summary in objects_to_process:
     query = copy_query(dbtable, batchfile, log=False)
     logquery = copy_query(dbtable, batchfile, log=True)
 
+    bad_table_cleanup = """
+BEGIN;
+-- clean up the intermediate table with bad data
+{truncate_intermediate_table}
+COMMIT;
+""".format(dbtable)
+
     # if truncate is set to true, perform a transaction that will
     # replace the existing table data with the new data in one commit
     # if truncate is not true then the query remains as just the copy command
@@ -557,8 +564,12 @@ DROP TABLE {0}_old;
 COMMIT;
 """.format(dbtable, table_name)
 
+       
+
         query = scratch_start + scratch_copy + scratch_cleanup
         logquery = scratch_start + scratch_copy_log + scratch_cleanup
+
+
 
     # Execute the transaction against Redshift using the psycopg2 library
     logger.info(logquery)
@@ -568,6 +579,7 @@ COMMIT;
         report_stats['loaded'] += 1
     else:
         outfile = badfile
+        spdb.query(bad_table_cleanup)
     spdb.close_connection()
 
     # copy the object to the S3 outfile (processed/good/ or processed/bad/)
