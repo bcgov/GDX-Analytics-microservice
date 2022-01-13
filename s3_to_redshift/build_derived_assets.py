@@ -101,8 +101,11 @@ asset_host = data['asset_host']
 asset_source = data['asset_source']
 asset_scheme_and_authority = data['asset_scheme_and_authority']
 dbtable = data['dbtable']
-truncate = data['truncate']
-truncate_intermediate_table = ''
+if 'truncate' in data:
+    truncate = data['truncate']
+else:
+    truncate = False
+
 
 truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 

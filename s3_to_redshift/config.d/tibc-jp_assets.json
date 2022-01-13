@@ -38,7 +38,6 @@
       "Source Translated Port"
     ],
     "delim": "|",
-    "truncate": true,
     "dateformat": [
       {
         "field": "date/timestamp",
