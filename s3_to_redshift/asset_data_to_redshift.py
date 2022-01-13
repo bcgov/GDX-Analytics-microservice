@@ -108,6 +108,7 @@ resource = boto3.resource('s3')  # high-level object-oriented API
 my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
 bucket_name = my_bucket.name
 
+
 # Database connection string
 conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
@@ -266,11 +267,20 @@ report_stats['incomplete_list'] = objects_to_process.copy()
 good_objects = []
 path = ''
 
+bad_table_cleanup = r'''
+BEGIN;
+-- clean up the intermediate table with bad data
+{truncate_intermediate_table}
+COMMIT;
+'''.format(truncate_intermediate_table=truncate_intermediate_table)
+
 # process the objects that were found during the earlier directory pass
 for object_summary in objects_to_process:
     batchfile = destination + "/batch/" + object_summary.key
     goodfile = destination + "/good/" + object_summary.key
     badfile = destination + "/bad/" + object_summary.key
+    
+    spdb = RedShift.snowplow(batchfile) 
 
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
@@ -300,6 +310,8 @@ for object_summary in objects_to_process:
         report_stats['incomplete_list'].remove(object_summary)
 
         report(report_stats)
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
                    'no further processing.')
     elif((obj['ContentLength'] == 0) and (empty_files_ok)):
@@ -432,6 +444,8 @@ for object_summary in objects_to_process:
             except Exception as e:
                 logger.exception("S3 transfer failed.\n{0}".format(e.message))
             report(report_stats)
+            spdb.query(bad_table_cleanup)
+            spdb.close_connection()
             clean_exit(1, f'Bad file {object_summary.key} in objects to '
                        'process, no further processing.')
     else:
@@ -469,6 +483,8 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report(report_stats)
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
     except ValueError:
@@ -486,6 +502,8 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report(report_stats)
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
@@ -527,12 +545,8 @@ for object_summary in objects_to_process:
     query = copy_query(dbtable, batchfile, log=False)
     logquery = copy_query(dbtable, batchfile, log=True)
 
-    bad_table_cleanup = """
-BEGIN;
--- clean up the intermediate table with bad data
-{truncate_intermediate_table}
-COMMIT;
-""".format(dbtable)
+    
+
 
     # if truncate is set to true, perform a transaction that will
     # replace the existing table data with the new data in one commit
@@ -573,14 +587,14 @@ COMMIT;
 
     # Execute the transaction against Redshift using the psycopg2 library
     logger.info(logquery)
-    spdb = RedShift.snowplow(batchfile)
+    
     if spdb.query(query):
         outfile = goodfile
         report_stats['loaded'] += 1
     else:
         outfile = badfile
-        spdb.query(bad_table_cleanup)
-    spdb.close_connection()
+        
+    
 
     # copy the object to the S3 outfile (processed/good/ or processed/bad/)
     try:
@@ -600,6 +614,8 @@ COMMIT;
         report_stats['bad_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
         report(report_stats)
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
     report_stats['good'] += 1
@@ -615,4 +631,5 @@ COMMIT;
 
 
 report(report_stats)
+spdb.close_connection()
 clean_exit(0, 'Finished all processing cleanly.')
