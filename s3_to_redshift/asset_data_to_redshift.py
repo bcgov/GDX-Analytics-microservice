@@ -15,6 +15,8 @@
 # Usage         : python asset_data_to_redshift.py configfile.json
 #
 
+from itertools import count
+from operator import countOf
 import re  # regular expressions
 from io import StringIO
 import os  # to read environment variables
@@ -302,6 +304,9 @@ for object_summary in objects_to_process:
         try:
             if good_objects:
                 cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
         
@@ -450,6 +455,10 @@ for object_summary in objects_to_process:
             try:
                 if good_objects:
                     cleanup(good_objects, path)
+                    report_stats['good'] = 0
+                    report_stats['loaded'] = 0
+                    report_stats['good_list'] = 0
+                    
             except ClientError:
                 logger.exception("S3 delete failed")
 
@@ -499,6 +508,9 @@ for object_summary in objects_to_process:
         try:
             if good_objects:
                 cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
 
@@ -527,6 +539,9 @@ for object_summary in objects_to_process:
         try:
             if good_objects:
                 cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
 
@@ -655,6 +670,9 @@ COMMIT;
         try:
             if good_objects:
                 cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
         #clean up the intermediate table if bad file is hit
