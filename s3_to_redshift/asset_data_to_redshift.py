@@ -69,6 +69,11 @@ if os.path.isfile(configfile) is False:
 with open(configfile) as f:
     data = json.load(f)
 
+if 'empty_files_ok' in data:
+    empty_files_ok = data['empty_files_ok']
+else:
+    empty_files_ok = False
+
 # get variables from config file
 bucket = data['bucket']
 source = data['source']
@@ -91,17 +96,23 @@ if 'dtype_dic_bools' in data:
     for fieldname in data['dtype_dic_bools']:
         dtype_dic[fieldname] = bool
 delim = data['delim']
-truncate = data['truncate']
+
+if 'truncate' in data:
+    truncate = data['truncate']
+else:
+    truncate = False
+
 if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
-
+truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
 resource = boto3.resource('s3')  # high-level object-oriented API
 my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
 bucket_name = my_bucket.name
+
 
 # Database connection string
 conn_string = """
@@ -151,6 +162,15 @@ def is_processed(object_summary):
         return True
     logger.info("{0} has not been processed.".format(filename))
     return False
+
+
+#delete the file from processed folder in s3
+def cleanup(object_keys, path):
+   for key in object_keys: 
+        #store the filename that was processed       
+        filename = f'{destination}/{path}/{key}'
+        #deletes the processed file
+        client.delete_object(Bucket=bucket, Key=filename)
 
 
 def report(data):
@@ -248,21 +268,46 @@ report_stats = {
 
 report_stats['objects'] = len(objects_to_process)
 report_stats['incomplete_list'] = objects_to_process.copy()
+# list to keep track of objects
+good_objects = []
+path = ''
+
+
+# clean up the intermediate table
+bad_table_cleanup = r'''
+BEGIN;
+-- clean up the intermediate table with bad data
+{truncate_intermediate_table}
+COMMIT;
+'''.format(truncate_intermediate_table=truncate_intermediate_table)
 
 # process the objects that were found during the earlier directory pass
 for object_summary in objects_to_process:
     batchfile = destination + "/batch/" + object_summary.key
     goodfile = destination + "/good/" + object_summary.key
     badfile = destination + "/bad/" + object_summary.key
+    
+    spdb = RedShift.snowplow(batchfile) 
 
     # get the object from S3 and take its contents as body
     obj = client.get_object(Bucket=bucket, Key=object_summary.key)
 
-    # The file is an empty upload. Key to goodfile and continue
-    if(obj['ContentLength'] == 0):
-        logger.info('%s is empty, keying to goodfile and proceeding.',
+    # The file is an empty upload. Key to badfile and stop processing further.
+    if ((obj['ContentLength'] == 0) and (not empty_files_ok)):
+        logger.info('%s is empty, keying to badfile and no further processing.',
                      object_summary.key)
-        outfile = goodfile
+        outfile = badfile
+        #if there are any files in processed/good folder that were processed
+        #before this bad file was hit, then delete it
+        try:
+            if good_objects:
+                cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
+        except ClientError:
+            logger.exception("S3 delete failed")
+        
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
@@ -270,13 +315,22 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report_stats['empty'] += 1
-        report_stats['good'] += 1
-        report_stats['good_list'].append(object_summary)
+        report_stats['bad'] += 1
+        report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
+
         report(report_stats)
+        #clean up the intermediate table if bad file is hit
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
                    'no further processing.')
+    elif((obj['ContentLength'] == 0) and (empty_files_ok)):
+        logger.info('%s is empty, but empty files are set to be ok.',
+                     object_summary.key)
+        report_stats['empty'] += 1
+        report_stats['empty_list'].append(object_summary)
 
     body = obj['Body']
 
@@ -394,6 +448,18 @@ for object_summary in objects_to_process:
                     "The input file stopped parsing after line {0}:\n{1}\n"
                     .format(len(e_object), e_object[-1]),
                     "Keying to badfile and skipping.\n")))
+            #if there are any files in processed/good folder that were processed
+            #before this bad file was hit, then delete it
+            try:
+                if good_objects:
+                    cleanup(good_objects, path)
+                    report_stats['good'] = 0
+                    report_stats['loaded'] = 0
+                    report_stats['good_list'] = 0
+                    
+            except ClientError:
+                logger.exception("S3 delete failed")
+
             try:
                 client.copy_object(
                     Bucket="sp-ca-bc-gov-131565110619-12-microservices",
@@ -402,6 +468,9 @@ for object_summary in objects_to_process:
             except Exception as e:
                 logger.exception("S3 transfer failed.\n{0}".format(e.message))
             report(report_stats)
+            #clean up the intermediate table if bad file is hit
+            spdb.query(bad_table_cleanup)
+            spdb.close_connection()
             clean_exit(1, f'Bad file {object_summary.key} in objects to '
                        'process, no further processing.')
     else:
@@ -432,6 +501,17 @@ for object_summary in objects_to_process:
                            and proceeding.')
             outfile = badfile
 
+        #if there are any files in processed/good folder that were processed
+        #before this bad file was hit, then delete it
+        try:
+            if good_objects:
+                cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
+        except ClientError:
+            logger.exception("S3 delete failed")
+
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
@@ -439,6 +519,9 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report(report_stats)
+        #clean up the intermediate table if bad file is hit
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
     except ValueError:
@@ -449,6 +532,17 @@ for object_summary in objects_to_process:
         logger.exception('ValueError exception reading %s', object_summary.key)
         logger.warning('Keying to badfile and proceeding.')
         outfile = badfile
+        #if there are any files in processed/good folder that were processed
+        #before this bad file was hit, then delete it
+        try:
+            if good_objects:
+                cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
+        except ClientError:
+            logger.exception("S3 delete failed")
+
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
@@ -456,6 +550,9 @@ for object_summary in objects_to_process:
         except ClientError:
             logger.exception("S3 transfer failed")
         report(report_stats)
+        #clean up the intermediate table if bad file is hit
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
@@ -497,6 +594,9 @@ for object_summary in objects_to_process:
     query = copy_query(dbtable, batchfile, log=False)
     logquery = copy_query(dbtable, batchfile, log=True)
 
+    
+
+
     # if truncate is set to true, perform a transaction that will
     # replace the existing table data with the new data in one commit
     # if truncate is not true then the query remains as just the copy command
@@ -527,19 +627,24 @@ DROP TABLE {0}_old;
 COMMIT;
 """.format(dbtable, table_name)
 
+       
+
         query = scratch_start + scratch_copy + scratch_cleanup
         logquery = scratch_start + scratch_copy_log + scratch_cleanup
 
+
+
     # Execute the transaction against Redshift using the psycopg2 library
     logger.info(logquery)
-    spdb = RedShift.snowplow(batchfile)
+    
     if spdb.query(query):
         outfile = goodfile
         report_stats['loaded'] += 1
     else:
         outfile = badfile
-    spdb.close_connection()
 
+
+        
     # copy the object to the S3 outfile (processed/good/ or processed/bad/)
     try:
         client.copy_object(
@@ -548,12 +653,29 @@ COMMIT;
             + object_summary.key, Key=outfile)
     except ClientError:
         logger.exception("S3 transfer failed")
+    else:
+        if outfile == goodfile:
+            path = 'good'
+            good_objects.append(object_summary.key)
     if outfile == badfile:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
         report_stats['bad_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
         report(report_stats)
+        #if there are any files in processed/good folder that were processed
+        #before this bad file was hit, then delete it
+        try:
+            if good_objects:
+                cleanup(good_objects, path)
+                report_stats['good'] = 0
+                report_stats['loaded'] = 0
+                report_stats['good_list'] = 0
+        except ClientError:
+            logger.exception("S3 delete failed")
+        #clean up the intermediate table if bad file is hit
+        spdb.query(bad_table_cleanup)
+        spdb.close_connection()
         clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
     report_stats['good'] += 1
@@ -562,5 +684,11 @@ COMMIT;
     logger.info("finished %s", object_summary.key)
     logger.info("finished %s", object_summary.key)
 
+
+
 report(report_stats)
+#this is to close spdb connection,if there are any objects were processed
+#this connection is never opened if no ojects were processed.
+if len(objects_to_process) >=1 :
+    spdb.close_connection()
 clean_exit(0, 'Finished all processing cleanly.')

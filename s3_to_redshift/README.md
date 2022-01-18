@@ -68,6 +68,7 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"dtype_dic_ints"`: A list where keys are the names of columns in the input data whose data will be formatted as nullable integer values.
 - `"delim"`: specify the character that deliminates data in the input `csv`.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data.
+- `"truncate_asset_downloads"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated after the derived table has been built from the intermediate table.
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
   - `"field"`: a column name containing datetime format data.
   - `"format"`: strftime to parse time. See [strftime documentation](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) for more information on choices.
