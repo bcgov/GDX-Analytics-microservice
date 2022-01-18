@@ -15,8 +15,6 @@
 # Usage         : python asset_data_to_redshift.py configfile.json
 #
 
-from itertools import count
-from operator import countOf
 import re  # regular expressions
 from io import StringIO
 import os  # to read environment variables
