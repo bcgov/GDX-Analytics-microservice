@@ -16,6 +16,7 @@ from pytz import timezone
 import os  # to read environment variables
 import sys  # to read command line parameters
 import pandas as pd
+from lib.redshift import RedShift
 
 # Get script start time
 local_tz = get_localzone()
@@ -85,11 +86,15 @@ def query_mysql_db(looker_query,get_db_connection):
     clean_exit(1,'Connection to Looker Internal Database failed')
   return result_dataframe
 
+def write_dataframe_to_table(df,rsdb):
+    
+    #df.to_sql()
 
 
-def copy_dataframe_to_redshift():
-  return 0
-
+def copy_dataframe_to_redshift(dataframe, rsdb):
+    try:
+        write_dataframe_to_table(dataframe)
+    except:
 
 def main():
   # select from history table into df
@@ -102,7 +107,7 @@ def main():
   dashboard_df = query_mysql_db(dashboard_table_query,get_looker_db_connection)
 
   # upload dashboard df into redshift 
-  copy_dataframe_to_redshift(dashboard_df)
+  copy_dataframe_to_redshift(dashboard_df, rs_conn_string)
 
 
 clean_exit(0, 'Finished all processing cleanly.')
