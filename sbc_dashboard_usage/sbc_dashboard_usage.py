@@ -28,10 +28,18 @@ logger = logging.getLogger(__name__)
 log.setup()
 logging.getLogger("RedShift").setLevel(logging.WARNING)
 
+looker_database='looker'
+looker_user=os.environ['lookeruser']
+looker_passwd=os.environ['lookerpass']
+history_table_query=""""""
+dashboard_table_query=""""""
+
+
+# Exit and return exit code, message
 def clean_exit(code, message):
-    """Exits with a logger message and code"""
-    logger.info('Exiting with code %s : %s', str(code), message)
-    sys.exit(code)
+  """Exits with a logger message and code"""
+  logger.info('Exiting with code %s : %s', str(code), message)
+  sys.exit(code)
 
 
 # Redshift Database connection string
@@ -45,29 +53,57 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 
 
 # Mysql Database connection string
-def get_mysql_connection():
-    return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                              database = 'looker',
-                              user=os.environ['lookeruser'], 
-                              passwd=os.environ['lookerpass'],
-                              use_pure=True)
+def get_looker_db_connection():
+  return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+                            looker_database=looker_database,
+                            looker_user=looker_user, 
+                            looker_passwd=looker_passwd,
+                            use_pure=True)
 
 
-def looker_query_builder():
-    mysql_query=""""""
-
-
+# Reads a query against a db table and returns a dataframe
 def read_table_to_dataframe(query,mydb):
-    return pd.read_sql(query,mydb)
-
-
-def query_looker_internal_db():
   try:
-      mydb = get_mysql_connection()
-      query = looker_query_builder()
-      result_dataFrame = read_table_to_dataframe(query,mydb)
-      mydb.close() #close the connection
-  except mysql.connector.Error as err:
-      mydb.close()
-      logger.error("Reading from Looker Internal DB failed.")
-      logger.error("msql errno, sqlstate, msg: ", err)
+    df = pd.read_sql(query,mydb)
+  except Exception as err:
+    logger.exception("Exception reading from Looker Internal Database. %s", str(err))
+    clean_exit(1,'Reading from Looker Internal Database failed')
+  return df
+
+
+# Takes a select query string and a mysql connection and
+# returns a dataframe with the results of the select 
+def query_mysql_db(looker_query,get_db_connection):
+  try:
+    mydb = get_db_connection()
+    result_dataframe = read_table_to_dataframe(looker_query,mydb)
+    mydb.close() #close the connection
+  except connection.Error as err:
+    mydb.close()
+    logger.exception("Connection to Looker Internal DB failed.")
+    logger.exception("mysql errno, sqlstate, msg: %s", str(err))
+    clean_exit(1,'Connection to Looker Internal Database failed')
+  return result_dataframe
+
+
+
+def copy_dataframe_to_redshift():
+  return 0
+
+
+def main():
+  # select from history table into df
+  history_df = query_mysql_db(history_table_query,get_looker_db_connection())
+
+  # upload history df into redshift 
+  copy_dataframe_to_redshift(history_df)
+
+  # select from dashboard table into df
+  dashboard_df = query_mysql_db(dashboard_table_query,get_looker_db_connection)
+
+  # upload dashboard df into redshift 
+  copy_dataframe_to_redshift(dashboard_df)
+
+
+clean_exit(0, 'Finished all processing cleanly.')
+
