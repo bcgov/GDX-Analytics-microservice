@@ -16,6 +16,7 @@ from pytz import timezone
 import os  # to read environment variables
 import sys  # to read command line parameters
 import boto3  # s3 access
+from botocore.exceptions import ClientError
 import json  # to read json config files
 from io import StringIO
 import pandas as pd
