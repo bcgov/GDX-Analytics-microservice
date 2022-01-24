@@ -15,33 +15,57 @@ from tzlocal import get_localzone
 from pytz import timezone
 import os  # to read environment variables
 import sys  # to read command line parameters
+import boto3  # s3 access
+import json  # to read json config files
+from io import StringIO
 import pandas as pd
+from datetime import date, datetime, timedelta
 from lib.redshift import RedShift
 
 # Get script start time
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
 yvr_dt_start = (yvr_tz
-    .normalize(datetime.now(local_tz)
-    .astimezone(yvr_tz)))
+  .normalize(datetime.now(local_tz)
+  .astimezone(yvr_tz)))
+
+previous_date = datetime.datetime.today() - datetime.timedelta(days=1)
     
 logger = logging.getLogger(__name__)
 log.setup()
 logging.getLogger("RedShift").setLevel(logging.WARNING)
 
+# check that configuration file was passed as argument
+if len(sys.argv) != 2:
+  print('Usage: python sbc_dashboard_usage.py config.json')
+  clean_exit(1,'Bad command use.')
+configfile = sys.argv[1]
+# confirm that the file exists
+if os.path.isfile(configfile) is False:
+  print(f'Invalid file name {configfile}')
+  clean_exit(1,'Bad file name.')
+# open the confifile for reading
+with open(configfile) as f:
+  data = json.load(f)
+
+# get variables from config file
+bucket = data['bucket']
+source = data['source']
+directory = data['directory']
+
+# MySQL DB variables for the Looker internal DB.
 looker_database='looker'
 looker_user=os.environ['lookeruser']
 looker_passwd=os.environ['lookerpass']
-history_table_query=""""""
-dashboard_table_query=""""""
 
+history_table_query=data['history_table_query']
+dashboard_table_query=data['dashboard_table_query']
 
-# Exit and return exit code, message
-def clean_exit(code, message):
-  """Exits with a logger message and code"""
-  logger.info('Exiting with code %s : %s', str(code), message)
-  sys.exit(code)
-
+# set up S3 connection
+client = boto3.client('s3')  # low-level functional API
+resource = boto3.resource('s3')  # high-level object-oriented API
+my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
+bucket_name = my_bucket.name
 
 # Redshift Database connection string
 rs_conn_string = """
@@ -51,6 +75,13 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            port='5439',
            user=os.environ['pguser'],
            password=os.environ['pgpass'])
+
+
+# Exit and return exit code, message
+def clean_exit(code, message):
+  """Exits with a logger message and code"""
+  logger.info(f'Exiting with code {code} : {message}')
+  sys.exit(code)
 
 
 # Mysql Database connection string
@@ -67,7 +98,7 @@ def read_table_to_dataframe(query,mydb):
   try:
     df = pd.read_sql(query,mydb)
   except Exception as err:
-    logger.exception("Exception reading from Looker Internal Database. %s", str(err))
+    logger.exception(f'Exception reading from Looker Internal Database: {err}')
     clean_exit(1,'Reading from Looker Internal Database failed')
   return df
 
@@ -81,33 +112,35 @@ def query_mysql_db(looker_query,get_db_connection):
     mydb.close() #close the connection
   except connection.Error as err:
     mydb.close()
-    logger.exception("Connection to Looker Internal DB failed.")
-    logger.exception("mysql errno, sqlstate, msg: %s", str(err))
+    logger.exception('Connection to Looker Internal DB failed.')
+    logger.exception(f'mysql errno, sqlstate, msg: {err}')
     clean_exit(1,'Connection to Looker Internal Database failed')
   return result_dataframe
 
-def write_dataframe_to_table(df,rsdb):
-    
-    #df.to_sql()
 
-
-def copy_dataframe_to_redshift(dataframe, rsdb):
-    try:
-        write_dataframe_to_table(dataframe)
-    except:
+def write_dataframe_as_csv_to_s3(df, filename):
+  outfile=f'{filename}.{previous_date}.csv'
+  object_key = f"{source}/{directory}/{outfile}"
+  csv_buffer = StringIO()
+  df.to_csv(csv_buffer, header=True, index=False, sep="|")
+  try:
+    resource.Bucket(bucket).put_object(Key=object_key,
+                                     Body=csv_buffer.getvalue())
+  except ClientError:
+    logger.exception(f'Failed to copy {filename} to {object_key} in S3.')
 
 def main():
   # select from history table into df
   history_df = query_mysql_db(history_table_query,get_looker_db_connection())
 
   # upload history df into redshift 
-  copy_dataframe_to_redshift(history_df)
+  write_dataframe_as_csv_to_s3(history_df,'history')
 
   # select from dashboard table into df
   dashboard_df = query_mysql_db(dashboard_table_query,get_looker_db_connection)
 
   # upload dashboard df into redshift 
-  copy_dataframe_to_redshift(dashboard_df, rs_conn_string)
+  write_dataframe_as_csv_to_s3(dashboard_df,'dashboard')
 
 
 clean_exit(0, 'Finished all processing cleanly.')
