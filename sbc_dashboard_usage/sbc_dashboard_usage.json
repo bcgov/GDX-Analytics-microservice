@@ -1,0 +1,20 @@
+{
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+    "source": "client",
+    "destination": "processed",
+    "directory": "sbc",
+    "dbtable": "microservice.sbc_dashboard_usage",
+    "history_table_query":"",
+    "dashboard_table_query":"",
+    "column_count": 0,
+    "columns": [
+      "ip"
+    ],
+    "delim": ",",
+    "dateformat": [
+      {
+        "field": "date/timestamp",
+        "format": "%d/%b/%Y:%H:%M:%S %z"
+      }
+    ],
+}
