@@ -65,8 +65,6 @@ dashboard_table_query=data['dashboard_table_query']
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
 resource = boto3.resource('s3')  # high-level object-oriented API
-my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
-bucket_name = my_bucket.name
 
 # Redshift Database connection string
 rs_conn_string = """
