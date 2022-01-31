@@ -6,6 +6,7 @@ SELECT * FROM (
         "office_id" AS "theq_sdpr_poc.office_id",
         "office_name" AS "theq_sdpr_poc.office_name",
         "agent_id" AS "theq_sdpr_poc.agent_id",
+        "idir" AS "theq_sdpr_poc.idir",
         "client_id" AS "theq_sdpr_poc.client_id",
         "back_office" AS "theq_sdpr_poc.back_office",
         "channel_sort" AS "theq_sdpr_poc.channel_sort",
@@ -45,7 +46,8 @@ SELECT * FROM (
         14,
         15,
         16,
-        17
+        17,
+        18
     ORDER BY
         2
 )
