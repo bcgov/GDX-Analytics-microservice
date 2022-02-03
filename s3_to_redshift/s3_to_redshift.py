@@ -212,6 +212,10 @@ unsorted_objects = my_bucket.objects.filter(Prefix=source + "/" + directory + "/
 sorted_objects = sorted(unsorted_objects, key=sortobjects_last_modified)
 
 for object_summary in sorted_objects:
+    # stop building list of files to process if provided file_limit is reached
+    if file_limit and len(objects_to_process) == file_limit:
+        logger.info('reached file limit of %s', file_limit)
+        break
     key = object_summary.key
     # skip to next object if already processed
     if is_processed(object_summary):
