@@ -208,6 +208,7 @@ objects_to_process = []
 def sortobjects_last_modified(o):
     return o.last_modified
 
+# get all object references on the configured path, then sort by last_modified
 unsorted_objects = my_bucket.objects.filter(Prefix=source + "/" + directory + "/")
 sorted_objects = sorted(unsorted_objects, key=sortobjects_last_modified)
 
