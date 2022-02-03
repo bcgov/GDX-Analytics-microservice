@@ -99,6 +99,7 @@ if 'drop_columns' in data:
 else:
     drop_columns = {}
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
+file_limit = False if 'file_limit' not in data else data['file_limit']
 
 
 # set up S3 connection
@@ -203,8 +204,14 @@ def report(data):
 # objects_to_process will contain zero or more objects if truncate = False
 objects_to_process = []
 
-for object_summary in my_bucket.objects.filter(Prefix=source + "/"
-                                               + directory + "/"):
+# function to sort unsorted objects
+def sortobjects_last_modified(o):
+    return o.last_modified
+
+unsorted_objects = my_bucket.objects.filter(Prefix=source + "/" + directory + "/")
+sorted_objects = sorted(unsorted_objects, key=sortobjects_last_modified)
+
+for object_summary in sorted_objects:
     key = object_summary.key
     # skip to next object if already processed
     if is_processed(object_summary):
