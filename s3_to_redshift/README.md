@@ -67,6 +67,7 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"dtype_dic_bools"`: A list where keys are the names of columns in the input data whose data will be formatted as boolean
 - `"dtype_dic_ints"`: A list where keys are the names of columns in the input data whose data will be formatted as nullable integer values.
 - `"delim"`: specify the character that deliminates data in the input `csv`.
+- `"file_limit"`: an optional positive integer to limit the number of files which will be processed. Ignored if `"truncate"`: `true`.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data.
 - `"truncate_asset_downloads"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated after the derived table has been built from the intermediate table.
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
@@ -120,6 +121,7 @@ The structure of the config file should resemble the following:
   "dtype_dic_bools": [String],
   "dtype_dic_ints": [String],
   "delim": String,
+  "file_limit": Integer,
   "nested_delim": String,
   "truncate": Boolean
 }
