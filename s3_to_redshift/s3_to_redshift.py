@@ -99,7 +99,7 @@ if 'drop_columns' in data:
 else:
     drop_columns = {}
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
-file_limit = False if 'file_limit' not in data else data['file_limit']
+file_limit = False if truncate or 'file_limit' not in data else data['file_limit']
 
 
 # set up S3 connection
