@@ -4,7 +4,7 @@ This folder contains scripts and configuration files (within the [config.d](./co
 
 ## `s3_to_redshift.py`
 
-The S3 to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. The configuration file format is described in more detail below. Usage is like:
+The S3 to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. File processing is sequenced in the order of the last modified date of the files found for processing in S3. The configuration file format is described in more detail below. Usage is like:
 
 ```
 pipenv run python s3_to_redshift.py config.d/configfile.json
@@ -67,8 +67,8 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"dtype_dic_bools"`: A list where keys are the names of columns in the input data whose data will be formatted as boolean
 - `"dtype_dic_ints"`: A list where keys are the names of columns in the input data whose data will be formatted as nullable integer values.
 - `"delim"`: specify the character that deliminates data in the input `csv`.
-- `"file_limit"`: an optional positive integer to limit the number of files which will be processed. Ignored if `"truncate"`: `true`.
-- `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data.
+- `"file_limit"`: an optional positive integer to limit the number of files which will be processed. A value for `file_limit` is ignored if `"truncate"`: `true`.
+- `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data. When `true` only the most recently modified file in S3 will be processed.
 - `"truncate_asset_downloads"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated after the derived table has been built from the intermediate table.
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
   - `"field"`: a column name containing datetime format data.
