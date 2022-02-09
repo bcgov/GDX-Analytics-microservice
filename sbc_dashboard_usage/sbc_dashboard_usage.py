@@ -130,6 +130,7 @@ def query_mysql_db(looker_query,get_db_connection):
   return result_dataframe
 
 
+# Takes a dataframe and writes it to the specified bucket in S3
 def write_dataframe_as_csv_to_s3(df, filename):
   outfile=f'{filename}.{prev_date}.csv'
   object_key = f"{source}/{directory}/{outfile}"
@@ -146,9 +147,8 @@ def main():
   for table in tables:
     # select from table into df
     df = query_mysql_db(table['query'],get_looker_db_connection())
-    # upload df into redshift 
+    # upload df to S3 microservices bucket
     write_dataframe_as_csv_to_s3(df,table['tablename'])
 
 
 clean_exit(0, 'Finished all processing cleanly.')
-
