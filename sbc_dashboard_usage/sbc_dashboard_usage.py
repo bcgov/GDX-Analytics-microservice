@@ -29,8 +29,6 @@ yvr_tz = timezone('America/Vancouver')
 yvr_dt_start = (yvr_tz
   .normalize(datetime.now(local_tz)
   .astimezone(yvr_tz)))
-
-previous_date = datetime.datetime.today() - datetime.timedelta(days=1)
     
 logger = logging.getLogger(__name__)
 log.setup()
@@ -59,8 +57,23 @@ looker_database='looker'
 looker_user=os.environ['lookeruser']
 looker_passwd=os.environ['lookerpass']
 
-history_table_query=data['history_table_query']
-dashboard_table_query=data['dashboard_table_query']
+prev_date=datetime.datetime.today() - datetime.timedelta(days=1)
+
+
+# tables and queries
+tables=[
+  {'tablename':'dashboard','query': 
+    f'''SELECT * FROM looker.dashboard where id IN ('70');'''},
+  {'tablename':'history','query':
+    f'''SELECT * 
+    FROM looker.history
+    LEFT JOIN looker.dashboard
+    ON history.dashboard_id = dashboard.id
+    WHERE dashboard.id IN ('70')
+    AND history.COMPLETED_AT = (TIMESTAMP({prev_date});'''},
+  {'tablename':'user','query':'SELECT * FROM looker.user;'},
+  {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
+]
 
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
@@ -140,6 +153,18 @@ def main():
 
   # upload dashboard df into redshift 
   write_dataframe_as_csv_to_s3(dashboard_df,'dashboard')
+
+  # select from dashboard table into df
+  user_df = query_mysql_db(user_query,get_looker_db_connection)
+
+  # upload dashboard df into redshift 
+  write_dataframe_as_csv_to_s3(user_df,'user')
+
+  # select from user table into df
+  user_facts_df = query_mysql_db(user_facts_query,get_looker_db_connection)
+
+  # upload dashboard df into redshift 
+  write_dataframe_as_csv_to_s3(user_facts_df,'user_facts')
 
 
 clean_exit(0, 'Finished all processing cleanly.')
