@@ -131,7 +131,7 @@ def query_mysql_db(looker_query,get_db_connection):
 
 
 def write_dataframe_as_csv_to_s3(df, filename):
-  outfile=f'{filename}.{previous_date}.csv'
+  outfile=f'{filename}.{prev_date}.csv'
   object_key = f"{source}/{directory}/{outfile}"
   csv_buffer = StringIO()
   df.to_csv(csv_buffer, header=True, index=False, sep="|")
@@ -142,29 +142,12 @@ def write_dataframe_as_csv_to_s3(df, filename):
     logger.exception(f'Failed to copy {filename} to {object_key} in S3.')
 
 def main():
-  # select from history table into df
-  history_df = query_mysql_db(history_table_query,get_looker_db_connection())
 
-  # upload history df into redshift 
-  write_dataframe_as_csv_to_s3(history_df,'history')
-
-  # select from dashboard table into df
-  dashboard_df = query_mysql_db(dashboard_table_query,get_looker_db_connection)
-
-  # upload dashboard df into redshift 
-  write_dataframe_as_csv_to_s3(dashboard_df,'dashboard')
-
-  # select from dashboard table into df
-  user_df = query_mysql_db(user_query,get_looker_db_connection)
-
-  # upload dashboard df into redshift 
-  write_dataframe_as_csv_to_s3(user_df,'user')
-
-  # select from user table into df
-  user_facts_df = query_mysql_db(user_facts_query,get_looker_db_connection)
-
-  # upload dashboard df into redshift 
-  write_dataframe_as_csv_to_s3(user_facts_df,'user_facts')
+  for table in tables:
+    # select from table into df
+    df = query_mysql_db(table['query'],get_looker_db_connection())
+    # upload df into redshift 
+    write_dataframe_as_csv_to_s3(df,table['tablename'])
 
 
 clean_exit(0, 'Finished all processing cleanly.')
