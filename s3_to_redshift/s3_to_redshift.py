@@ -449,7 +449,7 @@ for object_summary in objects_to_process:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
         report_stats['bad_list'].append(object_summary)
-        report_stats['incomplete_list'].remove(object_summary) 
+        report_stats['incomplete_list'].remove(object_summary)
         logger.exception('ValueError exception reading %s', object_summary.key)
         logger.warning('Keying to badfile and proceeding.')
         outfile = badfile
