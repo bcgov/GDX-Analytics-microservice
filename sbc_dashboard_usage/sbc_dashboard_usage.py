@@ -99,10 +99,10 @@ def clean_exit(code, message):
 # Mysql Database connection string
 def get_looker_db_connection():
   return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                            looker_database=looker_database,
-                            looker_user=looker_user, 
-                            looker_passwd=looker_passwd,
-                            use_pure=True)
+                            port='3306',
+                            database=looker_database,
+                            user=looker_user,
+                            password=looker_passwd)
 
 
 # Reads a query against a db table and returns a dataframe
