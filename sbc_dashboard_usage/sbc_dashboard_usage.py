@@ -69,7 +69,7 @@ tables=[
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
     WHERE dashboard.id IN ('70')
-    AND history.COMPLETED_AT = {prev_date};'''},
+    AND history.COMPLETED_AT LIKE '{prev_date}%';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
