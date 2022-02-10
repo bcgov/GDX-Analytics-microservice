@@ -283,7 +283,7 @@ for object_summary in objects_to_process:
     
   # The file is an empty upload. Key to badfile and stop processing further.
     if (obj['ContentLength'] == 0):
-        logger.info('%s is empty, keying to badfile and no further processing.',
+        logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
                      object_summary.key)
         outfile = badfile
 
@@ -301,7 +301,6 @@ for object_summary in objects_to_process:
         report_stats['incomplete_list'].remove(object_summary)
 
         report(report_stats)
-        print("empty")
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
         
@@ -431,6 +430,8 @@ for object_summary in objects_to_process:
         logger.exception('exception reading %s', object_summary.key)    
         report_stats['failed'] += 1      
         report_stats['bad'] += 1
+        report_stats['empty'] += 1       
+        report_stats['empty_list'].append(object_summary)
         report_stats['bad_list'].append(object_summary)  
         report_stats['incomplete_list'].remove(object_summary)
         
@@ -476,6 +477,33 @@ for object_summary in objects_to_process:
 
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
+
+
+    # Check for empty file that has zero data rows
+    if len(df.index) == 0:
+        logger.info('%s is empty and contains zero data rows, keying to badfile and no further processing.',
+                     object_summary.key)
+        outfile = badfile
+
+        try:
+            client.copy_object(Bucket=f"{bucket}",
+                               CopySource=f"{bucket}/{object_summary.key}",
+                               Key=outfile)
+        except ClientError:
+            logger.exception("S3 transfer failed")
+        report_stats['failed'] += 1
+        report_stats['empty'] += 1
+        report_stats['bad'] += 1
+        report_stats['bad_list'].append(object_summary)
+        report_stats['empty_list'].append(object_summary)
+        report_stats['incomplete_list'].remove(object_summary)
+
+        report(report_stats)
+        clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
+                   'no further processing.')
+
+    
+
 
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
