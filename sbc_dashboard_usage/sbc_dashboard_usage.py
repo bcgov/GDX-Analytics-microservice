@@ -20,14 +20,14 @@ from botocore.exceptions import ClientError
 import json  # to read json config files
 from io import StringIO
 import pandas as pd
-from datetime import date, datetime, timedelta
+import datetime
 from lib.redshift import RedShift
 
 # Get script start time
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
 yvr_dt_start = (yvr_tz
-  .normalize(datetime.now(local_tz)
+  .normalize(datetime.datetime.now(local_tz)
   .astimezone(yvr_tz)))
     
 logger = logging.getLogger(__name__)
