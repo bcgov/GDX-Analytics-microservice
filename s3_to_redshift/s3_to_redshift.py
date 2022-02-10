@@ -184,7 +184,6 @@ def report(data):
     print(f'Objects output to \'processed/bad\': {data["bad"]}')
     print(f'Objects loaded to Redshift: {data["loaded"]}')
     print(f'Empty Objects: {data["empty"]}\n')
-
     if data['good_list']:
         print(
         "\nList of objects successfully fully ingested from S3, processed, "
@@ -280,13 +279,12 @@ for object_summary in objects_to_process:
 
     # Create an object to hold the data while parsing
     csv_string = ''
-    
-  # The file is an empty upload. Key to badfile and stop processing further.
+
+    # The file is an empty upload. Key to badfile and stop processing further.
     if (obj['ContentLength'] == 0):
         logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
                      object_summary.key)
         outfile = badfile
-
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
@@ -303,8 +301,6 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
-        
-
 
     # Perform apache access log parsing according to config, if defined
     if 'access_log_parse' in data:
@@ -417,7 +413,6 @@ for object_summary in objects_to_process:
                 dtype=dtype_dic,
                 usecols=range(column_count),
                 header=None)
-            
         else:
             df = pd.read_csv(
                 StringIO(csv_string),
@@ -425,33 +420,28 @@ for object_summary in objects_to_process:
                 index_col=False,
                 dtype=dtype_dic,
                 usecols=range(column_count))
-            
     except pandas.errors.EmptyDataError as _e:
-        logger.exception('exception reading %s', object_summary.key)    
-        report_stats['failed'] += 1      
+        logger.exception('exception reading %s', object_summary.key)
+        report_stats['failed'] += 1
         report_stats['bad'] += 1
         report_stats['empty'] += 1       
         report_stats['empty_list'].append(object_summary)
         report_stats['bad_list'].append(object_summary)  
         report_stats['incomplete_list'].remove(object_summary)
-        
         if str(_e) == "No columns to parse from file":
             logger.warning('%s is empty, keying to badfile and stopping.',
                            object_summary.key)
             outfile = badfile
-
         else:
             logger.warning('%s not empty, keying to badfile and stopping.',
                            object_summary.key)
             outfile = badfile
-
         try:
             client.copy_object(Bucket=f"{bucket}",
                                CopySource=f"{bucket}/{object_summary.key}",
                                Key=outfile)
         except ClientError:
             logger.exception("S3 transfer failed")
-
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
@@ -460,7 +450,6 @@ for object_summary in objects_to_process:
         report_stats['bad'] += 1
         report_stats['bad_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary) 
-        
         logger.exception('ValueError exception reading %s', object_summary.key)
         logger.warning('Keying to badfile and proceeding.')
         outfile = badfile
