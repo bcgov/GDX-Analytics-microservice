@@ -459,8 +459,7 @@ for object_summary in objects_to_process:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
         report_stats['bad_list'].append(object_summary)
-        report_stats['incomplete_list'].remove(object_summary)
-        
+        report_stats['incomplete_list'].remove(object_summary) 
         
         logger.exception('ValueError exception reading %s', object_summary.key)
         logger.warning('Keying to badfile and proceeding.')
@@ -478,10 +477,9 @@ for object_summary in objects_to_process:
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
 
-
     # Check for empty file that has zero data rows
     if len(df.index) == 0:
-        logger.info('%s is empty and contains zero data rows, keying to badfile and no further processing.',
+        logger.info('%s contains zero data rows, keying to badfile and no further processing.',
                      object_summary.key)
         outfile = badfile
 
@@ -501,10 +499,7 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
-
-    
-
-
+        
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
