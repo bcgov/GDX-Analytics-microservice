@@ -57,20 +57,19 @@ looker_database='looker'
 looker_user=os.environ['lookeruser']
 looker_passwd=os.environ['lookerpass']
 
-prev_date=datetime.datetime.today() - datetime.timedelta(days=1)
-
+prev_date=datetime.date.today() - datetime.timedelta(days=1)
 
 # tables and queries
 tables=[
   {'tablename':'dashboard','query': 
-    f'''SELECT * FROM looker.dashboard where id IN ('70');'''},
+    "SELECT * FROM looker.dashboard where id IN ('70');"},
   {'tablename':'history','query':
-    f'''SELECT * 
+    f'''SELECT *
     FROM looker.history
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
     WHERE dashboard.id IN ('70')
-    AND history.COMPLETED_AT = (TIMESTAMP({prev_date});'''},
+    AND history.COMPLETED_AT = {prev_date};'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
@@ -117,9 +116,9 @@ def read_table_to_dataframe(query,mydb):
 
 # Takes a select query string and a mysql connection and
 # returns a dataframe with the results of the select 
-def query_mysql_db(looker_query,get_db_connection):
+def query_mysql_db(looker_query):
   try:
-    mydb = get_db_connection()
+    mydb = get_looker_db_connection()
     result_dataframe = read_table_to_dataframe(looker_query,mydb)
     mydb.close() #close the connection
   except connection.Error as err:
@@ -145,7 +144,7 @@ def write_dataframe_as_csv_to_s3(df, filename):
 
 for table in tables:
   # select from table into df
-  df = query_mysql_db(table['query'],get_looker_db_connection())
+  df = query_mysql_db(table['query'])
   # upload df to S3 microservices bucket
   write_dataframe_as_csv_to_s3(df,table['tablename'])
 
