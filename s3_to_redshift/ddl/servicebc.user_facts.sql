@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS servicebc.user_facts 
 (
-  "id" INT NOT NULL AUTO_INCREMENT,
+  "id" INT NOT NULL ENCODE ZSTD,
   "user_id" INT ENCODE ZSTD,
   "external_id" VARCHAR(255) ENCODE ZSTD,
   "is_admin" INT ENCODE ZSTD,

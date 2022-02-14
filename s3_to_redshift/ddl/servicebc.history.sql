@@ -6,7 +6,7 @@ CREATE TABLE servicebc.history
   "created_at" TIMESTAMP ENCODE ZSTD,
   "query_id" INT ENCODE ZSTD,
   "look_id" INT ENCODE ZSTD,
-  "runtime" double ENCODE ZSTD,
+  "runtime" DOUBLE PRECISION ENCODE ZSTD,
   "source" VARCHAR(255) ENCODE ZSTD,
   "node_id" INT ENCODE ZSTD,
   "status" VARCHAR(255) ENCODE ZSTD,
