@@ -140,13 +140,23 @@ def write_dataframe_as_csv_to_s3(df, filename):
                                      Body=csv_buffer.getvalue())
   except ClientError:
     logger.exception(f'Failed to copy {filename} to {object_key} in S3.')
+    clean_exit(1,'Write to S3 failed')
 
 
 for table in tables:
   # select from table into df
-  df = query_mysql_db(table['query'])
+  try:
+    df = query_mysql_db(table['query'])
+  except:
+    logger.exception(f"Failed to query looker.{table['tablename']}.")
+    clean_exit(1,'Querying Looker Internal Database failed')
+
   # upload df to S3 microservices bucket
-  write_dataframe_as_csv_to_s3(df,table['tablename'])
+  try:
+    write_dataframe_as_csv_to_s3(df,table['tablename'])
+  except:
+    logger.exception(f"Failed to write looker.{table['tablename']} dataframe to S3.")
+    clean_exit(1,'Writing dataframe as csv to S3 failed')
 
 
 clean_exit(0, 'Finished all processing cleanly.')
