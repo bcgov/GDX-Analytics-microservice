@@ -1,0 +1,33 @@
+{
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+    "source": "client",
+    "destination": "processed",
+    "directory": "sbc_dashboards",
+    "doc": "user_facts.*.csv",
+    "dbtable": "servicebc.user_facts",
+    "column_count": 19,
+    "columns": [
+      "id",
+      "user_id",
+      "external_id",
+      "is_admin",
+      "is_developer",
+      "is_explorer",
+      "is_embed",
+      "has_ui_credentials",
+      "active_ui_sessions",
+      "last_ui_login_at",
+      "last_ui_login_credential_type",
+      "has_api_credentials",
+      "active_api_sessions",
+      "last_api_login_at",
+      "is_viewer",
+      "is_presumed_looker_employee",
+      "is_verified_looker_employee",
+      "is_content_saver",
+      "is_sql_runner" 
+    ],
+    "delim": "|",
+    "truncate": false
+  }
+  
