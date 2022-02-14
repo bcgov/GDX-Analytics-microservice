@@ -134,7 +134,7 @@ def write_dataframe_as_csv_to_s3(df, filename):
   outfile=f'{filename}.{prev_date}.csv'
   object_key = f"{source}/{directory}/{outfile}"
   csv_buffer = StringIO()
-  df.to_csv(csv_buffer, header=True, index=False, sep="|")
+  df.to_csv(csv_buffer, header=False, index=False, sep="|")
   try:
     resource.Bucket(bucket).put_object(Key=object_key,
                                      Body=csv_buffer.getvalue())
