@@ -62,13 +62,13 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 # tables and queries
 tables=[
   {'tablename':'dashboard','query': 
-    "SELECT * FROM looker.dashboard where id IN ('70');"},
+    "SELECT * FROM looker.dashboard where id IN ('26','27','28','30','32','35','70','71');"},
   {'tablename':'history','query':
     f'''SELECT *
     FROM looker.history
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
-    WHERE dashboard.id IN ('70')
+    WHERE dashboard.id IN ('26','27','28','30','32','35','70','71')
     AND history.COMPLETED_AT LIKE '{prev_date}%';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
