@@ -2,5 +2,8 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "sbc"
+    "directory": "sbc",
+    "dtype_dic_ints":[
+        "dev_mode"
+    ]
 }
