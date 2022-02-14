@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS servicebc.dashboard 
 (
-  "id" INT ENCODE ZSTD  NOT NULL,
+  "id" INT ENCODE ZSTD NOT NULL,
   "user_id" INT ENCODE ZSTD,
   "title" VARCHAR(255) ENCODE ZSTD,
   "description" VARCHAR(255) ENCODE ZSTD,
