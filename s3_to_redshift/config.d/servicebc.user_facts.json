@@ -28,6 +28,6 @@
       "is_sql_runner" 
     ],
     "delim": "|",
-    "truncate": false
+    "truncate": true
   }
   

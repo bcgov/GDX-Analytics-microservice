@@ -44,6 +44,6 @@
       "requires_email_verification"
     ],
     "delim": "|" ,
-    "truncate": false
+    "truncate": true
   }
   
