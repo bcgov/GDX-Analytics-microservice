@@ -105,32 +105,33 @@ def get_looker_db_connection():
 
 
 # Reads a query against a db table and returns a dataframe
-def read_table_to_dataframe(query,mydb):
+def read_table_to_dataframe(table,mydb):
   try:
-    df = pd.read_sql(query,mydb)
+    df = pd.read_sql(table["query"],mydb)
   except Exception as err:
     logger.exception(f'Exception reading from Looker Internal Database: {err}')
     clean_exit(1,'Reading from Looker Internal Database failed')
 
   # Cast the config-defined dtype_dic_ints columns as Pandas Int64 types
-  if 'dtype_dic_ints' in data:
-    for thisfield in data['dtype_dic_ints']:
-      try:
-          df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
-      except TypeError:
-          logger.exception(f'column {thisfield} cannot be cast as Integer type ',)
-          clean_exit(
-              1,f'Reading table to DF failed'
-              f'due to attempt to cast {thisfield} as an Integer type.')
+  for table_config in data['dtype_dic_ints']:
+    if table['tablename'] == table_config["tablename"]:
+      for thisfield in table_config['columns']:
+        try:
+            df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
+        except TypeError:
+            logger.exception(f'column {thisfield} cannot be cast as Integer type ',)
+            clean_exit(
+                1,f'Reading table to DF failed'
+                f'due to attempt to cast {thisfield} as an Integer type.')
   return df
 
 
 # Takes a select query string and a mysql connection and
 # returns a dataframe with the results of the select 
-def query_mysql_db(looker_query):
+def query_mysql_db(table):
   try:
     mydb = get_looker_db_connection()
-    result_dataframe = read_table_to_dataframe(looker_query,mydb)
+    result_dataframe = read_table_to_dataframe(table,mydb)
     mydb.close() #close the connection
   except connection.Error as err:
     mydb.close()
@@ -157,7 +158,7 @@ def write_dataframe_as_csv_to_s3(df, filename):
 for table in tables:
   # select from table into df
   try:
-    df = query_mysql_db(table['query'])
+    df = query_mysql_db(table)
   except:
     logger.exception(f"Failed to query looker.{table['tablename']}.")
     clean_exit(1,'Querying Looker Internal Database failed')
