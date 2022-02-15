@@ -114,7 +114,7 @@ def read_table_to_dataframe(table,mydb):
 
   # Cast the config-defined dtype_dic_ints columns as Pandas Int64 types
   for table_config in data['dtype_dic_ints']:
-    if table['tablename'] == table_config["tablename"]:
+    if table['tablename'] == table_config['tablename']:
       for thisfield in table_config['columns']:
         try:
             df[thisfield] = df[thisfield].astype(pd.Int64Dtype())

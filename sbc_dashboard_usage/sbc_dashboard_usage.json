@@ -4,16 +4,18 @@
     "destination": "processed",
     "directory": "sbc",
     "dtype_dic_ints": {
-        "tablename":"user", 
-        "columns": [
-            "dev_mode",
-            "chat_popover",
-            "browser_count",
-            "marketing_email_updates",
-            "release_email_updates",
-            "outgoing_access_token_id",
-            "eula_accepted",
-            "version_set_id"
-        ]
+        "user": {
+            "tablename": "user", 
+            "columns": [
+                "dev_mode",
+                "chat_popover",
+                "browser_count",
+                "marketing_email_updates",
+                "release_email_updates",
+                "outgoing_access_token_id",
+                "eula_accepted",
+                "version_set_id"
+            ]
+        }
     }
 }
