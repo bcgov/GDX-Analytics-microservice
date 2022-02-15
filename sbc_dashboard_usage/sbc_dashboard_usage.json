@@ -2,7 +2,7 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "sbc",
+    "directory": "sbc_dashbaords",
     "dtype_dic_ints": {
         "user": {
             "tablename": "user", 
@@ -14,7 +14,9 @@
                 "release_email_updates",
                 "outgoing_access_token_id",
                 "eula_accepted",
-                "version_set_id"
+                "version_set_id",
+                "models_dir_validated",
+                "requires_email_verification"
             ]
         }
     }
