@@ -82,4 +82,6 @@ WHERE
     )
     OR (gs.site = 'sc-domain:engage.gov.bc.ca');
 
+ANALYZE cmslite.google_pdt;
+
 COMMIT;

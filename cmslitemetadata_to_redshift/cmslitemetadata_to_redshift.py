@@ -997,6 +997,8 @@ SELECT node_id,
 FROM biglist
 WHERE index = 1;
 
+ANALYZE {dbschema}.asset_themes;
+
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
