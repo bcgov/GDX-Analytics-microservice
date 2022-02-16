@@ -4,7 +4,7 @@ BEGIN;
 DROP TABLE IF EXISTS cmslite.google_pdt;
 CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         site              VARCHAR(255)    ENCODE ZSTD,
-        date              date            ENCODE AZ64,
+        date              date            ,
         query             VARCHAR(2048)   ENCODE ZSTD,
         country           VARCHAR(255)    ENCODE ZSTD,
         device            VARCHAR(255)    ENCODE ZSTD,
