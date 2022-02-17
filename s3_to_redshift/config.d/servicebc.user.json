@@ -4,7 +4,7 @@
     "destination": "processed",
     "directory": "sbc_dashboards",
     "doc": "user.*.csv",
-    "dbtable": "servicebc.user",
+    "dbtable": "servicebc.dashboard_user",
     "column_count": 35,
     "columns": [
       "id",
@@ -44,6 +44,20 @@
       "requires_email_verification"
     ],
     "delim": "|" ,
-    "truncate": true
+    "truncate": true,
+    "dtype_dic_ints": [
+      "dev_mode",
+      "chat_popover",
+      "browser_count",
+      "marketing_email_updates",
+      "release_email_updates",
+      "outgoing_access_token_id",
+      "eula_accepted",
+      "version_set_id",
+      "models_dir_validated",
+      "requires_email_verification"
+    ]
   }
+  
+  
   
