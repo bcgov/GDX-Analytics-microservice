@@ -111,19 +111,6 @@ def read_table_to_dataframe(table,mydb):
   except Exception as err:
     logger.exception(f'Exception reading from Looker Internal Database: {err}')
     clean_exit(1,'Reading from Looker Internal Database failed')
-
-  # Cast the config-defined dtype_dic_ints columns as Pandas Int64 types
-  for config in data['dtype_dic_ints']:
-    table_config = data['dtype_dic_ints'][config]
-    if table['tablename'] == table_config['tablename']:
-      for thisfield in table_config['columns']:
-        try:
-          df[thisfield] = df[thisfield].astype(pd.Int64Dtype())
-        except TypeError:
-          logger.exception(f'column {thisfield} cannot be cast as Integer type ',)
-          clean_exit(
-             1,f'Reading table to DF failed'
-             f'due to attempt to cast {thisfield} as an Integer type.')
   return df
 
 
