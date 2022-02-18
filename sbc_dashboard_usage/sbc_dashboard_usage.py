@@ -7,7 +7,6 @@
 # Requirements
 # 
 
-from tkinter import W
 import mysql.connector as connection
 from mysql.connector.errors import Error
 import logging
