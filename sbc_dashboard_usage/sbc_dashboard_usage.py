@@ -116,7 +116,7 @@ def report(data):
   print(f'Config: {configfile}\n')
   # get times from system and convert to Americas/Vancouver for printing
   yvr_dt_end = (yvr_tz
-                .normalize(datetime.now(local_tz)
+                .normalize(datetime.datetime.now(local_tz)
                            .astimezone(yvr_tz)))  
   print(
     'Microservice started at: '
