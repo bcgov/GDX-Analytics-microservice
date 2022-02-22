@@ -112,7 +112,8 @@ def read_table_to_dataframe(table,mydb):
     logger.exception(f'Exception reading from Looker Internal Database: {err}')
     clean_exit(1,'Reading from Looker Internal Database failed')
   if table['tablename'] == 'history':
-    df.message = df.message.str.replace('|','\|')
+    # treats the pattern as a literal string when regex=False
+    df.message = df.message.str.replace('|','\|', regex=False)
   return df
 
 
