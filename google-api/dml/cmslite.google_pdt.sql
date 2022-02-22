@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         device            VARCHAR(255)    ENCODE ZSTD,
         page              VARCHAR(2047)   ENCODE ZSTD,
         position          FLOAT           ENCODE ZSTD,
-        clicks            DECIMAL         ENCODE ZSTD,
+        clicks            DECIMAL         ENCODE AZ64,
         ctr               FLOAT           ENCODE ZSTD,
         impressions       DECIMAL         ENCODE ZSTD,
         node_id           VARCHAR(255)    ENCODE ZSTD,
