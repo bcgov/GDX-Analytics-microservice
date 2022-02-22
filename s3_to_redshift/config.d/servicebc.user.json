@@ -43,7 +43,7 @@
       "auto_provisioned_api_user",
       "requires_email_verification"
     ],
-    "delim": "#" ,
+    "delim": "|" ,
     "truncate": true,
     "dtype_dic_ints": [
       "dev_mode",
