@@ -124,12 +124,9 @@ def report(data):
     f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
     f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
   print(f'Objects to process: {data["objects"]}')
-  print(f'Objects successfully processed: {data["processed"]}')
   print(f'Objects that failed to process: {data["failed"]}')
   print(f'Objects output to \'processed/good\': {data["good"]}')
   print(f'Objects output to \'processed/bad\': {data["bad"]}')
-  print(f'Objects loaded to Redshift: {data["loaded"]}')
-  print(f'Empty Objects: {data["empty"]}\n')
 
   if data['good_list']:
     print(
