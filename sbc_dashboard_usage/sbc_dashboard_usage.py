@@ -232,6 +232,6 @@ for table in tables:
     clean_exit(1,'Writing dataframe as csv to S3 failed')
   report_stats['good'] += 1
   report_stats['good_list'].append(table['tablename'])
-  report(report_stats)
 
+report(report_stats)
 clean_exit(0, 'Finished all processing cleanly.')
