@@ -37,4 +37,4 @@ CREATE TABLE IF NOT EXISTS servicebc.dashboard_user
   "requires_email_verification" INT ENCODE ZSTD
 );
 
-GRANT SELECT ON servicebc.user TO "looker";
+GRANT SELECT ON servicebc.dashboard_user TO "looker";
