@@ -41,7 +41,7 @@
       "updated_at",
       "last_updater_id"
     ],
-    "delim": "#" ,
+    "delim": "|" ,
     "truncate": true
   }
   

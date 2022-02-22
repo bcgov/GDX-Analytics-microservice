@@ -27,7 +27,7 @@
       "is_content_saver",
       "is_sql_runner" 
     ],
-    "delim": "#",
+    "delim": "|",
     "truncate": true
   }
   
