@@ -42,6 +42,7 @@
       "last_updater_id"
     ],
     "delim": "|" ,
-    "truncate": true
+    "truncate": true,
+    "dtype_dic_ints": ["last_updater_id"]
   }
   
