@@ -135,20 +135,13 @@ def report(data):
     print(
       "List of objects successfully fully ingested from S3, processed, "
       "loaded to S3 ('good'), and copied to Redshift:")
-    for i, meta in enumerate(data['good_list'], 1):
-      print(f"{i}: {meta.key}")
+    for i in data['good_list']:
+      print(f"{i}")
   if data['bad_list']:
     print('\nList of objects that failed to process:')
-    for i, meta in enumerate(data['bad_list']):
-      print(f"{i}: {meta.key}")
-  if data['incomplete_list']:
-    print('\nList of objects that were not processed due to early exit:')
-    for i, meta in enumerate(data['incomplete_list']):
-      print(f"{i}: {meta.key}")
-  if data['empty_list']:
-    print('\nList of empty objects:')
-    for i, meta in enumerate(data['empty_list']):
-      print(f"{i}: {meta.key}")
+    for i in data['bad_list']:
+      print(f"{i}")
+
 
 # Mysql Database connection string
 def get_looker_db_connection():
@@ -162,16 +155,11 @@ def get_looker_db_connection():
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'objects': 4,
-    'processed': 0,
     'failed': 0,
     'good': 0,
     'bad': 0,
-    'loaded': 0,
-    'empty': 0,
     'good_list': [],
-    'bad_list': [],
-    'empty_list': [],
-    'incomplete_list': []
+    'bad_list': []
 }
 
 # Reads a query against a db table and returns a dataframe
