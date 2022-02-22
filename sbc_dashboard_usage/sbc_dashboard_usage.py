@@ -34,6 +34,17 @@ logger = logging.getLogger(__name__)
 log.setup()
 logging.getLogger("RedShift").setLevel(logging.WARNING)
 
+
+# Exit and return exit code, message
+def clean_exit(code, message):
+  """Exits with a logger message and code"""
+  logger.info(f'Exiting with code {code} : {message}')
+  sys.exit(code)# Exit and return exit code, message
+def clean_exit(code, message):
+  """Exits with a logger message and code"""
+  logger.info(f'Exiting with code {code} : {message}')
+  sys.exit(code)
+  
 # check that configuration file was passed as argument
 if len(sys.argv) != 2:
   print('Usage: python sbc_dashboard_usage.py config.json')
@@ -86,13 +97,6 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            port='5439',
            user=os.environ['pguser'],
            password=os.environ['pgpass'])
-
-
-# Exit and return exit code, message
-def clean_exit(code, message):
-  """Exits with a logger message and code"""
-  logger.info(f'Exiting with code {code} : {message}')
-  sys.exit(code)
 
 
 # Mysql Database connection string
