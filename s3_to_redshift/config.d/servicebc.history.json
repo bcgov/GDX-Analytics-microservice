@@ -43,7 +43,7 @@
       "workspace_id",
       "result_maker_id"
     ],
-    "delim": "#" ,
+    "delim": "|" ,
     "truncate": false,
     "dtype_dic_ints": [
       "query_id",
