@@ -2,10 +2,17 @@
 # Script Name   : sbc_dashboard_usage.py
 #
 #
-# Description 
+# Description : Microservice script to read table
+#             : data from the looker internal database and
+#             : save it to csv in S3.
 #
-# Requirements
-# 
+# Requirements: You must set the following environment variables
+#             : to establish credentials for the microservice user
+#             : export lookeruser=<<looker user>>
+#             : export lookerpass=<<looker_PASSWD>>
+#
+# Usage       : python sbc_dashboard_usage.py sbc_dashboard_usage.json
+
 
 import mysql.connector as connection
 from mysql.connector.errors import Error
@@ -14,6 +21,7 @@ import lib.logs as log
 from tzlocal import get_localzone
 from pytz import timezone
 import os  # to read environment variables
+import os.path  # file handling
 import sys  # to read command line parameters
 import boto3  # s3 access
 from botocore.exceptions import ClientError
@@ -99,6 +107,49 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            password=os.environ['pgpass'])
 
 
+def report(data):
+  '''reports out the data from the main program loop'''
+  # if no objects were processed; do not print a report
+  if data["objects"] == 0:
+    return
+  print(f'Report: {__file__}\n')
+  print(f'Config: {configfile}\n')
+  # get times from system and convert to Americas/Vancouver for printing
+  yvr_dt_end = (yvr_tz
+                .normalize(datetime.now(local_tz)
+                           .astimezone(yvr_tz)))  
+  print(
+    'Microservice started at: '
+    f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+    f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+    f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
+  print(f'Objects to process: {data["objects"]}')
+  print(f'Objects successfully processed: {data["processed"]}')
+  print(f'Objects that failed to process: {data["failed"]}')
+  print(f'Objects output to \'processed/good\': {data["good"]}')
+  print(f'Objects output to \'processed/bad\': {data["bad"]}')
+  print(f'Objects loaded to Redshift: {data["loaded"]}')
+  print(f'Empty Objects: {data["empty"]}\n')
+
+  if data['good_list']:
+    print(
+      "List of objects successfully fully ingested from S3, processed, "
+      "loaded to S3 ('good'), and copied to Redshift:")
+    for i, meta in enumerate(data['good_list'], 1):
+      print(f"{i}: {meta.key}")
+  if data['bad_list']:
+    print('\nList of objects that failed to process:')
+    for i, meta in enumerate(data['bad_list']):
+      print(f"{i}: {meta.key}")
+  if data['incomplete_list']:
+    print('\nList of objects that were not processed due to early exit:')
+    for i, meta in enumerate(data['incomplete_list']):
+      print(f"{i}: {meta.key}")
+  if data['empty_list']:
+    print('\nList of empty objects:')
+    for i, meta in enumerate(data['empty_list']):
+      print(f"{i}: {meta.key}")
+
 # Mysql Database connection string
 def get_looker_db_connection():
   return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
@@ -108,12 +159,30 @@ def get_looker_db_connection():
                             password=looker_passwd)
 
 
+# Reporting variables. Accumulates as the the loop below is traversed
+report_stats = {
+    'objects': 4,
+    'processed': 0,
+    'failed': 0,
+    'good': 0,
+    'bad': 0,
+    'loaded': 0,
+    'empty': 0,
+    'good_list': [],
+    'bad_list': [],
+    'empty_list': [],
+    'incomplete_list': []
+}
+
 # Reads a query against a db table and returns a dataframe
 def read_table_to_dataframe(table,mydb):
   try:
     df = pd.read_sql(table["query"],mydb)
   except Exception as err:
     logger.exception(f'Exception reading from Looker Internal Database: {err}')
+    report_stats['failed'] += 1
+    report_stats['bad_list'].append(table['tablename'])
+    report(report_stats)
     clean_exit(1,'Reading from Looker Internal Database failed')
   if table['tablename'] == 'history':
     # treats the pattern as a literal string when regex=False
@@ -132,6 +201,9 @@ def query_mysql_db(table):
     mydb.close()
     logger.exception('Connection to Looker Internal DB failed.')
     logger.exception(f'mysql errno, sqlstate, msg: {err}')
+    report_stats['failed'] += 1
+    report_stats['bad_list'].append(table['tablename'])
+    report(report_stats)
     clean_exit(1,'Connection to Looker Internal Database failed')
   return result_dataframe
 
@@ -147,6 +219,9 @@ def write_dataframe_as_csv_to_s3(df, filename):
                                      Body=csv_buffer.getvalue())
   except ClientError:
     logger.exception(f'Failed to copy {filename} to {object_key} in S3.')
+    report_stats['failed'] += 1
+    report_stats['bad_list'].append(filename)
+    report(report_stats)
     clean_exit(1,'Write to S3 failed')
 
 
@@ -156,6 +231,9 @@ for table in tables:
     df = query_mysql_db(table)
   except:
     logger.exception(f"Failed to query looker.{table['tablename']}.")
+    report_stats['bad'] += 1
+    report_stats['bad_list'].append(table['tablename'])
+    report(report_stats)
     clean_exit(1,'Querying Looker Internal Database failed')
 
   # upload df to S3 microservices bucket
@@ -163,7 +241,12 @@ for table in tables:
     write_dataframe_as_csv_to_s3(df,table['tablename'])
   except:
     logger.exception(f"Failed to write looker.{table['tablename']} dataframe to S3.")
+    report_stats['bad'] += 1
+    report_stats['bad_list'].append(table['tablename'])
+    report(report_stats)
     clean_exit(1,'Writing dataframe as csv to S3 failed')
-
+  report_stats['good'] += 1
+  report_stats['good_list'].append(table['tablename'])
+  report(report_stats)
 
 clean_exit(0, 'Finished all processing cleanly.')
