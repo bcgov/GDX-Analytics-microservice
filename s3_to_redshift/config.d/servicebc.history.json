@@ -3,7 +3,7 @@
     "source": "client",
     "destination": "processed",
     "directory": "sbc_dashboards",
-    "doc": "history.*.csv",
+    "doc": "history.*",
     "dbtable": "servicebc.history",
     "column_count": 35,
     "columns": [
