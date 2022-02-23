@@ -48,10 +48,6 @@ def clean_exit(code, message):
   """Exits with a logger message and code"""
   logger.info(f'Exiting with code {code} : {message}')
   sys.exit(code)# Exit and return exit code, message
-def clean_exit(code, message):
-  """Exits with a logger message and code"""
-  logger.info(f'Exiting with code {code} : {message}')
-  sys.exit(code)
   
 # check that configuration file was passed as argument
 if len(sys.argv) != 2:
