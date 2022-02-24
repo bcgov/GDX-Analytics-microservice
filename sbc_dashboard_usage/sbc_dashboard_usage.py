@@ -182,7 +182,6 @@ def query_mysql_db(table):
     logger.exception('Connection to Looker Internal DB failed.')
     logger.exception(f'mysql errno, sqlstate, msg: {err}')
     report_stats['failed'] += 1
-    report_stats['bad_list'].append(table['tablename'])
     report(report_stats)
     clean_exit(1,'Connection to Looker Internal Database failed')
   return result_dataframe
