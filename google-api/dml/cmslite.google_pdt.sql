@@ -4,15 +4,15 @@ BEGIN;
 DROP TABLE IF EXISTS cmslite.google_pdt;
 CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         site              VARCHAR(255)    ENCODE ZSTD,
-        date              date            ENCODE AZ64,
+        date              date            ,
         query             VARCHAR(2048)   ENCODE ZSTD,
         country           VARCHAR(255)    ENCODE ZSTD,
         device            VARCHAR(255)    ENCODE ZSTD,
         page              VARCHAR(2047)   ENCODE ZSTD,
         position          FLOAT           ENCODE ZSTD,
-        clicks            DECIMAL         ENCODE ZSTD,
+        clicks            DECIMAL         ENCODE AZ64,
         ctr               FLOAT           ENCODE ZSTD,
-        impressions       DECIMAL         ENCODE ZSTD,
+        impressions       DECIMAL         ENCODE AZ64,
         node_id           VARCHAR(255)    ENCODE ZSTD,
         page_urlhost      VARCHAR(255)    ENCODE ZSTD,
         title             VARCHAR(2047)   ENCODE ZSTD,
@@ -81,5 +81,7 @@ WHERE
             )
     )
     OR (gs.site = 'sc-domain:engage.gov.bc.ca');
+
+ANALYZE cmslite.google_pdt;
 
 COMMIT;
