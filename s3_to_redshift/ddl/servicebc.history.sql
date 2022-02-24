@@ -13,7 +13,7 @@ CREATE TABLE servicebc.history
   "slug" VARCHAR(255) ENCODE ZSTD,
   "cache_key" VARCHAR(255) ENCODE ZSTD,
   "result_source" VARCHAR(255) ENCODE ZSTD,
-  "message" VARCHAR(255) ENCODE ZSTD,
+  "message" VARCHAR(1024) ENCODE ZSTD,
   "connection_name" VARCHAR(255) ENCODE ZSTD,
   "connection_id" VARCHAR(255) ENCODE ZSTD,
   "dialect" VARCHAR(255) ENCODE ZSTD,
