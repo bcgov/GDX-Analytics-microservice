@@ -84,7 +84,8 @@ tables=[
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
     WHERE dashboard.id IN ('26','27','28','30','32','35','70','71')
-    AND history.COMPLETED_AT LIKE '{prev_date}%';'''},
+    AND history.COMPLETED_AT LIKE '{prev_date}%'
+    AND status NOT LIKE 'error';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
