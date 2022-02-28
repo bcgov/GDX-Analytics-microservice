@@ -4,14 +4,21 @@ This folder contains scripts and configuration files (within the [config.d](./co
 
 ## `s3_to_redshift.py`
 
-The S3 to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. File processing is sequenced in the order of the last modified date of the files found for processing in S3. The configuration file format is described in more detail below. Usage is like:
+The S3 to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. File processing is sequenced in the order of the last modified date of the files found for processing in S3. 
+
+Empty files will be treated as bad files and processing will stop if script hits any empty file, which can be any of these 3 cases:
+* File is zero byte size.
+* File has no data in it, no rows, no headers but not zero byte in size.
+* File has header row but no data rows. 
+
+The configuration file format is described in more detail below. Usage is like:
 
 ```
 pipenv run python s3_to_redshift.py config.d/configfile.json
 ```
 ## `asset_data_to_redshift.py`
 
-The Asset Data to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. The configuration file format is described in more detail below. The approach to loading the data from s3 to redshift is the same as in s3_to_redshift, but the access log files require additional processing. Usage is like:
+The Asset Data to Redshift microservice is invoked through pipenv and requires a `json` configuration file passed as a second command line argument to run. The configuration file format is described in more detail below. The approach to loading the data from s3 to redshift is the same as in s3_to_redshift, but the access log files require additional processing. By default if truncate is set to `false`, script will run multiple files at a time. Empty files are treated as bad by default and processing will stop if script hits any empty file. Usage is like:
 
 ```
 pipenv run python asset_data_to_redshift.py config.d/configfile.json
@@ -69,7 +76,6 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"delim"`: specify the character that deliminates data in the input `csv`.
 - `"file_limit"`: an optional positive integer to limit the number of files which will be processed. A value for `file_limit` is ignored if `"truncate"`: `true`.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data. When `true` only the most recently modified file in S3 will be processed.
-- `"truncate_asset_downloads"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated after the derived table has been built from the intermediate table.
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
   - `"field"`: a column name containing datetime format data.
   - `"format"`: strftime to parse time. See [strftime documentation](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) for more information on choices.
@@ -80,7 +86,9 @@ Asset downloads config files require an additional four fields:
   - `"schema_name"`: specify the target table schema,
   - `"asset_host"`: the host domain for the assets,
   - `"asset_source"`: the group/project name,
-  - `"asset_scheme_and_authority"`: the protocol scheme and the asset host
+  - `"asset_scheme_and_authority"`: the protocol scheme and the asset
+  host
+  - `"empty_files_ok"`: Deafult is `false` but can be set to `true` in case empty files are determined ok to process. This is helpful to process multiple files at a time without stopping the script due to empty files being hit.
   
 
 The structure of the config file should resemble the following:
