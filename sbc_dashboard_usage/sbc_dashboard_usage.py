@@ -190,8 +190,8 @@ def query_mysql_db(table):
 
 # Takes a dataframe and writes it to the specified bucket in S3
 def write_dataframe_as_csv_to_s3(df, filename):
-  if filename == 'user':
-    filename = 'sbc_user'
+  if filename == 'user_facts':
+    filename = 'sbc_user_facts'
   outfile=f'{filename}.{prev_date}'
   object_key = f"{source}/{directory}/{outfile}"
   csv_buffer = StringIO()
