@@ -3,7 +3,7 @@
     "source": "client",
     "destination": "processed",
     "directory": "sbc_dashboards",
-    "doc": "user.*",
+    "doc": "dashboard_user.*",
     "dbtable": "servicebc.dashboard_user",
     "column_count": 35,
     "columns": [
