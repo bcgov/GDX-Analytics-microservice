@@ -1,5 +1,5 @@
 ###################################################################
-# Script Name   : sbc_dashboard_usage.py
+# Script Name   : looker_dashboard_usage.py
 #
 #
 # Description : Microservice script to read table
@@ -11,7 +11,7 @@
 #             : export lookeruser=<<looker user>>
 #             : export lookerpass=<<looker_PASSWD>>
 #
-# Usage       : python sbc_dashboard_usage.py sbc_dashboard_usage.json
+# Usage       : python looker_dashboard_usage.py looker_dashboard_usage.json
 
 
 import mysql.connector as connection
@@ -51,7 +51,7 @@ def clean_exit(code, message):
   
 # check that configuration file was passed as argument
 if len(sys.argv) != 2:
-  print('Usage: python sbc_dashboard_usage.py config.json')
+  print('Usage: python looker_dashboard_usage.py config.json')
   clean_exit(1,'Bad command use.')
 configfile = sys.argv[1]
 # confirm that the file exists
@@ -77,14 +77,13 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 # tables and queries
 tables=[
   {'tablename':'dashboard','query': 
-    "SELECT * FROM looker.dashboard where id IN ('26','27','28','30','32','35','70','71');"},
+    "SELECT * FROM looker.dashboard;"},
   {'tablename':'history','query':
     f'''SELECT *
     FROM looker.history
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
-    WHERE dashboard.id IN ('26','27','28','30','32','35','70','71')
-    AND history.COMPLETED_AT LIKE '{prev_date}%'
+    WHERE history.COMPLETED_AT LIKE '{prev_date}%'
     AND status NOT LIKE 'error';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
@@ -191,7 +190,7 @@ def query_mysql_db(table):
 # Takes a dataframe and writes it to the specified bucket in S3
 def write_dataframe_as_csv_to_s3(df, filename):
   if filename == 'user_facts':
-    filename = 'sbc_user_facts'
+    filename = 'looker_user_facts'
   outfile=f'{filename}.{prev_date}'
   object_key = f"{source}/{directory}/{outfile}"
   csv_buffer = StringIO()
