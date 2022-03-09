@@ -43,6 +43,13 @@
     ],
     "delim": "|" ,
     "truncate": true,
-    "dtype_dic_ints": ["last_updater_id"]
+    "dtype_dic_ints": [
+      "last_updater_id",
+      "space_id",
+      "show_title",
+      "space_id",
+      "filters_bar_collapsed",
+      "show_filters_bar"
+    ]
   }
   

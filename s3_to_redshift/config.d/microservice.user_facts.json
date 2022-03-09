@@ -3,7 +3,7 @@
     "source": "client",
     "destination": "processed",
     "directory": "looker_dashboards",
-    "doc": "sbc_user_facts.*",
+    "doc": "looker_user_facts.*",
     "dbtable": "microservice.user_facts",
     "column_count": 19,
     "columns": [

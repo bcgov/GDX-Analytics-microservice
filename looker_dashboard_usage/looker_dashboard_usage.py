@@ -77,14 +77,20 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 # tables and queries
 tables=[
   {'tablename':'dashboard','query': 
-    "SELECT * FROM looker.dashboard;"},
+    '''SELECT dashboard.* 
+      FROM looker.dashboard 
+      WHERE id IN (
+        SELECT dashboard_id 
+        FROM looker.history 
+        WHERE history.source LIKE 'dashboard');'''},
   {'tablename':'history','query':
     f'''SELECT *
     FROM looker.history
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
     WHERE history.COMPLETED_AT LIKE '{prev_date}%'
-    AND status NOT LIKE 'error';'''},
+    AND status NOT LIKE 'error'
+    AND source like 'dashboard';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
