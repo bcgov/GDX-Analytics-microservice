@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS servicebc.user_facts 
+CREATE TABLE IF NOT EXISTS microservice.user_facts 
 (
   "id" INT NOT NULL ENCODE ZSTD,
   "user_id" INT ENCODE ZSTD,
@@ -21,4 +21,4 @@ CREATE TABLE IF NOT EXISTS servicebc.user_facts
   "is_sql_runner" INT ENCODE ZSTD
 );
 
-GRANT SELECT ON servicebc.user_facts TO "looker";
+GRANT SELECT ON microservice.user_facts TO "looker";

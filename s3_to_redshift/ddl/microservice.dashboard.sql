@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS servicebc.dashboard 
+CREATE TABLE IF NOT EXISTS microservice.dashboard 
 (
   "id" INT ENCODE ZSTD NOT NULL,
   "user_id" INT ENCODE ZSTD,
@@ -35,4 +35,4 @@ CREATE TABLE IF NOT EXISTS servicebc.dashboard
   "last_updater_id" INT ENCODE ZSTD
 );
 
-GRANT SELECT ON servicebc.dashboard TO "looker";
+GRANT SELECT ON microservice.dashboard TO "looker";

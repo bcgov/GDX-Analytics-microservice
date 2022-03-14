@@ -2,9 +2,9 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "sbc_dashboards",
+    "directory": "looker_dashboards",
     "doc": "dashboard\\..*",
-    "dbtable": "servicebc.dashboard",
+    "dbtable": "microservice.dashboard",
     "column_count": 33,
     "columns": [
       "id",
@@ -43,6 +43,14 @@
     ],
     "delim": "|" ,
     "truncate": true,
-    "dtype_dic_ints": ["last_updater_id"]
+    "dtype_dic_ints": [
+      "last_updater_id",
+      "space_id",
+      "show_title",
+      "space_id",
+      "filters_bar_collapsed",
+      "show_filters_bar",
+      "deleter_id"
+    ]
   }
   

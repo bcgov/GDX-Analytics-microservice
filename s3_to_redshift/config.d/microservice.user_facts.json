@@ -2,9 +2,9 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "sbc_dashboards",
-    "doc": "sbc_user_facts.*",
-    "dbtable": "servicebc.user_facts",
+    "directory": "looker_dashboards",
+    "doc": "looker_user_facts.*",
+    "dbtable": "microservice.user_facts",
     "column_count": 19,
     "columns": [
       "id",
