@@ -398,7 +398,7 @@ for account in validated_accounts:
                 )
 
         bodyvar = {
-            'locationNames': [f'{location_uri}'],
+            'locationNames': [f'{account_uri}/{location_uri}'],
             'basicRequest': {
                 # https://developers.google.com/my-business/reference/rest/v4/Metric
                 'metricRequests': metricRequests,
