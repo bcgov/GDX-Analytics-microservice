@@ -459,7 +459,7 @@ for account in validated_accounts:
                 row = pd.DataFrame([{'date': day,
                                      'client': client,
                                      'location': location_name,
-                                     'location_id': location_uri,
+                                     'location_id': f'{account_uri}/{location_uri}',
                                      metric_name: int(value)}])
                 # Since we are growing both rows and columns, we must concat
                 # the dataframe with the new row. This will create NaN values.
