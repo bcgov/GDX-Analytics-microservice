@@ -111,8 +111,8 @@ parser.add_argument('-d', '--debug', help='Run in debug mode.',
                     action='store_true')
 flags = parser.parse_args()
 
-CLIENT_SECRET = flags.cred
-AUTHORIZATION = flags.auth
+CLIENT_SECRET = flags.cred  # credentials_mybusiness.json
+AUTHORIZATION = flags.auth  # mybusiness.dat
 CONFIG = flags.conf
 
 
@@ -144,14 +144,8 @@ conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
                f"user='{user}' password={password}")
 
 
-# Setup OAuth 2.0 flow for the Google My Business API
-API_NAME = 'mybusiness'
-API_VERSION = 'v4'
-DISCOVERY_URI = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-
-
 # Google API Access requires a browser-based authentication step to create
-# the stored authorization .dat file. Forcign noauth_local_webserver to True
+# the stored authorization .dat file. Forcing noauth_local_webserver to True
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
@@ -184,11 +178,17 @@ if credentials is None or credentials.invalid:
 # Apply credential headers to all requests made by an httplib2.Http instance
 http = credentials.authorize(httplib2.Http())
 
-# Build the service object
-service = build(
-    API_NAME, API_VERSION, http=http, discoveryServiceUrl=DISCOVERY_URI)
-# site_list_response = service.sites().list().execute()
-
+# Build the Service Objects for the Google My Business APIs
+# My Business Account Management API v1 provides: Accounts List
+# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
+gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
+# My Business Business Information API v1 Provides: Accounts Locations List
+# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
+gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+# My Business API v4.9 provides: Accounts Locations reportInsights
+DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
+gmbv49so = build('mybusiness','v4',http=http,
+                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
 
 # Check for a last loaded date in Redshift
 # Load the Redshift connection
@@ -282,10 +282,9 @@ report_stats = {
 
 # Location Check
 
-# Get the list of accounts that the Google account being used to access
-# the My Business API has rights to read location insights from
+# Create a list of accounts using My Business Account Management API
 # (ignoring the first one, since it is the 'self' reference account).
-accounts = service.accounts().list().execute()['accounts'][1:]
+accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
 
 # check that all locations defined in the configuration file are available
 # to the authencitad account being used to access the MyBusiness API, and
@@ -317,16 +316,18 @@ for account in validated_accounts:
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     account_uri = account['uri']
+    # Create a list of locations in this account
     locations = (
-        service.accounts().locations().list(parent=account_uri).execute())
+        gmbBIso.accounts().locations().list(
+            parent=account_uri,pageSize=100,readMask='name,title').execute())
     # we will handle each location separately
     for loc in locations['locations']:
 
-        logger.info("Begin processing on location: %s", loc['locationName'])
+        logger.info("Begin processing on location: %s", loc['title'])
 
         # encode as ASCII for dataframe
         location_uri = loc['name']
-        location_name = loc['locationName']
+        location_name = loc['title']
 
         # Report out locations names and count
         report_stats['locations_list'].append(location_name)
@@ -397,7 +398,7 @@ for account in validated_accounts:
                 )
 
         bodyvar = {
-            'locationNames': [f'{location_uri}'],
+            'locationNames': [f'{account_uri}/{location_uri}'],
             'basicRequest': {
                 # https://developers.google.com/my-business/reference/rest/v4/Metric
                 'metricRequests': metricRequests,
@@ -413,9 +414,10 @@ for account in validated_accounts:
         logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
 
         # retrieves the request for this location.
+        # ReportInsights are called from the v4.9 Google My Business API
         try:
             reportInsights = \
-                service.accounts().locations().\
+                gmbv49so.accounts().locations().\
                 reportInsights(body=bodyvar, name=account_uri).execute()
         except googleapiclient.errors.HttpError:
             logger.exception("Request contains an invalid argument. Skipping.")
@@ -438,7 +440,7 @@ for account in validated_accounts:
             metrics = reportInsights['locationMetrics'][0]['metricValues']
         except KeyError:
             logger.exception(
-                    'Error. Could not find location %s', loc['locationName'])
+                    'Error. Could not find location %s', loc['title'])
             continue
 
         for metric in metrics:
@@ -457,7 +459,7 @@ for account in validated_accounts:
                 row = pd.DataFrame([{'date': day,
                                      'client': client,
                                      'location': location_name,
-                                     'location_id': location_uri,
+                                     'location_id': f'{account_uri}/{location_uri}',
                                      metric_name: int(value)}])
                 # Since we are growing both rows and columns, we must concat
                 # the dataframe with the new row. This will create NaN values.
