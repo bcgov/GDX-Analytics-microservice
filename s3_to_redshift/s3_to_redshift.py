@@ -29,6 +29,8 @@ from tzlocal import get_localzone
 from pytz import timezone
 import boto3  # s3 access
 from botocore.exceptions import ClientError
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd  # data processing
 import pandas.errors
 from ua_parser import user_agent_parser
@@ -465,6 +467,12 @@ for object_summary in objects_to_process:
 
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
+
+    # escape pipe symbol in limesurvey surveyls_title column
+    if doc == "limesurvey-analytics.*":
+        logger.info('Escaping pipe in limesurvey surveyls_title column')
+        df['surveyls_title'] = df['surveyls_title'].str.replace('|','\|')
+        logger.info('Finished excaping pipe in limesurvey surveyls_title column')
 
     # Check for empty file that has zero data rows
     if len(df.index) == 0:
