@@ -7,13 +7,13 @@
   "dbtable": "microservice.chatbot_reports",
   "column_count": 13,
   "columns": [
+    "dashboard_id",
     "conf_score",
     "sentiment_score",
     "sentiment_magnitude",
-    "sessionorigin",
-    "conversation_index",
     "conversation_length",
     "conversation_duration",
+    "sessionorigin",
     "session_id",
     "timestamp",
     "matched_intent",
@@ -34,6 +34,6 @@
         "format": "%Y-%m-%d %H:%M:%S"
       }
   ],
-  "quote_level" : 3,
-  "ignore_encoding_errors" : true
+  "strip_quotes" : true,
+  "encoding" : "ISO-8859-1'"
 }
