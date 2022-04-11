@@ -18,6 +18,11 @@ SELECT * FROM (
         "transaction_name" AS "theq_sdpr_poc.transaction_name",
         "service_count" AS "theq_sdpr_poc.service_count",
         COALESCE(theq_sdpr_poc.status, ''Open Ticket'') AS "theq_sdpr_poc.status",
+        theq_sdpr_poc.hold_duration_zscore AS "theq_sdpr_poc.hold_duration_zscore",
+        theq_sdpr_poc.prep_duration_zscore AS "theq_sdpr_poc.prep_duration_zscore",
+        theq_sdpr_poc.serve_duration_zscore AS "theq_sdpr_poc.serve_duration_zscore",
+        theq_sdpr_poc.service_creation_duration_zscore AS "theq_sdpr_poc.service_creation_duration_zscore",
+        theq_sdpr_poc.waiting_duration_zscore AS "theq_sdpr_poc.waiting_duration_zscore",
         COUNT(DISTINCT theq_sdpr_poc.client_id ) AS "theq_sdpr_poc.visits_count",
         COUNT(*) AS "theq_sdpr_poc.services_count",
         COALESCE(SUM(theq_sdpr_poc.transaction_count ), 0) AS "theq_sdpr_poc.transactions_count",
@@ -47,7 +52,12 @@ SELECT * FROM (
         15,
         16,
         17,
-        18
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
     ORDER BY
         2
 )
