@@ -787,5 +787,5 @@ COMMIT;
     report_stats['incomplete_list'].remove(object_summary)
     logger.info("finished %s", object_summary.key)
 
-report(report_stats)
+report(report_stats) 
 clean_exit(0, 'Finished all processing cleanly.')
