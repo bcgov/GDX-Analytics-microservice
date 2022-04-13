@@ -400,10 +400,6 @@ for object_summary in objects_to_process:
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
     
-#    # escape valid pipes in object cols
-#    for col in df.select_dtypes(include=['object']).columns:
-#        df[col] = df[col].str.replace('|','\|')
-
     # Check for empty file that has zero data rows
     if len(df.index) == 0:
         logger.info('%s contains zero data rows, keying to badfile and no further processing.',
