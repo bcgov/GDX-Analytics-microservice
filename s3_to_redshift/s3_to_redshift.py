@@ -399,13 +399,7 @@ for object_summary in objects_to_process:
 
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
-
-    # escape pipe symbol in limesurvey surveyls_title column
-    if doc == "limesurvey-analytics.*":
-        logger.info('Escaping pipe in limesurvey surveyls_title column')
-        df['surveyls_title'] = df['surveyls_title'].str.replace('|','\|')
-        logger.info('Finished excaping pipe in limesurvey surveyls_title column')
-
+    
     # Check for empty file that has zero data rows
     if len(df.index) == 0:
         logger.info('%s contains zero data rows, keying to badfile and no further processing.',
@@ -478,6 +472,10 @@ for object_summary in objects_to_process:
                     1,f'Bad file {object_summary.key} in objects to process, '
                     f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
+
+    # escape valid pipes in object cols
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].str.replace('|','\|')
 
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
