@@ -148,16 +148,19 @@ def is_processed(this_object_summary):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.info('%s was processed as good already.', this_filename)
+        if re.search(doc + '$', this_key):
+            logger.info('%s was processed as good already.', this_filename)
         return True
     try:
         client.head_object(Bucket=bucket, Key=this_badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.info('%s was processed as bad already.', this_filename)
+        if re.search(doc + '$', this_key):
+            logger.info('%s was processed as bad already.', this_filename)
         return True
-    logger.info('%s has not been processed.', this_filename)
+    if re.search(doc + '$', this_key):
+        logger.info('%s has not been processed.', this_filename)
     return False
 
 
