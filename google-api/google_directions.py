@@ -300,7 +300,7 @@ for loc in config_locationGroups:
     try:
         validated_accounts.append(
             next({
-                'name': item['name'],
+                'uri': item['name'],
                 'clientShortname': loc['clientShortname'],
                 'aggregate_days': loc['aggregate_days'],
                 'accountNumber': accountNumber}
