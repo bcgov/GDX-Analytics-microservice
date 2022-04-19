@@ -399,7 +399,7 @@ for account in validated_accounts:
             try:
                 response = \
                     gmbv49so.accounts().locations().\
-                    reportInsights(body=bodyvar, name=name).execute()
+                    reportInsights(body=bodyvar, name=account_uri).execute()
             except googleapiclient.errors.HttpError:
                 logger.exception(
                     "Request contains an invalid argument. Skipping.")
