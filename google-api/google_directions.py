@@ -142,14 +142,20 @@ AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 # set the query date as now in UTC
 query_date = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 
-# Setup OAuth 2.0 flow for the Google My Business API
-API_NAME = 'mybusiness'
-API_VERSION = 'v4'
-DISCOVERY_URI = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-
+# Build the Service Objects for the Google My Business APIs
+# My Business Account Management API v1 provides: Accounts List
+# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
+gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
+# My Business Business Information API v1 Provides: Accounts Locations List
+# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
+gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+# My Business API v4.9 provides: Accounts Locations reportInsights
+DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
+gmbv49so = build('mybusiness','v4',http=http,
+                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
 
 # Google API Access requires a browser-based authentication step to create
-# the stored authorization .dat file. Forcign noauth_local_webserver to True
+# the stored authorization .dat file. Forcing noauth_local_webserver to True
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
@@ -294,7 +300,7 @@ validated_accounts = []
 # Get the list of accounts that the Google account being used to access
 # the My Business API has rights to read location insights from
 # (ignoring the first one, since it is the 'self' reference account).
-accounts = service.accounts().list().execute()['accounts'][1:]
+accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
 # print json.dumps(accounts, indent=2)
 for loc in config_locationGroups:
     # access the environment variable that sets the Account ID for this
@@ -351,7 +357,11 @@ for account in validated_accounts:
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     name = account['name']
-    locations = service.accounts().locations().list(parent=name).execute()
+    
+    # Create a list of locations in this account
+    locations = (
+                gmbBIso.accounts().locations().list(
+            parent=account_uri,pageSize=100,readMask='name,title').execute())
 
     # Google's MyBusiness API supports querying for 10 locations at a time, so
     # here we batch locations into a list-of-lists of size batch_size (max=10).
@@ -362,7 +372,7 @@ for account in validated_accounts:
     # if not present, locality and postalCode will default to none
     label_lookup = {
         i['name']: {
-            'locationName': i['locationName'],
+            'title': i['title'],
             'locality': i.get('address', {}).get('locality'),
             'postalCode': i.get('address', {}).get('postalCode')
             } for i in locations['locations']}
@@ -441,12 +451,12 @@ for account in validated_accounts:
                 'utc_query_date': query_date,
                 'client_shortname': account['clientShortname'],
                 'location_label':
-                    label_lookup[location['locationName']]['locationName'],
+                    label_lookup[location['title']]['title'],
                 'location_locality':
-                    label_lookup[location['locationName']]['locality'],
+                    label_lookup[location['title']]['locality'],
                 'location_postal_code':
-                    label_lookup[location['locationName']]['postalCode'],
-                'location_name': location['locationName'],
+                    label_lookup[location['title']]['postalCode'],
+                'location_name': location['title'],
                 'days_aggregated': source['dayCount'],
                 'rank_on_query': order + 1,  # rank is from 1 to 10
                 'region_count': region['count'],
