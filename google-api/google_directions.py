@@ -347,7 +347,7 @@ for account in validated_accounts:
 
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
-    name = account['name']
+    account_uri = account['uri']
     
     # Create a list of locations in this account
     locations = (
