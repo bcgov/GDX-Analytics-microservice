@@ -142,23 +142,10 @@ AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 # set the query date as now in UTC
 query_date = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 
-# Build the Service Objects for the Google My Business APIs
-# My Business Account Management API v1 provides: Accounts List
-# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
-gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
-# My Business Business Information API v1 Provides: Accounts Locations List
-# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
-gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
-# My Business API v4.9 provides: Accounts Locations reportInsights
-DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-gmbv49so = build('mybusiness','v4',http=http,
-                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
-
 # Google API Access requires a browser-based authentication step to create
 # the stored authorization .dat file. Forcing noauth_local_webserver to True
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
-
 
 # Initialize the OAuth2 authorization flow.
 # The string urn:ietf:wg:oauth:2.0:oob is for non-web-based applications.
@@ -167,7 +154,6 @@ flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
                                redirect_uri='urn:ietf:wg:oauth:2.0:oob',
                                prompt='consent')
-
 
 # Specify the storage path for the .dat authentication file
 storage = Storage(AUTHORIZATION)
@@ -188,12 +174,17 @@ if credentials is None or credentials.invalid:
 # Apply credential headers to all requests made by an httplib2.Http instance
 http = credentials.authorize(httplib2.Http())
 
-# Build the service object
-service = build(
-    API_NAME, API_VERSION, http=http,
-    discoveryServiceUrl=DISCOVERY_URI, cache_discovery=False)
-
-# site_list_response = service.sites().list().execute()
+# Build the Service Objects for the Google My Business APIs
+# My Business Account Management API v1 provides: Accounts List
+# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
+gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
+# My Business Business Information API v1 Provides: Accounts Locations List
+# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
+gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+# My Business API v4.9 provides: Accounts Locations reportInsights
+DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
+gmbv49so = build('mybusiness','v4',http=http,
+                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
 
 # set up the S3 resource
 client = boto3.client('s3')
@@ -407,7 +398,7 @@ for account in validated_accounts:
             # Posts the API request
             try:
                 response = \
-                    service.accounts().locations().\
+                    gmbv49so.accounts().locations().\
                     reportInsights(body=bodyvar, name=name).execute()
             except googleapiclient.errors.HttpError:
                 logger.exception(
