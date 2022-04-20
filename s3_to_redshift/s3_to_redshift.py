@@ -148,19 +148,16 @@ def is_processed(this_object_summary):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        if re.search(doc + '$', this_key):
-            logger.info('%s was processed as good already.', this_filename)
+        logger.info('%s was processed as good already.', this_filename)
         return True
     try:
         client.head_object(Bucket=bucket, Key=this_badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        if re.search(doc + '$', this_key):
-            logger.info('%s was processed as bad already.', this_filename)
+        logger.info('%s was processed as bad already.', this_filename)
         return True
-    if re.search(doc + '$', this_key):
-        logger.info('%s has not been processed.', this_filename)
+    logger.info('%s has not been processed.', this_filename)
     return False
 
 
@@ -229,11 +226,10 @@ for object_summary in sorted_objects:
         logger.info('reached file limit of %s', file_limit)
         break
     key = object_summary.key
-    # skip to next object if already processed
-    if is_processed(object_summary):
-        continue
-    # only review those matching our configued 'doc' regex pattern
     if re.search(doc + '$', key):
+        # skip to next object if already processed
+        if is_processed(object_summary):
+            continue
         # under truncate = True, we will keep list length to 1
         # only adding the most recently modified file to objects_to_process
         if truncate:
