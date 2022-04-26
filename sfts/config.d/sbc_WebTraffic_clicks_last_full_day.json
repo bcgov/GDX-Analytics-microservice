@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "sbc_WebTraffic/daily",
+  "destination": "processed",
+  "object_prefix": "sbc_WebTraffic_clicks",
+  "dml": "sbc_WebTraffic_clicks_last_full_day.sql",
+  "header": true,
+  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/WebTraffic_data/daily",
+  "extension": ".csv"
+}
