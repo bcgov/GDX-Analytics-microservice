@@ -348,16 +348,19 @@ for account in validated_accounts:
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     account_uri = account['uri']
-    
+
     # Create a list of locations in this account
     locations = (
-                gmbBIso.accounts().locations().list(
+            gmbBIso.accounts().locations().list(
             parent=account_uri,pageSize=100,readMask='name,title').execute())
+        
 
     # Google's MyBusiness API supports querying for 10 locations at a time, so
     # here we batch locations into a list-of-lists of size batch_size (max=10).
     batch_size = 10
-    location_names_list = [i['name'] for i in locations['locations']]
+    location_names = [i['name'] for i in locations['locations']]
+    # Add account_uri prefix to location 
+    location_names_list = [f'{account_uri}/{i}' for i in location_names]
 
     # construct the label lookup and apply formatting if any
     # if not present, locality and postalCode will default to none
@@ -427,6 +430,7 @@ for account in validated_accounts:
     # JSON into a list of dicts, to normalize into a DataFrame later
     location_region_rows = []
     location_directions = stitched_responses['locationDrivingDirectionMetrics']
+    
     for location in location_directions:
         # The case where no driving directions were queried over this time
         # these records will be omitted, since there is nothing to report
@@ -442,12 +446,12 @@ for account in validated_accounts:
                 'utc_query_date': query_date,
                 'client_shortname': account['clientShortname'],
                 'location_label':
-                    label_lookup[location['title']]['title'],
+                    label_lookup[location['locationName']]['label'],
                 'location_locality':
-                    label_lookup[location['title']]['locality'],
+                    label_lookup[location['locationName']]['locality'],
                 'location_postal_code':
-                    label_lookup[location['title']]['postalCode'],
-                'location_name': location['title'],
+                    label_lookup[location['locationName']]['postalCode'],
+                'location_name': location['locationName'],
                 'days_aggregated': source['dayCount'],
                 'rank_on_query': order + 1,  # rank is from 1 to 10
                 'region_count': region['count'],
