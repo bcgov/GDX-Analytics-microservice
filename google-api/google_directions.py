@@ -147,6 +147,7 @@ query_date = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
+
 # Initialize the OAuth2 authorization flow.
 # The string urn:ietf:wg:oauth:2.0:oob is for non-web-based applications.
 # The prompt='consent' Retrieves the refresh token.
@@ -154,6 +155,7 @@ flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
                                redirect_uri='urn:ietf:wg:oauth:2.0:oob',
                                prompt='consent')
+
 
 # Specify the storage path for the .dat authentication file
 storage = Storage(AUTHORIZATION)
@@ -178,9 +180,11 @@ http = credentials.authorize(httplib2.Http())
 # My Business Account Management API v1 provides: Accounts List
 # https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
 gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
+
 # My Business Business Information API v1 Provides: Accounts Locations List
 # 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
 gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+
 # My Business API v4.9 provides: Accounts Locations reportInsights
 DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
 gmbv49so = build('mybusiness','v4',http=http,
@@ -300,7 +304,7 @@ for loc in config_locationGroups:
     try:
         validated_accounts.append(
             next({
-                'uri': item['name'],
+                'name': item['name'],
                 'clientShortname': loc['clientShortname'],
                 'aggregate_days': loc['aggregate_days'],
                 'accountNumber': accountNumber}
@@ -347,26 +351,23 @@ for account in validated_accounts:
 
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
-    account_uri = account['uri']
-
-    # Create a list of locations in this account
+    name = account['name']
     locations = (
-            gmbBIso.accounts().locations().list(
-            parent=account_uri,pageSize=100,readMask='name,title').execute())
-        
+                gmbBIso.accounts().locations().list(
+            parent=name,pageSize=100,readMask='name,title').execute())
 
     # Google's MyBusiness API supports querying for 10 locations at a time, so
     # here we batch locations into a list-of-lists of size batch_size (max=10).
     batch_size = 10
     location_names = [i['name'] for i in locations['locations']]
     # Add account_uri prefix to location 
-    location_names_list = [f'{account_uri}/{i}' for i in location_names]
-
+    location_names_list = [f'{name}/{i}' for i in location_names]
+    
     # construct the label lookup and apply formatting if any
     # if not present, locality and postalCode will default to none
     label_lookup = {
         i['name']: {
-            'title': i['title'],
+            'locationName': i['title'],
             'locality': i.get('address', {}).get('locality'),
             'postalCode': i.get('address', {}).get('postalCode')
             } for i in locations['locations']}
@@ -402,7 +403,7 @@ for account in validated_accounts:
             try:
                 response = \
                     gmbv49so.accounts().locations().\
-                    reportInsights(body=bodyvar, name=account_uri).execute()
+                    reportInsights(body=bodyvar, name=name).execute()
             except googleapiclient.errors.HttpError:
                 logger.exception(
                     "Request contains an invalid argument. Skipping.")
@@ -430,7 +431,6 @@ for account in validated_accounts:
     # JSON into a list of dicts, to normalize into a DataFrame later
     location_region_rows = []
     location_directions = stitched_responses['locationDrivingDirectionMetrics']
-    
     for location in location_directions:
         # The case where no driving directions were queried over this time
         # these records will be omitted, since there is nothing to report
@@ -446,7 +446,7 @@ for account in validated_accounts:
                 'utc_query_date': query_date,
                 'client_shortname': account['clientShortname'],
                 'location_label':
-                    label_lookup[location['locationName']]['label'],
+                    label_lookup[location['locationName']]['locationName'],
                 'location_locality':
                     label_lookup[location['locationName']]['locality'],
                 'location_postal_code':
