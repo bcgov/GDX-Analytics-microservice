@@ -142,14 +142,8 @@ AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 # set the query date as now in UTC
 query_date = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 
-# Setup OAuth 2.0 flow for the Google My Business API
-API_NAME = 'mybusiness'
-API_VERSION = 'v4'
-DISCOVERY_URI = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-
-
 # Google API Access requires a browser-based authentication step to create
-# the stored authorization .dat file. Forcign noauth_local_webserver to True
+# the stored authorization .dat file. Forcing noauth_local_webserver to True
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
@@ -182,12 +176,19 @@ if credentials is None or credentials.invalid:
 # Apply credential headers to all requests made by an httplib2.Http instance
 http = credentials.authorize(httplib2.Http())
 
-# Build the service object
-service = build(
-    API_NAME, API_VERSION, http=http,
-    discoveryServiceUrl=DISCOVERY_URI, cache_discovery=False)
+# Build the Service Objects for the Google My Business APIs
+# My Business Account Management API v1 provides: Accounts List
+# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
+gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
 
-# site_list_response = service.sites().list().execute()
+# My Business Business Information API v1 Provides: Accounts Locations List
+# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
+gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+
+# My Business API v4.9 provides: Accounts Locations reportInsights
+DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
+gmbv49so = build('mybusiness','v4',http=http,
+                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
 
 # set up the S3 resource
 client = boto3.client('s3')
@@ -294,8 +295,8 @@ validated_accounts = []
 # Get the list of accounts that the Google account being used to access
 # the My Business API has rights to read location insights from
 # (ignoring the first one, since it is the 'self' reference account).
-accounts = service.accounts().list().execute()['accounts'][1:]
-# print json.dumps(accounts, indent=2)
+accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
+
 for loc in config_locationGroups:
     # access the environment variable that sets the Account ID for this
     # Location Group, which is to be passed to the validated accounts list
@@ -350,21 +351,28 @@ for account in validated_accounts:
 
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
-    name = account['name']
-    locations = service.accounts().locations().list(parent=name).execute()
+    # Get account/accountId
+    account_uri = account['name']
+    name = account_uri  # done for readability
+    locations = (
+                gmbBIso.accounts().locations().list(
+            parent=name,pageSize=100,readMask='name,title,storefrontAddress').execute())
 
     # Google's MyBusiness API supports querying for 10 locations at a time, so
     # here we batch locations into a list-of-lists of size batch_size (max=10).
     batch_size = 10
-    location_names_list = [i['name'] for i in locations['locations']]
-
+    location_names = [i['name'] for i in locations['locations']]
+    
+    # Add account_uri prefix to location 
+    location_names_list = [f'{account_uri}/{i}' for i in location_names]
+    
     # construct the label lookup and apply formatting if any
     # if not present, locality and postalCode will default to none
     label_lookup = {
-        i['name']: {
-            'locationName': i['locationName'],
-            'locality': i.get('address', {}).get('locality'),
-            'postalCode': i.get('address', {}).get('postalCode')
+        f'{account_uri}/'+ i['name']: {
+            'title': i['title'],
+            'locality': i.get('storefrontAddress', {}).get('locality'),
+            'postalCode': i.get('storefrontAddress', {}).get('postalCode')
             } for i in locations['locations']}
 
     # batched_location_names is a list of lists
@@ -397,7 +405,7 @@ for account in validated_accounts:
             # Posts the API request
             try:
                 response = \
-                    service.accounts().locations().\
+                    gmbv49so.accounts().locations().\
                     reportInsights(body=bodyvar, name=name).execute()
             except googleapiclient.errors.HttpError:
                 logger.exception(
@@ -426,6 +434,7 @@ for account in validated_accounts:
     # JSON into a list of dicts, to normalize into a DataFrame later
     location_region_rows = []
     location_directions = stitched_responses['locationDrivingDirectionMetrics']
+    
     for location in location_directions:
         # The case where no driving directions were queried over this time
         # these records will be omitted, since there is nothing to report
@@ -436,12 +445,13 @@ for account in validated_accounts:
         # the order of these is desending by number of requests
         source = location['topDirectionSources'][0]
         regions = source['regionCounts']
+        
         for order, region in enumerate(regions):
             row = {
                 'utc_query_date': query_date,
                 'client_shortname': account['clientShortname'],
                 'location_label':
-                    label_lookup[location['locationName']]['locationName'],
+                    label_lookup[location['locationName']]['title'],
                 'location_locality':
                     label_lookup[location['locationName']]['locality'],
                 'location_postal_code':
