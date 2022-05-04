@@ -296,7 +296,7 @@ validated_accounts = []
 # the My Business API has rights to read location insights from
 # (ignoring the first one, since it is the 'self' reference account).
 accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
-# print json.dumps(accounts, indent=2)
+
 for loc in config_locationGroups:
     # access the environment variable that sets the Account ID for this
     # Location Group, which is to be passed to the validated accounts list
@@ -351,25 +351,28 @@ for account in validated_accounts:
 
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
-    name = account['name']
+    # Get account/accountId
+    account_uri = account['name']
+    name = account_uri  # done for readability
     locations = (
                 gmbBIso.accounts().locations().list(
-            parent=name,pageSize=100,readMask='name,title').execute())
+            parent=name,pageSize=100,readMask='name,title,storefrontAddress').execute())
 
     # Google's MyBusiness API supports querying for 10 locations at a time, so
     # here we batch locations into a list-of-lists of size batch_size (max=10).
     batch_size = 10
     location_names = [i['name'] for i in locations['locations']]
+    
     # Add account_uri prefix to location 
-    location_names_list = [f'{name}/{i}' for i in location_names]
+    location_names_list = [f'{account_uri}/{i}' for i in location_names]
     
     # construct the label lookup and apply formatting if any
     # if not present, locality and postalCode will default to none
     label_lookup = {
-        i['name']: {
-            'locationName': i['title'],
-            'locality': i.get('address', {}).get('locality'),
-            'postalCode': i.get('address', {}).get('postalCode')
+        f'{account_uri}/'+ i['name']: {
+            'title': i['title'],
+            'locality': i.get('storefrontAddress', {}).get('locality'),
+            'postalCode': i.get('storefrontAddress', {}).get('postalCode')
             } for i in locations['locations']}
 
     # batched_location_names is a list of lists
@@ -431,6 +434,7 @@ for account in validated_accounts:
     # JSON into a list of dicts, to normalize into a DataFrame later
     location_region_rows = []
     location_directions = stitched_responses['locationDrivingDirectionMetrics']
+    
     for location in location_directions:
         # The case where no driving directions were queried over this time
         # these records will be omitted, since there is nothing to report
@@ -441,12 +445,13 @@ for account in validated_accounts:
         # the order of these is desending by number of requests
         source = location['topDirectionSources'][0]
         regions = source['regionCounts']
+        
         for order, region in enumerate(regions):
             row = {
                 'utc_query_date': query_date,
                 'client_shortname': account['clientShortname'],
                 'location_label':
-                    label_lookup[location['locationName']]['locationName'],
+                    label_lookup[location['locationName']]['title'],
                 'location_locality':
                     label_lookup[location['locationName']]['locality'],
                 'location_postal_code':
