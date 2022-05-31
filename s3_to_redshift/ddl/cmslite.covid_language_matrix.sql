@@ -10,10 +10,12 @@ CREATE TABLE IF NOT EXISTS cmslite.covid_language_matrix
   "farsi" VARCHAR(255) ENCODE ZSTD,
   "tagalog" VARCHAR(255) ENCODE ZSTD,
   "korean" VARCHAR(255) ENCODE ZSTD,
-  "arabicc" VARCHAR(255) ENCODE ZSTD,
+  "arabic" VARCHAR(255) ENCODE ZSTD,
   "vietnamese" VARCHAR(255) ENCODE ZSTD,
   "japanese" VARCHAR(255) ENCODE ZSTD,
-  "hindi" VARCHAR(255) ENCODE ZSTD
+  "hindi" VARCHAR(255) ENCODE ZSTD,
+  "ukrainian" VARCHAR(255) ENCODE ZSTD,
+  "russian" VARCHAR(255) ENCODE ZSTD
 );
 
 GRANT SELECT ON cmslite.covid_language_matrix TO "looker";
