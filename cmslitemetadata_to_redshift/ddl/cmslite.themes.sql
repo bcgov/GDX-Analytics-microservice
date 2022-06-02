@@ -1,19 +1,21 @@
 CREATE TABLE IF NOT EXISTS cmslite.themes (
-	"node_id"	VARCHAR(255),
-	"title"		VARCHAR(2047),
-	"hr_url"	VARCHAR(2047),
-	"parent_node_id" VARCHAR(255),
-	"parent_title"	VARCHAR(2047),
-	"theme_id"	VARCHAR(255),
-	"subtheme_id"	VARCHAR(255),
-	"topic_id"	VARCHAR(255),
-	"subtopic_id"	VARCHAR(255),
-	"subsubtopic_id" VARCHAR(255),
-	"theme"		VARCHAR(2047),
-	"subtheme"	VARCHAR(2047),
-	"topic"		VARCHAR(2047),
-	"subtopic"	VARCHAR(2047),
-	"subsubtopic"	VARCHAR(2047)
-);      
+	node_id        VARCHAR(255)  ENCODE RAW,
+	title          VARCHAR(2047) ENCODE LZO,
+	hr_url         VARCHAR(2047) ENCODE LZO,
+	parent_node_id VARCHAR(255)  ENCODE LZO,
+	parent_title   VARCHAR(2047) ENCODE LZO,
+	theme_id       VARCHAR(255)  ENCODE LZO,
+	subtheme_id    VARCHAR(255)  ENCODE LZO,
+	topic_id       VARCHAR(255)  ENCODE LZO,
+	subtopic_id    VARCHAR(255)  ENCODE LZO,
+	subsubtopic_id VARCHAR(255)  ENCODE LZO,
+	theme          VARCHAR(2047) ENCODE LZO,
+	subtheme       VARCHAR(2047) ENCODE LZO,
+	topic          VARCHAR(2047) ENCODE LZO,
+	subtopic       VARCHAR(2047) ENCODE LZO,
+	subsubtopic    VARCHAR(2047) ENCODE LZO
+)
+DISTKEY AUTO
+SORTKEY ( node_id );
 ALTER TABLE cmslite.themes OWNER TO microservice;
 GRANT SELECT ON cmslite.themes TO looker;
