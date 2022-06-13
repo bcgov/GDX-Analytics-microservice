@@ -1,0 +1,21 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "veenu_test",
+  "doc": "gdxdsd4256_info.csv",
+  "dbtable": "test.gdxdsd4256",
+  "column_count": 7,
+  "columns": [
+    "Site",
+    "Asset Tag",
+    "Printer Queue",
+    "IDIR ID",
+    "Notes",
+    "Item Type",
+    "Path"
+  ],
+  "dtype_dic_strings": [],
+  "delim": ",",
+  "truncate": true
+}
