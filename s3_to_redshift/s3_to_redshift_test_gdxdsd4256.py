@@ -100,6 +100,10 @@ if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
+if 'add_columns' in data:
+    add_columns = data['add_columns']
+else:
+    add_columns = {}
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
 file_limit = False if truncate or 'file_limit' not in data else data['file_limit']
 
@@ -429,6 +433,9 @@ for object_summary in objects_to_process:
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
+
+    if 'add_columns' in data:  # Add columns as defined in config file
+        df = df.assign(columns=add_columns)
 
     # Run replace on some fields to clean the data up
     if 'replace' in data:
