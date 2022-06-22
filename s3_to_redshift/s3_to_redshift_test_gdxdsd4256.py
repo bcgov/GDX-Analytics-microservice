@@ -439,6 +439,9 @@ for object_summary in objects_to_process:
         for key, value in data['add_columns'].items():
             df[key] = value
             print(f'Added column {key} with value {value}')
+            print(f'Dataframe columns are now {df.columns}')
+            #print number of columns in the dataframe  
+            print(f'Number of columns in the dataframe is {len(df.columns)}')
 
 
     # Run replace on some fields to clean the data up
