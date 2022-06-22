@@ -65,6 +65,7 @@ The S3 to Redshift microservice requires the following environment variables be 
 
 The JSON configuration is required as a second argument when running the `s3_to_redshift.py` script. It follows this structure:
 
+- `"add_columns"`: a list containing the names and values for any additional column that is not present in the csv file provided
 - `"bucket"`: the label defining the S3 bucket that the microservice will reference.
 - `"source"`: the top level S3 prefix for source objects after the bucket label, as in: `<bucket>/<source>/<client>/<doc>`.
 - `"destination"`: the top level S3 prefix for processed objects to be stored, as in: `<bucket>/<destination>/<client>/<doc>`.

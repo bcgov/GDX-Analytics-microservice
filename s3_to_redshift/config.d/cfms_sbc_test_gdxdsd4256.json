@@ -16,7 +16,9 @@
     "Path"
   ],
   "add_columns": {
-    "test_column": "test_value"
+    "test_column": "test_value",
+    "test_column2": "test_value2",
+    "test_column3": "test_value3"
 },
   "dtype_dic_strings": [],
   "delim": ",",
