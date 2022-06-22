@@ -434,8 +434,12 @@ for object_summary in objects_to_process:
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
 
-    if 'add_columns' in data:  # Add columns as defined in config file
-        df = df.assign(columns=add_columns)
+    # add columns to the dataframe
+    if 'add_columns' in data:
+        for key, value in data['add_columns'].items():
+            df[key] = value
+            print(f'Added column {key} with value {value}')
+
 
     # Run replace on some fields to clean the data up
     if 'replace' in data:
