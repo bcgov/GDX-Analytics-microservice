@@ -1,7 +1,7 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "pmrp_qdata/range/Nov_2021_change",
+  "directory": "pmrp_qdata/range/Jun_2022_change",
   "destination": "processed",
   "object_prefix": "pmrp_qdata",
   "dml": "pmrp_qdata_range.sql",
@@ -9,6 +9,6 @@
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
   "extension": ".csv",
   "sql_parse_key": "pmrp_date_range",
-  "start_date": "min",
-  "end_date": "max"
+  "start_date": "20180508",
+  "end_date": "20220622"
 }
