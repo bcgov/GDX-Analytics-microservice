@@ -17,8 +17,10 @@
   ],
   "add_columns": {
     "varchar": "test_value",
-    "datetime": null,
-    "integer": null
+    "datetime": "2018-01-01 00:00:00",
+    "integer": 3,
+    "date_added": null,
+    "date_removed": null
 },
   "dtype_dic_strings": [],
   "delim": ",",
