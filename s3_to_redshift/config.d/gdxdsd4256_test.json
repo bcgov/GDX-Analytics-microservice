@@ -3,7 +3,7 @@
   "source": "client",
   "destination": "processed",
   "directory": "veenu_test",
-  "doc": "gdxdsd4256_info.csv",
+  "doc": "gdxdsd4256_info_10.csv",
   "dbtable": "test.gdxdsd4256",
   "column_count": 7,
   "columns": [
@@ -16,9 +16,9 @@
     "Path"
   ],
   "add_columns": {
-    "test_column": "test_value",
-    "test_column2": "test_value2",
-    "test_column3": "test_value3"
+    "varchar": "test_value",
+    "datetime": "2022-02-12",
+    "integer": "3"
 },
   "dtype_dic_strings": [],
   "delim": ",",
