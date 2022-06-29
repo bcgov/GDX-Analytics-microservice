@@ -17,10 +17,11 @@
   ],
   "add_columns": {
     "varchar": "test_value",
-    "datetime": "2022-02-12",
-    "integer": "3"
+    "datetime": null,
+    "integer": null
 },
   "dtype_dic_strings": [],
   "delim": ",",
-  "truncate": true
+  "truncate": false,
+  "test_4256": true
 }
