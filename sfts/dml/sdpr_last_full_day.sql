@@ -33,31 +33,34 @@ SELECT * FROM (
         AVG((1.00 * theq_sdpr_poc.hold_duration)/(60*60*24) ) AS "theq_sdpr_poc.hold_duration_per_service_average"
     FROM
         "derived"."theq_sdpr_step1" AS "theq_sdpr_poc"
-    WHERE ((( "welcome_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
+    WHERE
+        ((( "welcome_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND
+        ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND
+        (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
     GROUP BY
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23
+        "theq_sdpr_poc.date",
+        "theq_sdpr_poc.welcome_time",
+        "theq_sdpr_poc.latest_time",
+        "theq_sdpr_poc.office_id",
+        "theq_sdpr_poc.office_name",
+        "theq_sdpr_poc.agent_id",
+        "theq_sdpr_poc.idir",
+        "theq_sdpr_poc.client_id",
+        "theq_sdpr_poc.back_office",
+        "theq_sdpr_poc.channel_sort",
+        "theq_sdpr_poc.channel",
+        "theq_sdpr_poc.counter_type",
+        "theq_sdpr_poc.inaccurate_time",
+        "theq_sdpr_poc.no_wait_visit",
+        "theq_sdpr_poc.program_name",
+        "theq_sdpr_poc.transaction_name",
+        "theq_sdpr_poc.service_count",
+        "theq_sdpr_poc.status",
+        "theq_sdpr_poc.hold_duration_zscore",
+        "theq_sdpr_poc.prep_duration_zscore",
+        "theq_sdpr_poc.serve_duration_zscore",
+        "theq_sdpr_poc.service_creation_duration_zscore",
+        "theq_sdpr_poc.waiting_duration_zscore"
     ORDER BY
-        2
+        "theq_sdpr_poc.welcome_time"
 )
