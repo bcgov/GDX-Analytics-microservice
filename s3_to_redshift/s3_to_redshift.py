@@ -103,6 +103,14 @@ else:
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
 file_limit = False if truncate or 'file_limit' not in data else data['file_limit']
 
+if 'strip_quotes' in data:
+    strip_quotes = data['strip_quotes']
+else:
+    strip_quotes = False
+if 'encoding' in data:
+    encoding = data['encoding']
+else:
+    encoding = 'utf-8'
 
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
@@ -226,7 +234,8 @@ for object_summary in sorted_objects:
         logger.info('reached file limit of %s', file_limit)
         break
     key = object_summary.key
-    if re.search(doc + '$', key):
+    # Ignore files in the "Archive" folder
+    if re.search(doc + '$', key) and not (re.search('\/archive',key)):
         # skip to next object if already processed
         if is_processed(object_summary):
             continue
@@ -308,7 +317,7 @@ for object_summary in objects_to_process:
 
     # Check that the file decodes as UTF-8. If it fails move to bad and end
     try:
-        csv_string = csv_string.decode('utf-8')
+        csv_string = csv_string.decode(encoding)
     except UnicodeDecodeError as _e:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
@@ -317,8 +326,8 @@ for object_summary in objects_to_process:
         e_object = _e.object.splitlines()
         logger.exception(
             ''.join((
-                "Decoding UTF-8 failed for file {0}\n"
-                .format(object_summary.key),
+                "Decoding {0} failed for file {1}\n"
+                .format(encoding, object_summary.key),
                 "The input file stopped parsing after line {0}:\n{1}\n"
                 .format(len(e_object), e_object[-1]),
                 "Keying to badfile and stopping.\n")))
@@ -336,6 +345,10 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    # If strip_quotes is set, remove all double quotes (") from the string
+    if 'strip_quotes':
+        csv_string = csv_string.replace('"', "")
+        
     # Check for an empty file. If it's empty, accept it as bad
     try:
         if no_header:
