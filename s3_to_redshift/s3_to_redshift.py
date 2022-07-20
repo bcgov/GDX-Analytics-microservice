@@ -346,7 +346,7 @@ for object_summary in objects_to_process:
                    'no further processing.')
 
     # If strip_quotes is set, remove all double quotes (") from the string
-    if 'strip_quotes':
+    if strip_quotes:
         csv_string = csv_string.replace('"', "")
         
     # Check for an empty file. If it's empty, accept it as bad
