@@ -274,7 +274,9 @@ def report(data):
     if data['processed']:
         print('Objects loaded to S3 and copied to RedShift:')
         for i, site in enumerate(data['processed'], 1):
-            print(f"\n{i}: {site}")
+            #is this the issue?
+            #print(f"\n{i}: {site}")
+            print(f"{i}:  {site}")
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
@@ -547,6 +549,10 @@ for site_item in config_sites:  # noqa: C901
 # Count all failed loads to RedShift
 report_stats['failed_rs'] = len(report_stats['failed_to_rs'])
 
+#adding call to report to see print statements
+report(report_stats)
+"""
+Commenting  these lines out as in testing I do not want to build 
 # Get PDT build start time
 yvr_dt_pdt_start = (yvr_tz
                     .normalize(
@@ -572,4 +578,4 @@ with psycopg2.connect(conn_string) as conn:
             report_stats['pdt_build_success'] = True
             logger.info("Google Search PDT loaded successfully")
             report(report_stats)
-            clean_exit(0, 'Finished successfully.')
+            clean_exit(0, 'Finished successfully.')"""
