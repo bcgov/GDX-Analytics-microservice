@@ -1,5 +1,5 @@
---DROP TABLE microservice.history;
-CREATE TABLE IF NOT EXISTS microservice.history
+--DROP TABLE servicebc.history;
+CREATE TABLE IF NOT EXISTS servicebc.history
 (
         id INTEGER NOT NULL  ENCODE zstd
         ,user_id INTEGER   ENCODE zstd
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS microservice.history
         ,slug VARCHAR(255)   ENCODE zstd
         ,cache_key VARCHAR(255)   ENCODE zstd
         ,result_source VARCHAR(255)   ENCODE zstd
-        ,message VARCHAR(1024)   ENCODE zstd
+        ,message VARCHAR(512)   ENCODE zstd
         ,connection_name VARCHAR(255)   ENCODE zstd
         ,connection_id VARCHAR(255)   ENCODE zstd
         ,dialect VARCHAR(255)   ENCODE zstd
@@ -42,5 +42,5 @@ DISTSTYLE AUTO
         created_at
         )
 ;
-ALTER TABLE microservice.history owner to microservice;
+ALTER TABLE servicebc.history owner to microservice;
 GRANT SELECT ON servicebc.history to looker;
