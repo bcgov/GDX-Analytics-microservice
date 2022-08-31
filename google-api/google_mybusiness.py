@@ -350,7 +350,6 @@ for account in validated_accounts:
         # query RedShift to see if there is a date already loaded
         last_loaded_date = last_loaded(config_dbtable, loc['name'])
         if last_loaded_date is None:
-            print("log 6")
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
 
