@@ -238,7 +238,7 @@ def report(data):
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
         for i, item in enumerate(data['good_list'], 1):
-            #print(f"\n{i}: {item}")
+            #removed addition of new line character here as per GDXDSD-5197
             print(f"{i}: {item}")
 
     # Print all fully processed locations in bad
@@ -350,6 +350,7 @@ for account in validated_accounts:
         # query RedShift to see if there is a date already loaded
         last_loaded_date = last_loaded(config_dbtable, loc['name'])
         if last_loaded_date is None:
+            print("log 6")
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
 
@@ -411,7 +412,6 @@ for account in validated_accounts:
                     }
                 }
             }
-
         logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
 
         # retrieves the request for this location.
@@ -446,7 +446,6 @@ for account in validated_accounts:
 
         for metric in metrics:
             metric_name = metric['metric'].lower()
-
             logger.info("processing metric: %s", metric_name)
 
             # iterate on the dimensional values for this metric.
@@ -519,7 +518,6 @@ for account in validated_accounts:
         # Define s3 bucket paths
         goodfile = f"{config_destination}/good/{object_key}"
         badfile = f"{config_destination}/bad/{object_key}"
-        '''
         # Connect to Redshift and execute the query.
         with psycopg2.connect(conn_string) as conn:
             with conn.cursor() as curs:
@@ -543,7 +541,6 @@ for account in validated_accounts:
                     report_stats['good_rs_list'].append(outfile)
                     report_stats['loaded_to_rs'] += 1
                     report_stats
-        '''            
         # copy the object to the S3 outfile (processed/good/ or processed/bad/)
         try:
             s3.copy_object(
