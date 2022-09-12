@@ -38,7 +38,6 @@ from referer_parser import Referer
 from lib.redshift import RedShift
 import lib.logs as log
 
-
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
 yvr_dt_start = (yvr_tz
@@ -431,7 +430,7 @@ for object_summary in objects_to_process:
         report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
-        test_fun("this is where we hit the errror likely")
+       
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
