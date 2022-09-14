@@ -274,18 +274,24 @@ def report(data):
     if data['processed']:
         print('Objects loaded to S3 and copied to RedShift:')
         for i, site in enumerate(data['processed'], 1):
-            print(f"\n{i}: {site}")
+            #removed \n in the following statement as reports contained additional  
+            #white space.
+            print(f"{i}:  {site}")
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
         print('\nList of objects that failed to copy to Redshift:')
         for i, item in enumerate(data['failed_to_rs']):
+            #may have to remove \n if future reports containing this data are found
+            #to contain excessive white space.   
             print(f'\n{i}: {item}')
 
     # If anything failed do to early exit, print it
     if data['failed_api_call']:
         print('List of sites that were not processed due to early exit:')
         for i, site in enumerate(data['failed_api_call']):
+            #may have to remove \n if future reports containing this data are found
+            #to contain excessive white space.
             print(f'\n{i}: {site}')
 
 
