@@ -10,6 +10,7 @@ The S3 to Redshift microservice is invoked through pipenv and requires a `json` 
 * File is zero byte size.
 * File has no data in it, no rows, no headers but not zero byte in size.
 * File has header row but no data rows. 
+*test*
 
 The configuration file format is described in more detail below.
 
