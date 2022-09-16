@@ -411,9 +411,7 @@ for account in validated_accounts:
                     }
                 }
             }
-        
-        #I believe that this log is unecessary as we go use this variable to create reportInsights
-        #logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
+        logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
 
         # retrieves the request for this location.
         # ReportInsights are called from the v4.9 Google My Business API
@@ -421,8 +419,6 @@ for account in validated_accounts:
             reportInsights = \
                 gmbv49so.accounts().locations().\
                 reportInsights(body=bodyvar, name=account_uri).execute()
-            #possibly change variable here to a proper JSON file
-            #reportInsights = json.dumps(reportInsights)
         except googleapiclient.errors.HttpError:
             logger.exception("Request contains an invalid argument. Skipping.")
             report_stats['not_retrieved_list'].append(location_name)
@@ -436,7 +432,7 @@ for account in validated_accounts:
             report_stats['retrieved'] += 1
 
         # Write API response for every location to debug log    
-        #logger.info("Response body\n%s", reportInsights)
+        logger.info("Response body\n%s", reportInsights)
 
         # We constrain API calls to one location at a time, so
         # there is only one element in the locationMetrics list:
@@ -562,5 +558,6 @@ for account in validated_accounts:
             else:
                 report_stats['bad_list'].append(outfile)
                 report_stats['bad'] += 1
+
 report(report_stats)
 clean_exit(0,'Ran without errors.')
