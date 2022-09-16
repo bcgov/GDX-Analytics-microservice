@@ -411,7 +411,9 @@ for account in validated_accounts:
                 }
             }
 
-        logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
+        #This is unnecessary as we use bodyvar to create reportInsights 
+        #then log each element of reportInsights later. 
+        #logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
 
         # retrieves the request for this location.
         # ReportInsights are called from the v4.9 Google My Business API
@@ -432,7 +434,8 @@ for account in validated_accounts:
             report_stats['retrieved'] += 1
 
         # Write API response for every location to debug log    
-        logger.info("Response body\n%s", reportInsights)
+        #This is unnecessary as we parse this json file and log later
+        #logger.info("Response body\n%s", reportInsights)
 
         # We constrain API calls to one location at a time, so
         # there is only one element in the locationMetrics list:
