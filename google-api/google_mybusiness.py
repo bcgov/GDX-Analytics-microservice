@@ -238,7 +238,8 @@ def report(data):
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
         for i, item in enumerate(data['good_list'], 1):
-            print(f"\n{i}: {item}")
+            #removing newline character per GDXDSD-5197
+            print(f"{i}: {item}")
 
     # Print all fully processed locations in bad
     if data['bad_list']:

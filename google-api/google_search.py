@@ -274,7 +274,8 @@ def report(data):
     if data['processed']:
         print('Objects loaded to S3 and copied to RedShift:')
         for i, site in enumerate(data['processed'], 1):
-            print(f"\n{i}: {site}")
+            #removed newline character per GDXDSD-5197
+            print(f"{i}: {site}")
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
