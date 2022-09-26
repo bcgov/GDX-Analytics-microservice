@@ -35,4 +35,4 @@ CREATE TABLE IF NOT EXISTS test.GDXDSD5235
   "last_updater_id" INT ENCODE ZSTD
 );
 
-GRANT SELECT ON microservice.dashboard TO "looker";
+GRANT SELECT ON test.GDXDSD5235 TO "looker";
