@@ -3,7 +3,7 @@
     "source": "client",
     "destination": "processed",
     "directory": "doug_test",
-    "doc": "dashboard\\..*",
+    "doc": "testdata_GDXDSD5235.csv",
     "dbtable": "test.GDXDSD5235",
     "column_count": 1,
     "columns": [
