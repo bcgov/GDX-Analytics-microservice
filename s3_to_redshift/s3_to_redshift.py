@@ -430,7 +430,7 @@ for object_summary in objects_to_process:
         report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
-
+       
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
@@ -709,6 +709,7 @@ COMMIT;
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    report_stats['processed'] += 1
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
