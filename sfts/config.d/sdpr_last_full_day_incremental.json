@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "doug_test/daily",
+  "destination": "processed",
+  "object_prefix": "sdpr",
+  "dml": "sdpr_last_full_day_incremental.sql",
+  "header": true,
+  "extension": ".csv"
+}
