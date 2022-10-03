@@ -153,7 +153,7 @@ flags.noauth_local_webserver = True
 # The prompt='consent' Retrieves the refresh token.
 flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
-                               redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+                               redirect_uri='http://127.0.0.1:4200',
                                prompt='consent')
 
 
