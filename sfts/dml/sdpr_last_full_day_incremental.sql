@@ -36,8 +36,8 @@ SELECT * FROM (
         FROM
             "derived"."theq_sdpr_step1" AS "theq_sdpr_poc"
         WHERE
-            ((( "welcome_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',CAST(''2021-11-05T10:59:11.561Z'' AS DATETIME)) ))) AND
-            ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',CAST(''2021-11-05T10:59:11.561Z'' AS DATETIME)) ) ))))) AND
+            ((( "welcome_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND
+            ( "welcome_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND
             (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
         GROUP BY
             "update_flag",
@@ -102,10 +102,9 @@ SELECT * FROM (
         FROM
             "derived"."theq_sdpr_step1" AS "theq_sdpr_poc"
         WHERE
-            "welcome_time" < DATEADD(day, -1, DATE_TRUNC(''day'', CAST(''2021-11-05T10:59:11.561Z'' AS DATETIME)))
-            AND "latest_time" >= DATEADD(day, -1, DATE_TRUNC(''day'', CAST(''2021-11-05T10:59:11.561Z'' AS DATETIME)))
-            AND "latest_time" < DATEADD(day, 1, DATEADD(day, -1, DATE_TRUNC(''day'', CAST(''2021-11-05T10:59:11.561Z'' AS DATETIME))))
-            AND TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''), ''.'', '''') IS NOT NULL
+            ("welcome_time") < ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND 
+            ((( "latest_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "latest_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND 
+            (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
         GROUP BY
             "update_flag",
             "theq_sdpr_poc.date",
