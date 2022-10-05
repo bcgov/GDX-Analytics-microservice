@@ -151,7 +151,7 @@ flags.noauth_local_webserver = True
 Initialize the OAuth2 authorization flow.
 where CLIENT_SECRET is the OAuth Credentials JSON file script argument
        scope is  google APIs authorization web address
-       redirect_uri specifies a loopback protocol 4201 selected as a random open port 
+       redirect_uri specifies a loopback protocol 4202 selected as a random open port 
          -more information on loopback protocol: 
        https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
        prompt retrieves fresh token
