@@ -2,6 +2,16 @@
 
 This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform.
 
+All  three scripts use Google API OAuth flow_from_clientsecrets. 
+This process initializes the OAuth2 authorization flow. 
+The flow is used if Authentication is needed. flow_from_clientsecrets takes the following as arguments:
+    CLIENT_SECRET is the OAuth Credentials JSON file script argument
+    scope is  google APIs authorization web address
+    redirect_uri specifies a loopback protocol 4201 selected as a random open port 
+         -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+    prompt retrieves fresh token
+
 ### Google Search Console API Loader Microservice
 
 The `google_search.py` script automates the loading of Google Search data into S3 (as `.csv`) and Redshift (the `google.googlesearch` schema as defined by `google.googlesearch.sql`) via the Google Search Console API.
