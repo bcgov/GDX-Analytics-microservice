@@ -7,7 +7,8 @@ This process initializes the OAuth2 authorization flow.
 The flow is used if Authentication is needed. flow_from_clientsecrets takes the following as arguments:
     CLIENT_SECRET is the OAuth Credentials JSON file script argument
     scope is  google APIs authorization web address
-    redirect_uri specifies a loopback protocol 4201 selected as a random open port 
+    redirect_uri specifies a loopback protocol. Google's documentation specifies that any open port can be used for this process.
+    There are very few used ports in microservice_ssm and 4200, 4201, and 4202 were chosen as they are not in use. 
          -more information on loopback protocol: 
        https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
     prompt retrieves fresh token
