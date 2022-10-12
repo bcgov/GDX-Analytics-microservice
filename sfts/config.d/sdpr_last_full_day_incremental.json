@@ -6,5 +6,6 @@
   "object_prefix": "sdpr",
   "dml": "sdpr_last_full_day_incremental.sql",
   "header": true,
-  "extension": ".csv"
+  "extension": ".csv",
+  "delimiter": ","
 }
