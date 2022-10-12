@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "doug_test/hourly",
+  "destination": "processed",
+  "object_prefix": "sdpr",
+  "dml": "sdpr_hourly.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ","
+}
