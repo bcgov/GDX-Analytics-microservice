@@ -2,11 +2,11 @@
 
 This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform.
 
-All  three scripts use Google API OAuth flow_from_clientsecrets. 
+All three scripts use Google API OAuth flow_from_clientsecrets. 
 This process initializes the OAuth2 authorization flow. 
 The flow is used if Authentication is needed. flow_from_clientsecrets takes the following as arguments:
     CLIENT_SECRET is the OAuth Credentials JSON file script argument
-    scope is  google APIs authorization web address
+    scope is google APIs authorization web address
     redirect_uri specifies a loopback protocol. Google's documentation specifies that any open port can be used for this process.
     There are very few used ports in microservice_ssm and 4200, 4201, and 4202 were chosen as they are not in use. 
          -more information on loopback protocol: 
@@ -197,7 +197,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
