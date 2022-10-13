@@ -177,7 +177,6 @@ In each script, the `flow_from_clientsecrets` process initializes the OAuth2 aut
   - [`google_search.py`](./google_search.py) on port 4200
   - [`google_mybusiness.py`](./google_mybusiness.py) on port 4201
   - [`google_directions.py`](./google_directions.py) on port 4202       
-- `prompt` retrieves fresh token
 
 
 ## Project Status
