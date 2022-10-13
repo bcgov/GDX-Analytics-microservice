@@ -154,7 +154,6 @@ where CLIENT_SECRET is the OAuth Credentials JSON file script argument
        redirect_uri specifies a loopback protocol 4202 selected as a random open port 
          -more information on loopback protocol: 
        https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
-       prompt retrieves fresh token
 '''
 flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
