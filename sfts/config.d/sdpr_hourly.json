@@ -1,9 +1,9 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "doug_test/hourly",
+  "directory": "theq_sdpr/hourly/Oct_2022_incremental_update",
   "destination": "processed",
-  "object_prefix": "sdpr",
+  "object_prefix": "sdpr_hourly",
   "dml": "sdpr_hourly.sql",
   "header": true,
   "extension": ".csv",
