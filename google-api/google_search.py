@@ -168,6 +168,14 @@ API_VERSION = 'v1'
 DISCOVERY_URI = 'https://searchconsole.googleapis.com/$discovery/rest'
 
 flow_scope = 'https://www.googleapis.com/auth/webmasters.readonly'
+'''
+connect to Google Analytics Business account to pull data 
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+       scope is  google APIs authorization web address
+       redirect_uri specifies a loopback protocol 4200 selected as a random open port 
+       -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+'''
 flow = flow_from_clientsecrets(
     CLIENT_SECRET,
     scope=flow_scope,
