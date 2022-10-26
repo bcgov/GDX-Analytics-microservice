@@ -235,12 +235,12 @@ def report(data):
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nLocations to process: {data["locations"]}')
     print(f'Successful API calls: {data["retrieved"]}')
-    print(f'Number of Items to process: {data["items"]}')
     print(f'Failed API calls: {data["not_retrieved"]}')
+    print(f'Number of files to process: {data["items"]}')
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Objects output to processed/good: {data["good"]}')
-    print(f'Objects output to processed/bad {data["bad"]}\n')
+    print(f'Objects output to processed/bad: {data["bad"]}\n')
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
