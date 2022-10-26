@@ -216,6 +216,27 @@ def is_processed(key):
     logger.info("%s has not been processed.", filename)
     return False
 
+#using this function for testing - will be deleted before final PR
+def print_numbs(message, report):
+    print()
+    loc = report['locations']
+    ret = report['retrieved']
+    noret = report['not_retrieved']
+    l2rs = report['loaded_to_rs']
+    failedrs = report['failed_rs']
+    good = report['good']
+    bad = report['bad']
+    print(message)
+    print('number of locations: ', loc)
+    print('number of retrieved: ', ret)
+    print('loca not retrieved?: ', noret)
+    print('number of loaded2rs: ', l2rs)
+    print('number of failed2rs: ', failedrs)
+    print('number of goooooood: ', good)
+    print('number of baaaaaaad: ', bad)
+    print()
+
+nothing = 0
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
@@ -240,7 +261,7 @@ def report(data):
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Objects output to processed/good: {data["good"]}')
     print(f'Objects output to processed/bad {data["bad"]}\n')
-
+    print(f'number of sites with nothing to report: ', nothing)
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
@@ -269,6 +290,7 @@ def report(data):
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'locations':0,
+    #We need to change this to a list, not a bool
     'no_new_data':False,
     'retrieved':0,
     'not_retrieved':0,
@@ -315,6 +337,7 @@ for loc in config_locationGroups:
         logger.warning('No access to %s: %s. Skipping.',
                        loc['clientShortname'], accountNumber)
         continue
+    print_numbs('got locations', report_stats)
 
 # iterate over ever validated account
 badfiles = 0
@@ -331,6 +354,7 @@ for account in validated_accounts:
         logger.error(
             "aggregate_days on %s is invalid due to size. Skipping.",
             account['clientShortname'])
+        print_numbs('if we are here we have skipped an item because it isnt valid?', report_stats)
         continue
 
     # Set up the S3 path to write the csv buffer to
@@ -344,6 +368,7 @@ for account in validated_accounts:
             ("The file: %s has already been generated "
              "and processed by this script today."), object_key)
         report_stats['no_new_data'] = True
+        print_numbs('if we are here we have hit a no new data error', report_stats)
         continue
 
     goodfile = f"{config_destination}/good/{object_key}"
@@ -422,6 +447,8 @@ for account in validated_accounts:
             stitched_responses['locationDrivingDirectionMetrics'] += \
                 response['locationDrivingDirectionMetrics']
 
+            print_numbs('done loading sites?', report_stats)
+
     # The stiched_responses now contains all location driving direction data
     # as a list of dictionaries keyed to 'locationDrivingDirectionMetrics'.
     # The next block will build a dataframe from this list for CSV ouput to S3
@@ -439,6 +466,7 @@ for account in validated_accounts:
         # The case where no driving directions were queried over this time
         # these records will be omitted, since there is nothing to report
         if 'topDirectionSources' not in location:
+            nothing += 1
             continue
 
         # iterate over the top 10 driving direction requests for this location
@@ -559,6 +587,7 @@ for account in validated_accounts:
                 report_stats['good_rs_list'].append(outfile)
                 report_stats['loaded_to_rs'] += 1
                 report_stats
+            print_numbs('end of loading to RS', report_stats)
 
     # copy the processed file to the outfile destination path
     try:
@@ -579,6 +608,8 @@ for account in validated_accounts:
             report_stats['bad'] += 1
     if outfile == badfile:
         clean_exit(1,'The output file was bad.')
+
+    print_numbs('after processing to S3', report_stats)
 
 report(report_stats)
 clean_exit(0,'Finished without errors.')
