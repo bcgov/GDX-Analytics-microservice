@@ -173,13 +173,13 @@ If you haven't already log into Google.
 You must give your project a name and location. 
 This will open a new page showing your Dashboard.
 
-In the left hand column select the option "APIs  & Services." Then Select "Credentials"
-Select "+ Create Credentials"  in the top options bar. Select "OAuth Client ID"
+In the left hand column select the option "APIs & Services." Then Select "Credentials"
+Select "+ Create Credentials" in the top options bar. Select "OAuth Client ID"
 - If this is the first time you are doing this process you will have to configure your consent screen. 
   - Select "Configure Consent Screen"
   - There are two user types, we use "External"
   1. OAuth consent screen:
-     You will have to set up App information. This will be used to show information within a consent screen. Fill it in with information  on your company, the only necessary information is the App Name, user support email, and developer contact email.
+     You will have to set up App information. This will be used to show information within a consent screen. Fill it in with information on your company, the only necessary information is the App Name, user support email, and developer contact email.
   2. Scopes:
      If these do not appear in the list of scopes provided you will have to go into google API and 'enable' them. 
     - For google_mybusiness.py or google_directions.py add '../auth/business.manage' to the scopes
@@ -188,7 +188,7 @@ Select "+ Create Credentials"  in the top options bar. Select "OAuth Client ID"
     - Next you can add test users - users that can use your app when publishing status is set to testing. 
     - Once you are done adding testing users select "save and continue"
   4. Summary:
-    - You will then be taken to a summary screen showing all the information you have set.  If anything is set incorrectly you can select "EDIT" and redo the options. 
+    - You will then be taken to a summary screen showing all the information you have set. If anything is set incorrectly you can select "EDIT" and redo the options. 
     - If everything is correct select "Black to Dashboard" at the bottom of the screen. 
 - If you have already configured your consent screen you can do the following to create a Client ID:
 
