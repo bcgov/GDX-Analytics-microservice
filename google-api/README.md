@@ -166,9 +166,37 @@ The JSON configuration fields are as described below:
 ### Credentials and Authentication
 All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. 
 
-Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. Once you have created a Google Project at https://console.cloud.google.com/ and associated that project to use the APIs, the JSON files can be downloaded from the [Google APIs Dashboard](https://console.cloud.google.com/apis/credentials).
+Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. Once you have created a Google Project at https://console.cloud.google.com/ and associated that project to use the APIs follow the steps below to genetrate a client ID:
+Navigate to:
+https://console.developers.google.com/projectcreate
+If you haven't already log into Google. 
+You must give your project a name and location. 
+This will open a new page showing your Dashboard.
 
-In addition, credentials data files (eg. `'credentials.dat'`, `'mybusiness.dat'`) are required to query the APIs. The first time you run the scripts, follow the prompts and the files will be generated automatically.
+In the left hand column select the option "APIs  & Services." Then Select "Credentials"
+Select "+ Create Credentials"  in the top options bar. Select "OAuth Client ID"
+- If this is the first time you are doing this process you will have to configure your consent screen. 
+  - Select "Configure Consent Screen"
+  - There are two user types, we use "External"
+  1. OAuth consent screen:
+     You will have to set up App information. This will be used to show information within a consent screen. Fill it in with information  on your company, the only necessary information is the App Name, user support email, and developer contact email.
+  2. Scopes:
+     If these do not appear in the list of scopes provided you will have to go into google API and 'enable' them. 
+    - For google_mybusiness.py or google_directions.py add '../auth/business.manage' to the scopes
+    - For google_search.py add "../auth/webmasters" and "../auth/webmasters.readonly" to the scopes
+  3. Test Users: 
+    - Next you can add test users - users that can use your app when publishing status is set to testing. 
+    - Once you are done adding testing users select "save and continue"
+  4. Summary:
+    - You will then be taken to a summary screen showing all the information you have set.  If anything is set incorrectly you can select "EDIT" and redo the options. 
+    - If everything is correct select "Black to Dashboard" at the bottom of the screen. 
+- If you have already configured your consent screen you can do the following to create a Client ID:
+
+  - Specify what type of application you are creating credentials for. 
+  - Select "Desktop Application" You can change the name of the client ID so that it is recognizable from other IDs you may create.
+  - This will produce a client ID and Client Secret. It is recommended that you download the json file as 'credentials_<<application_name>>.json where <<application_name>> is replaced with the Google Miccroservice you are trying to run. Save this file to your current working directory. 
+  - When you first run the program with this file it will ask you to do an OAuth validation, which will create a dat credential file for authorization. 
+
 
 In each script, the `flow_from_clientsecrets` process initializes the OAuth2 authorization flow. It takes the following arguments: 
 - `CLIENT_SECRET`: the OAuth Credentials JSON file script argument (eg. `'credentials.dat'`)
