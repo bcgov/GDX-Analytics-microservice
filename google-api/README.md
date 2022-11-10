@@ -166,16 +166,16 @@ The JSON configuration fields are as described below:
 ### Credentials and Authentication
 All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. 
 
-Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. Once you have created a Google Project at https://console.cloud.google.com/ and associated that project to use the APIs follow the steps below to genetrate a client ID:
-Navigate to:
-https://console.developers.google.com/projectcreate
-If you haven't already log into Google. 
-You must give your project a name and location. 
-This will open a new page showing your Dashboard.
+Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. Once you have created a Google Project at https://console.cloud.google.com/ and associated that project to use the APIs, follow the steps below to genetrate a client ID:
 
-In the left hand column select the option "APIs & Services." Then Select "Credentials"
-Select "+ Create Credentials" in the top options bar. Select "OAuth Client ID"
-- If this is the first time you are doing this process you will have to configure your consent screen. 
+1. Navigate to https://console.developers.google.com/projectcreate if you haven't already log into Google. 
+2. Give your project a name and location, and click 'Create'.
+  This will open a new page showing your project's Dashboard.
+
+3. In the left hand column, select the option "APIs & Services."
+4. Select "Credentials"
+5. Select "+ Create Credentials" in the top options bar. Select "OAuth Client ID"
+5.a. If this is the first time you are doing this process you will have to configure your consent screen. 
   - Select "Configure Consent Screen"
   - There are two user types, we use "External"
   1. OAuth consent screen:
