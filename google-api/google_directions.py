@@ -147,13 +147,17 @@ query_date = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
-
-# Initialize the OAuth2 authorization flow.
-# The string urn:ietf:wg:oauth:2.0:oob is for non-web-based applications.
-# The prompt='consent' Retrieves the refresh token.
+'''
+Initialize the OAuth2 authorization flow.
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+       scope is  google APIs authorization web address
+       redirect_uri specifies a loopback protocol 4202 selected as a random open port 
+         -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+'''
 flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
-                               redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+                               redirect_uri='http://127.0.0.1:4202',
                                prompt='consent')
 
 

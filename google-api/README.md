@@ -1,6 +1,11 @@
 # Google API microservices
 
-This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform.
+This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform. There are three microservices: 
+- [Google Search Console API](#google-search-console-api-loader-microservice)
+- [Google My Business API](#google-my-business-api-loader-microservice)
+- [Google My Business Driving Directions API](#google-my-business-driving-directions-api-loader-microservice)
+
+Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
 
 ### Google Search Console API Loader Microservice
 
@@ -29,14 +34,6 @@ When run, the script collects property data in batches of 30 days at a time befo
 Log files are appended at the debug level into file called `google_search.log` under a `logs/` folder which must be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
 
 #### Configuration
-
-##### Credentials
-
-'credentials.dat' and 'credentials.json' are required to query data through the API.
-
-'credentials.dat' will be generated the first time this script runs after authenticating (you will be instructed on how to authenticate when this runs).
-
-'credentials.json' must be generated according to the instructions at https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/authorizing#APIKey. You must first have a project created at https://console.cloud.google.com/ and associate that project to use the "Google Search Console API".
 
 ##### Environment Variables
 
@@ -117,7 +114,7 @@ The JSON configuration is required, following a `-c` or `--conf` flag when runni
   - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 2 days ago)
 
 
-### Google My Business Driving Directions Loader Microservice
+### Google My Business Driving Directions API Loader Microservice
 
 #### Script
 
@@ -127,7 +124,7 @@ Log files are appended at the debug level into file called `google_directions.lo
 
 #### Table
 
-The `google.gmb_directions` schema is defined by the [`google.gmb_directions.sql`](./`google.gmb_directions.sql) ddl  file.
+The `google.gmb_directions` schema is defined by the google_directions.py ddl  file.
 
 #### Configuration
 
@@ -166,6 +163,22 @@ The JSON configuration fields are as described below:
 | `clientShortname` | string | An internal shortname for a client's location group. An environment variable must be set as: `<clientShortname>_accountid=<accountid>` in order to map the Location Group Account ID to this client shortname and pull the API data. The `clientShortname` is also used to set the object path on S3 as: `S3://<bucket>/client/google_mybusiness_<clientShortname>` |
 | `aggregate_days[]` | string | A 1 to 3 item list that can include only unique values of `"SEVEN"`, `"THIRTY"` or `"NINETY"` |
 
+### Credentials and Authentication
+All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. 
+
+Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. Once you have created a Google Project at https://console.cloud.google.com/ and associated that project to use the APIs, the JSON files can be downloaded from the [Google APIs Dashboard](https://console.cloud.google.com/apis/credentials).
+
+In addition, credentials data files (eg. `'credentials.dat'`, `'mybusiness.dat'`) are required to query the APIs. The first time you run the scripts, follow the prompts and the files will be generated automatically.
+
+In each script, the `flow_from_clientsecrets` process initializes the OAuth2 authorization flow. It takes the following arguments: 
+- `CLIENT_SECRET`: the OAuth Credentials JSON file script argument (eg. `'credentials.dat'`)
+- `scope` is Google APIs authorization web address (eg. `'https://www.googleapis.com/auth/webmasters.readonly'`)
+- `redirect_uri` specifies a loopback address. As per [Google's documentation](https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration), this can be any open port. The three scipts have been coded to use:
+  - [`google_search.py`](./google_search.py) on port 4200
+  - [`google_mybusiness.py`](./google_mybusiness.py) on port 4201
+  - [`google_directions.py`](./google_directions.py) on port 4202       
+
+
 ## Project Status
 
 As clients provide GDX Analytics with access to their Google Search of My Business profiles, they will be added to the configuration file to be handled by the microservice.
@@ -186,7 +199,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
