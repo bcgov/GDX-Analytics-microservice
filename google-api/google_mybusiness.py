@@ -236,7 +236,8 @@ def report(data):
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Files loads to S3 /good: {data["good"]}')
-    print(f'Files loads to S3 /bad: {data["bad"]}\n')
+    print(f'Files loads to S3 /bad: {data["bad"]}')
+    print(f'Sites failed due to hitting an error: {len(data["failed_process_list"])}\n')
 
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
@@ -260,7 +261,13 @@ def report(data):
     # Print unsuccessful API calls 
     if  data['not_retrieved_list']:
         print(f'List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['not_retrieved_list']), 1:
+        for i, site in enumerate(data['not_retrieved_list'], 1):
+            print(f'\n{i}: {site}')
+
+    #print any  failed sites
+    if data['failed_process_list']:
+        print(f'List of sites that were skipped due to hitting an error:')
+        for i, site in enumerate(data['failed_process_list'], 1):
             print(f'\n{i}: {site}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
@@ -281,7 +288,9 @@ report_stats = {
     'good_rs_list':[],
     'failed_rs_list':[],
     'good_list':[],  # Made it all the way through
-    'bad_list':[]
+    'bad_list':[],
+    #this will be used to capture any and all sites that are skipped over in the loop 
+    'failed_process_list':[]
 }
 
 # Location Check
@@ -448,6 +457,7 @@ for account in validated_accounts:
         except KeyError:
             logger.exception(
                     'Error. Could not find location %s', loc['title'])
+            report_stats['failed_process_list'].append(location_name)
             continue
 
         for metric in metrics:
@@ -548,7 +558,7 @@ for account in validated_accounts:
                     outfile = goodfile
                     report_stats['good_rs_list'].append(outfile)
                     report_stats['loaded_to_rs'] += 1
-                    report_stats
+                    report_stats['processed'] += 1
                     
         # copy the object to the S3 outfile (processed/good/ or processed/bad/)
         try:

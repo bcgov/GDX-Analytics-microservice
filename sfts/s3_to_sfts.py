@@ -127,7 +127,7 @@ def report(data):
     '''reports out cumulative script events'''
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}')
-    if data['objects_failed_to_sfts'] or data['objects_not_processed']:
+    if not data['objects_to_sfts'] or data['objects_not_processed']:
         print(f'*** ATTN: A failure occured ***')
     # Get script end time
     yvr_dt_end = (yvr_tz
@@ -141,12 +141,11 @@ def report(data):
     print(f'\nItems to process: {data["objects"]}')
     print(f'Objects successfully processed to s3: {data["objects_processed"]}')
     print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
-    print(f'Objects successfully processed to sfts: {data["objects_to_sfts"]}')
-    print(f'Objects unsuccessfully processed to sfts: {data["objects_failed_to_sfts"]}\n')
+    print(f'Objects successfully processed to sfts: {len(data["s3_good_list"])}')
 
     # Print all objects loaded into s3/good
     if data['s3_good_list']:
-        print(f'Objects loaded to S3 /good:')  
+        print(f'\nObjects loaded to S3 /good:')  
         for i, item in enumerate(data['s3_good_list'], 1):
             print(f"\n{i}: {item}")
 
@@ -162,8 +161,7 @@ report_stats = {
     'objects':0,
     'objects_processed':0,
     'objects_not_processed':0,
-    'objects_to_sfts':0,
-    'objects_failed_to_sfts':0,
+    'objects_to_sfts':False,
     'objects_list':[],
     's3_good_list':[], 
     's3_bad_list':[],
@@ -239,9 +237,8 @@ try:
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
-    report_stats['objects_failed_to_sfts'] += 1
 else:
-    report_stats['objects_to_sfts'] += 1
+    report_stats['objects_to_sfts'] = True
 
 # copy the processed files to their outfile destination path
 for obj in objects_to_process:

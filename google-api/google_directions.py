@@ -237,14 +237,14 @@ def report(data):
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
-    print(f'\nItems to process: {data["locations"]}')
+    print(f'\nLocations to process: {data["locations"]}')
     print(f'Successful API calls: {data["retrieved"]}')
     print(f'Failed API calls: {data["not_retrieved"]}')
+    print(f'Number of files to process: {data["items"]}')
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Objects output to processed/good: {data["good"]}')
-    print(f'Objects output to processed/bad {data["bad"]}\n')
-
+    print(f'Objects output to processed/bad: {data["bad"]}\n')
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
@@ -273,6 +273,7 @@ def report(data):
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'locations':0,
+    'items':0,
     'no_new_data':False,
     'retrieved':0,
     'not_retrieved':0,
@@ -322,6 +323,7 @@ for loc in config_locationGroups:
 
 # iterate over ever validated account
 badfiles = 0
+report_stats["items"]  = len(validated_accounts)
 for account in validated_accounts:
     # check the aggregate_days validity
     if 1 <= len(account["aggregate_days"]) <= 3:
@@ -583,6 +585,7 @@ for account in validated_accounts:
             report_stats['bad'] += 1
     if outfile == badfile:
         clean_exit(1,'The output file was bad.')
+
 
 report(report_stats)
 clean_exit(0,'Finished without errors.')
