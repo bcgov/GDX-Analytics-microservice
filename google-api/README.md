@@ -190,9 +190,8 @@ Go to your Google Project at https://console.cloud.google.com/. Or, create a new
         2. Click ADD OR REMOVE SCOPES
         3. If these do not appear in the list of scopes provided you will have to go into google API and 'enable' them.
             1. Go to APIs and services > Enabled APIs and services > ENABLE APIS AND SERVICES
-            2. Search for "My Business Account Management API", select the and select ENABLE
-            3. Search for google_directions, select the and select ENABLE
-            4. Search for google_search, select the and select ENABLE
+            2. Search for "My Business Account Management API", select it and select ENABLE
+            3. Search for "Google Search Console API", select it and select ENABLE
         4. Back in your project
             1. Add '../auth/business.manage' for these scripts: google_mybusiness.py or google_directions.py
             2. Add "../auth/webmasters" and "../auth/webmasters.readonly" to the scopes for this script: google_search.py 
