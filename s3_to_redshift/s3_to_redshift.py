@@ -289,7 +289,7 @@ for object_summary in objects_to_process:
 
     # Create an object to hold the data while parsing
     csv_string = ''
-
+    
     # The file is an empty upload. Key to badfile and stop processing further.
     if (obj['ContentLength'] == 0):
         logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
@@ -409,6 +409,11 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    if column_count != len(df.columns):
+        print("column mis-match")
+        print('file num columns: ', len(df.columns))
+        print('config num columns:  ', column_count)
+
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
     
@@ -434,6 +439,8 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
+
+    print('number of columns: ', len(df.columns))
         
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
