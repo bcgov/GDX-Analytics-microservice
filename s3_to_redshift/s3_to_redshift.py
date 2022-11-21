@@ -409,6 +409,8 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    print('file num cols:  ', len(df.columns))
+    print('conf num cols:  ', column_count)
     if column_count != len(df.columns):
         print("column mis-match")
         print('file num columns: ', len(df.columns))
@@ -440,8 +442,6 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
-    print('number of columns: ', len(df.columns))
-        
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
