@@ -166,53 +166,56 @@ The JSON configuration fields are as described below:
 ### Credentials and Authentication
 All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. 
 
-Go to your Google Project at https://console.cloud.google.com/. Or, create a new project with these steps:
+Go to your Google Console at https://console.cloud.google.com/. 
 
-1. Navigate to https://console.developers.google.com/projectcreate
-2. Give your project a name and location, and click 'Create'.
-  This will open a new page showing your project's Dashboard.
+If you do not have a project, create a new project with these steps:
 
-3. In the left-hand column, select the option "APIs & Services" and then "Credentials".
-  Note the "Remember to configure the OAuth consent screen with information about your application."
+- Navigate to https://console.developers.google.com/projectcreate
+- Give your project a name and location, and select 'CREATE'. This will open a new page showing your Console with your new project in a Project info info-box.
 
-4. Follow the steps below to configure the consent screen and other project parameters. 
-    1. Click the CONFIGURE CONSENT SCREEN button on the right to activate the set-up wizard.
+Follow these steps to setup credentials and authentication:
+
+1. In the left-hand column, select the option "APIs & Services" and then "Credentials".
+  You should see a "Remember to configure the OAuth consent screen with information about your application" alert.
+    - Note! If you ever navigate away from the wizard described in the steps below, click on the hamburger/Navigation manu beside the Google Cloud and use the Recent tool to return to your previous location.
+
+1. Select the CONFIGURE CONSENT SCREEN button on the right to activate the set-up wizard. 
     1. OAuth consent screen - The information you enter here will be shown on a consent screen to a user. The only  information necessary is the App Name, user support email, and developer contact email.
-        1. Select "CONFIGURE CONSENT SCREEN"
-        2. Select "External" and "CREATE".
+        1. Select "External" and "CREATE".
         3. (Required) Add an App name
         4. (Required) Add a User support email
         5. (Required) Add Developer contact information
-        1. (Optional) Any other fields
         6. Select "SAVE AND CONTINUE"
-    2. Scopes - The set-up wizard will go to Scopes next.
-        1. Review Your non-sensitive scopes, Your sensitive scopes, and Your restricted scopes. There will be no scopes listed.
-        2. Click ADD OR REMOVE SCOPES
-        3. If these do not appear in the list of scopes provided you will have to go into google API and 'enable' them.
-            1. Go to APIs and services > Enabled APIs and services > ENABLE APIS AND SERVICES
-            2. Search for "My Business Account Management API", select it and select ENABLE
-            3. Search for "Google Search Console API", select it and select ENABLE
-        4. Back in your project
-            1. Add '../auth/business.manage' for these scripts: google_mybusiness.py or google_directions.py
-            2. Add "../auth/webmasters" and "../auth/webmasters.readonly" to the scopes for this script: google_search.py 
+    2. Scopes - The set-up wizard will go to Scopes next. Scopes express the permissions that you request users to authorise for your app and allow your project to access specific types of private user data from their Google Account. You will add 3 scopes linked to 2 APIs in this step.
+        1. Before adding scopes, make sure the 2 APIs are enabled:
+             1. Right-click on "Enabled APIs and services", and open in a new tab.
+             2. In the "Search for resources, docs, products and more" enter "My Business Account Management API" and select Search. Select and ENABLE.
+             3. Now search for "Google Search Console API". Select and ENABLE.
+             4. You can close this tab.
+        2. On your wizard tab, in the Scopes section, select ADD OR REMOVE SCOPES and a 'Update elected scopes' dialogue will open on the right. 
+        3. Search and enable scopes using these steps:
+           1. Search for "auth/business.manage". Select with the check-box. Select UPDATE at the bottom.
+           2. Then search for "/auth/webmasters". Select with the check-box. Select UPDATE at the bottom.
+           3. Then search for "auth/webmasters.readonly". Select with the check-box. Select UPDATE at the bottom.
+        4. Select SAVE AND CONTINUE at the bottom of Scopes.
     3. Test Users - Next in the wizard, you will add test users, users that can use your app when publishing status is set to testing.
-        1. Add a test user. They must have a valide Google email address. 
+        1. Add a test user by entering an email address. Email addresses must be associated with an active Google Account, Google Workspace account or Cloud Identity account.
         2. Select "SAVE AND CONTINUE"
     4. Summary - You will then be taken to a summary screen showing all the parameters you have set. 
     - If anything is set incorrectly you can select "EDIT" and redo the options.
     - If everything is correct select "BACK TO DASHBOARD" at the bottom of the screen.
   
-5. Follow the steps below to genetrate a client ID:
+2. Follow the steps below to generate a client ID:
     1. In the Credentials tab on the left-side, select "+ CREATE CREDENTIALS" in the top options bar, and choose "OAuth client ID" from the drop down.
-    1. Specify what type of application you are creating credentials for.
-    2. Select Application type = "Desktop app" 
-    3. Change the name of the client ID so that it is recognizable from other IDs you may create.
-    4. Select "CREATE"
+    2. Specify what type of application you are creating credentials for.
+    3. Select Application type = "Desktop app" 
+    4. Change the name of the client ID so that it is recognizable from other IDs you may create.
+    5. Select "CREATE"
   - This will produce a Client ID and Client Secret. It is recommended that you download the json file as 'credentials_<<application_name>>.json where <<application_name>> is replaced with the Google Miccroservice you are trying to run. Save this file to your current working directory.
   - When you first run the program with this file it will ask you to do an OAuth validation, which will create a dat credential file for authorization.
   - Note that OAuth access is restricted to the test users listed on your OAuth consent screen
  
-6. Set up the authentication in each script
+1. Set up the authentication in each script
 - In each script, the `flow_from_clientsecrets` process initializes the OAuth2 authorization flow. It takes the following arguments:
 - `CLIENT_SECRET`: the OAuth Credentials JSON file script argument (eg. `'credentials.dat'`)
 - `scope` is Google APIs authorization web address (eg. `'https://www.googleapis.com/auth/webmasters.readonly'`)
