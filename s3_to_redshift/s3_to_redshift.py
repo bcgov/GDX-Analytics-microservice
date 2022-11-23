@@ -409,13 +409,6 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
-    print('file num cols:  ', len(df.columns))
-    print('conf num cols:  ', column_count)
-    if column_count != len(df.columns):
-        print("column mis-match")
-        print('file num columns: ', len(df.columns))
-        print('config num columns:  ', column_count)
-
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
     
@@ -445,7 +438,16 @@ for object_summary in objects_to_process:
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try:
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary) 
+                report(report_stats)
+                clean_exit(1, f'File {object_summary.key} not configured correctly, '
+                          'no further processing.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
