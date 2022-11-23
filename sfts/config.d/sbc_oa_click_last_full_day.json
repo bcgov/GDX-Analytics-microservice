@@ -6,5 +6,6 @@
   "object_prefix": "sbc_online_appointments_click",
   "dml": "sbc_oa_click_last_full_day.sql",
   "header": true,
+  "sfts_path": "CITZ_AP_GDX/Shared/microservice/doug_test",
   "extension": ".csv"
 }
