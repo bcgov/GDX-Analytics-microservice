@@ -194,9 +194,9 @@ Follow these steps to setup credentials and authentication:
              4. You can close this tab.
         2. On your wizard tab, in the Scopes section, select ADD OR REMOVE SCOPES and an 'Update elected scopes' dialogue will open on the right. 
         3. Search and enable scopes using these steps:
-           1. Search for "auth/business.manage". Select with the check-box. Select UPDATE at the bottom.
-           2. Then search for "/auth/webmasters". Select with the check-box. Select UPDATE at the bottom.
-           3. Then search for "auth/webmasters.readonly". Select with the check-box. Select UPDATE at the bottom.
+           1. Search for "auth/business.manage". Select with the checkbox. Select UPDATE at the bottom.
+           2. Then search for "/auth/webmasters". Select with the checkbox. Select UPDATE at the bottom.
+           3. Then search for "auth/webmasters.readonly". Select with the checkbox. Select UPDATE at the bottom.
         4. Select SAVE AND CONTINUE at the bottom of Scopes.
     3. Test Users - Next in the wizard, you will add test users, users that can use your app when publishing status is set to testing.
         1. Add a test user by entering an email address. Email addresses must be associated with an active Google Account, Google Workspace account or Cloud Identity account.
