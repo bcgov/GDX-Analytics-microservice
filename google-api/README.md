@@ -177,10 +177,10 @@ Follow these steps to setup credentials and authentication:
 
 1. In the left-hand column, select the option "APIs & Services" and then "Credentials".
   You should see a "Remember to configure the OAuth consent screen with information about your application" alert.
-    - Note! If you ever navigate away from the wizard described in the steps below, click on the hamburger/Navigation manu beside the Google Cloud and use the Recent tool to return to your previous location.
+    - Note! If you ever navigate away from the wizard described in the steps below, click on the hamburger/Navigation menu beside the Google Cloud and use the Recent tool to return to your previous location.
 
 1. Select the CONFIGURE CONSENT SCREEN button on the right to activate the set-up wizard. 
-    1. OAuth consent screen - The information you enter here will be shown on a consent screen to a user. The only  information necessary is the App Name, user support email, and developer contact email.
+    1. OAuth consent screen - The information you enter here will be shown on a consent screen to a user. The only information necessary is the App Name, user support email, and developer contact email.
         1. Select "External" and "CREATE".
         3. (Required) Add an App name
         4. (Required) Add a User support email
@@ -192,7 +192,7 @@ Follow these steps to setup credentials and authentication:
              2. In the "Search for resources, docs, products and more" enter "My Business Account Management API" and select Search. Select and ENABLE.
              3. Now search for "Google Search Console API". Select and ENABLE.
              4. You can close this tab.
-        2. On your wizard tab, in the Scopes section, select ADD OR REMOVE SCOPES and a 'Update elected scopes' dialogue will open on the right. 
+        2. On your wizard tab, in the Scopes section, select ADD OR REMOVE SCOPES and an 'Update elected scopes' dialogue will open on the right. 
         3. Search and enable scopes using these steps:
            1. Search for "auth/business.manage". Select with the check-box. Select UPDATE at the bottom.
            2. Then search for "/auth/webmasters". Select with the check-box. Select UPDATE at the bottom.
