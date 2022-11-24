@@ -26,9 +26,10 @@
 #               : Create a new project at
 #               : https://console.developers.google.com/projectcreate
 #               :
-#               : Click 'Create Credentials' selecting:
-#               :   Click on the small text to select that you want to create
-#               :   a 'client id'. You will have to configure a consent screen.
+#               : Under 'APIs & Services' Click 'Credentials':
+#               :   Click on 'Create Credentials' at the top of the screen
+#               :   to select that you want to create an 'OAuth client id'. 
+#               :   You will have to configure a consent screen.
 #               :   You must provide an Application name, and
 #               :   under 'Scopes for Google APIs' add the scopes:
 #               :   '../auth/business.manage'.
