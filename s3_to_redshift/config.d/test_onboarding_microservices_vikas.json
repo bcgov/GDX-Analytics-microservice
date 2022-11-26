@@ -1,0 +1,53 @@
+
+{
+
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+
+  "source": "client",
+
+  "destination": "processed",
+
+  "directory": “vikas_test”,
+
+  "doc": "limesurvey-analytics.*",
+
+  "dbtable": "test.onboarding_microservices_vikas",
+
+  "column_count": 13,
+
+  "columns": [
+
+    "date",
+
+    "sid",
+
+    "surveyls_title",
+
+    "surveyls_language",
+
+    "active",
+
+    "expires",
+
+    "startdate",
+
+    "datecreated",
+
+    "survey_total",
+
+    "survey_completed",
+
+    "survey_uncompleted",
+
+    "survey_first_complete_date",
+
+    "survey_last_complete_date"
+
+  ],
+
+  "delim": ",",
+
+  "truncate": false
+
+}
+
