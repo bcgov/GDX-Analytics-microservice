@@ -116,6 +116,21 @@ def report(data):
     return
   print(f'Report: {__file__}\n')
   print(f'Config: {configfile}\n')
+
+  # START CHANGES - 2022/11/28 BEO GDXDSD-5398
+  # print success result 
+  suc_unsuc_message=('This microservice ran: ')
+
+  # Determine if the run was successfull / unsuccessful / empty and append to message
+  if data['bad_list']:
+      suc_unsuc_message+=( 'unsuccessful\n')
+  elif data['good_list']:
+      suc_unsuc_message+=( 'successful\n')
+  else:
+      suc_unsuc_message+=( 'empty\n')
+  print(f"{suc_unsuc_message}")
+  # END changes - 2022/11/28 BEO GDXDSD-5398
+
   # get times from system and convert to Americas/Vancouver for printing
   yvr_dt_end = (yvr_tz
                 .normalize(datetime.datetime.now(local_tz)
