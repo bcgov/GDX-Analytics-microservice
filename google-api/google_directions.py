@@ -265,7 +265,6 @@ def execute_query(config_dbtable, config_bucket, conn_string, account, object_ke
                 outfile = badfile
                 report_stats['failed_rs_list'].append(outfile)
                 report_stats['failed_rs'] += 1
-                badfiles += 1
             else:
                 logger.info(
                     ("Loaded %s driving directions successfully. "
