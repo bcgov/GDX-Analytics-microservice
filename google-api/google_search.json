@@ -2,8 +2,8 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
   "destination": "processed",
-  "directory": "google_gdx",
-  "dbtable": "google.googlesearch",
+  "directory": "veenu_test",
+  "dbtable": "test.googlesearch_gdxdsd5444",
   "dml": "cmslite.google_pdt.sql",
   "sites": [
     {
@@ -121,6 +121,15 @@
     {
       "name": "https://www.broadwaysubway.ca/",
       "start_date_default": "2022-08-29"
+    },
+    {
+      "name": "https://cleanbc.gov.bc.ca/",
+      "start_date_default": "2022-11-25"
+    },
+    {
+      "name": "https://goelectricbc.gov.bc.ca/",
+      "start_date_default": "2021-11-25"
     }
+
   ]
 }

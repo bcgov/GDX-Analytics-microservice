@@ -563,7 +563,7 @@ yvr_dt_pdt_start = (yvr_tz
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
 
-# This query will INSERT INTO cmslite.google_pdt
+""" # This query will INSERT INTO cmslite.google_pdt
 # cmslite.google_pdt, a derived table built from google.googlesearch
 # Get sql for pdt build form dml folder
 query = open('dml/{}'.format(dml_file), 'r').read()
@@ -583,3 +583,4 @@ with psycopg2.connect(conn_string) as conn:
             logger.info("Google Search PDT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
+ """
