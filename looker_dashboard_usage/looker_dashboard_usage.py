@@ -147,7 +147,7 @@ def report(data):
 
   if data['good_list']:
     print(
-      "List of objects successfully fully ingested from S3, processed, "
+      "\nList of objects successfully fully ingested from S3, processed, "
       "loaded to S3 ('good'), and copied to Redshift:")
     for i, item in enumerate(data['good_list'], 1):
       print(f"{i}. {source}/{directory}/{item}.{prev_date}")
