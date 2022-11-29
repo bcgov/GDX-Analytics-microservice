@@ -149,13 +149,12 @@ def report(data):
     print(
       "List of objects successfully fully ingested from S3, processed, "
       "loaded to S3 ('good'), and copied to Redshift:")
-    for i in data['good_list']:
-      print(f"{i}")
+    for i, item in enumerate(data['good_list'], 1):
+      print(f"{i}. {source}/{directory}/{item}.{prev_date}")
   if data['bad_list']:
     print('\nList of objects that failed to process:')
-    for i in data['bad_list']:
-      print(f"{i}")
-
+    for i, item in enumerate(data['bad_list'], 1):
+      print(f"{i}. {source}/{directory}/{item}.{prev_date}")
 
 # Mysql Database connection string
 def get_looker_db_connection():
