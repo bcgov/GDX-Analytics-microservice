@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "doug_test",
+  "destination": "processed",
+  "object_prefix": "test",
+  "dml": "test.sql",
+  "header": true,
+  "sfts_path": "CITZ_AP_GDX/Shared/Secured/microservice/doug_test",
+  "extension": ".csv"
+}
