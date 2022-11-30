@@ -58,24 +58,25 @@ import os
 import sys
 import json
 import boto3
-from botocore.exceptions import ClientError
 import logging
 import time
 import datetime
-from tzlocal import get_localzone
-from pytz import timezone
 import psycopg2
 import argparse
 import httplib2
-import pandas as pd
-from pandas import json_normalize
 import googleapiclient.errors
-from io import StringIO
-from googleapiclient.discovery import build
-from oauth2client import tools
-from oauth2client.file import Storage
-from oauth2client.client import flow_from_clientsecrets
+import pandas as pd
 import lib.logs as log
+from io import StringIO
+from pytz import timezone
+from oauth2client import tools
+from tzlocal import get_localzone
+from pandas import json_normalize
+from oauth2client.file import Storage
+from googleapiclient.discovery import build
+from botocore.exceptions import ClientError
+from oauth2client.client import flow_from_clientsecrets
+
 
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
@@ -94,16 +95,24 @@ yvr_dt_start = (yvr_tz
     .normalize(datetime.datetime.now(local_tz)
     .astimezone(yvr_tz)))
 
-# Ctrl+C
+
+"""Used to handle a forced exit"""
 def signal_handler(signal, frame):
     logger.info('Ctrl+C pressed!')
     sys.exit(0)
 
+
+"""Used for exiting code with a message and code"""
 def clean_exit(code, message):
     """Exits with a logger message and code"""
     logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)  
 
+
+"""Creates and returns a string that 
+can establish a connection to Redshift
+
+"""
 def redshift_connection():
     # set up the Redshift connection
     dbname = 'snowplow'
@@ -116,15 +125,16 @@ def redshift_connection():
 
     return conn_string
 
+
+""" Initialize the OAuth2 authorization flow. 
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+    scope is  google APIs authorization web address
+    redirect_uri specifies a loopback protocol 4202 selected as a random open port 
+       -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+returns valid credentials
+"""
 def google_auth(CLIENT_SECRET, AUTHORIZATION, flags):
-    '''
-    Initialize the OAuth2 authorization flow.
-    where CLIENT_SECRET is the OAuth Credentials JSON file script argument
-        scope is  google APIs authorization web address
-        redirect_uri specifies a loopback protocol 4202 selected as a random open port 
-            -more information on loopback protocol: 
-        https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
-    '''
     flow_scope = 'https://www.googleapis.com/auth/business.manage'
     flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
                                 redirect_uri='http://127.0.0.1:4202',
@@ -148,7 +158,7 @@ def google_auth(CLIENT_SECRET, AUTHORIZATION, flags):
 
     return credentials
 
-# Check to see if the file has been processed already
+""" Check to see if the file has been processed already"""
 def is_processed(key, config_destination, config_bucket, client):
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
     goodfile = config_destination + "/good/" + key
@@ -170,6 +180,10 @@ def is_processed(key, config_destination, config_bucket, client):
     logger.info("%s has not been processed.", filename)
     return False
 
+
+"""access each location listed in the json config file
+and try to add information for each to validated_accounts
+"""
 def get_locations(accounts, config_locationGroups, validated_accounts):
     for loc in config_locationGroups:
         # access the environment variable that sets the Account ID for this
@@ -190,8 +204,8 @@ def get_locations(accounts, config_locationGroups, validated_accounts):
                         loc['clientShortname'], accountNumber)
             continue
 
+"""check the aggregate_days validity"""
 def check_days(account):
-    # check the aggregate_days validity
     return_val = True
     if 1 <= len(account["aggregate_days"]) <= 3:
         for i in account["aggregate_days"]:
@@ -207,8 +221,9 @@ def check_days(account):
         return_val = False
     return return_val
 
+
+"""Posts the API request"""
 def post_api(gmbv49so, bodyvar, name, report_stats, account):
-    # Posts the API request
     try:
         response = \
             gmbv49so.accounts().locations().\
@@ -225,6 +240,10 @@ def post_api(gmbv49so, bodyvar, name, report_stats, account):
     report_stats['retrieved'] += 1
     return response
 
+
+"""Create a query and execute it in Redshift
+Return the location that the file is placed in S3
+"""
 def execute_query(config_dbtable, config_bucket, conn_string, account, object_key, badfile, goodfile, report_stats):
     logquery = (
             f"COPY {config_dbtable} ("
@@ -263,6 +282,7 @@ def execute_query(config_dbtable, config_bucket, conn_string, account, object_ke
                     "on Object key: %s"),
                     account['clientShortname'],object_key.split('/')[-1])
                 outfile = badfile
+                print('outfile in except: ', outfile)
                 report_stats['failed_rs_list'].append(outfile)
                 report_stats['failed_rs'] += 1
             else:
@@ -271,12 +291,14 @@ def execute_query(config_dbtable, config_bucket, conn_string, account, object_ke
                     "Object key %s."),
                     account['clientShortname'], object_key.split('/')[-1])
                 outfile = goodfile
+                print('outfile in else: ', outfile)
                 report_stats['good_rs_list'].append(outfile)
                 report_stats['loaded_to_rs'] += 1
-                report_stats
+    return outfile
 
+
+""" Copy the processed file to the outfile destination path"""
 def copy_file(client, object_summary, outfile, goodfile, report_stats, badfile):
-    # copy the processed file to the outfile destination path
     try:
         client.copy_object(
             Bucket="sp-ca-bc-gov-131565110619-12-microservices",
@@ -296,9 +318,11 @@ def copy_file(client, object_summary, outfile, goodfile, report_stats, badfile):
     if outfile == badfile:
         clean_exit(1,'The output file was bad.')
 
+
+""" iterate over the top 10 driving direction requests for this
+location. The order of these is desending by number of requests
+"""
 def iterate_top_ten(location, query_date, account, label_lookup, location_region_rows):
-    # iterate over the top 10 driving direction requests for this location
-    # the order of these is desending by number of requests
     source = location['topDirectionSources'][0]
     regions = source['regionCounts']
     
@@ -323,8 +347,11 @@ def iterate_top_ten(location, query_date, account, label_lookup, location_region
             }
         location_region_rows.append(row)
 
+
+"""Write csv to s3
+Returns information on the file so that it can be copied to s3
+"""
 def write_to_s3(resource, config_bucket, object_key, csv_stream, outfile):
-    # write csv to S3
     resource.Bucket(config_bucket).put_object(
         Key=object_key,
         Body=csv_stream.getvalue())
@@ -334,9 +361,12 @@ def write_to_s3(resource, config_bucket, object_key, csv_stream, outfile):
                 object_summary.last_modified, object_summary.size)
     return object_summary
 
-# Will run at end of script to print out accumulated report_stats
+
+
+""" Will run at end of script to print out accumulated report_stats
+reports out the data from the main program loop
+"""
 def report(data):
-    '''reports out the data from the main program loop'''
     if data['no_new_data'] == True:
         logger.info("No API response contained new data")
         return
@@ -395,6 +425,9 @@ def main():
                         action='store_true')
     flags = parser.parse_args()
 
+    global CLIENT_SECRET
+    global AUTHORIZATION
+    global CONFIG
     CLIENT_SECRET = flags.cred
     AUTHORIZATION = flags.auth
     CONFIG = flags.conf
@@ -435,8 +468,10 @@ def main():
 
     # My Business API v4.9 provides: Accounts Locations reportInsights
     DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-    gmbv49so = build('mybusiness','v4',http=http,
-                    discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
+    gmbv49so = build(
+                 'mybusiness','v4',http=http,
+                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb
+                 )
 
     # set up the S3 resource
     client = boto3.client('s3')
@@ -469,17 +504,16 @@ def main():
     # to the authencitad account being used to access the MyBusiness API, and
     # append those accounts information into a 'validated_locations' list.
     validated_accounts = []
+    
     # Get the list of accounts that the Google account being used to access
     # the My Business API has rights to read location insights from
     # (ignoring the first one, since it is the 'self' reference account).
     accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
-
     get_locations(accounts, config_locationGroups, validated_accounts)
 
     # iterate over ever validated account
     report_stats["items"]  = len(validated_accounts)
     for account in validated_accounts:
-        
         if not check_days(account):
             continue
 
@@ -505,7 +539,11 @@ def main():
         name = account_uri  # done for readability
         locations = (
                     gmbBIso.accounts().locations().list(
-                parent=name,pageSize=100,readMask='name,title,storefrontAddress').execute())
+                       parent=name,
+                       pageSize=100,
+                       readMask='name,title,storefrontAddress'
+                       ).execute()
+                    )
 
         # Google's MyBusiness API supports querying for 10 locations at a time, so
         # here we batch locations into a list-of-lists of size batch_size (max=10).
@@ -537,7 +575,9 @@ def main():
         stitched_responses = {'locationDrivingDirectionMetrics': []}
         for key, batch in enumerate(batched_location_names):
             logger.info("Begin processing on locations batch %s of %s",
-                        str(key + 1), len(batched_location_names))
+                        str(key + 1), 
+                        len(batched_location_names)
+                        )
             for days in account['aggregate_days']:
                 logger.info("Begin processing on %s day aggregate", days)
                 bodyvar = {
@@ -610,7 +650,7 @@ def main():
 
         object_summary = write_to_s3(resource, config_bucket, object_key, csv_stream, outfile)
 
-        execute_query(config_dbtable, config_bucket, conn_string, account, object_key, badfile, goodfile, report_stats)
+        outfile = execute_query(config_dbtable, config_bucket, conn_string, account, object_key, badfile, goodfile, report_stats)
 
         copy_file(client, object_summary, outfile, goodfile, report_stats, badfile)
 
