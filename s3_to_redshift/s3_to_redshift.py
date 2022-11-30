@@ -289,7 +289,7 @@ for object_summary in objects_to_process:
 
     # Create an object to hold the data while parsing
     csv_string = ''
-
+    
     # The file is an empty upload. Key to badfile and stop processing further.
     if (obj['ContentLength'] == 0):
         logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
@@ -434,11 +434,20 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
-        
+
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try:
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary) 
+                report(report_stats)
+                clean_exit(1, f'File {object_summary.key} not configured correctly, '
+                          'column number mismatch - no further processing.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
