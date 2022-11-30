@@ -1,7 +1,7 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "doug_test",
+  "directory": "doug_test/GDXDSD-5301",
   "destination": "processed",
   "object_prefix": "test",
   "dml": "test.sql",

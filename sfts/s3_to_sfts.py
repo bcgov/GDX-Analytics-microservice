@@ -230,6 +230,7 @@ try:
          "xfer",
          f"-user:{sfts_user}",
          f"-password:{sfts_pass}",
+         "-quiterror",
          f"-s:{sfts_conf}",
          "filetransfer.gov.bc.ca"])
     xfer_proc = True
@@ -261,7 +262,10 @@ for obj in objects_to_process:
     else:
         logger.info('copied %s to %s', obj.key, outfile)
         report_stats['objects_processed'] += 1
-        report_stats['s3_good_list'].append(outfile)
+        if xfer_proc:
+            report_stats['s3_good_list'].append(outfile)
+        else:
+            report_stats['s3_bad_list'].append(outfile)
 
 
 # Remove the temporary local files used to transfer
