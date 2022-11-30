@@ -447,7 +447,7 @@ for object_summary in objects_to_process:
                 report_stats['incomplete_list'].remove(object_summary) 
                 report(report_stats)
                 clean_exit(1, f'File {object_summary.key} not configured correctly, '
-                          'no further processing.')
+                          'column number mismatch - no further processing.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
