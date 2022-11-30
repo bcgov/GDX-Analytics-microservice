@@ -261,11 +261,12 @@ for obj in objects_to_process:
         report_stats['objects_not_processed'] += 1
     else:
         logger.info('copied %s to %s', obj.key, outfile)
-        report_stats['objects_processed'] += 1
         if xfer_proc:
             report_stats['s3_good_list'].append(outfile)
+            report_stats['objects_processed'] += 1
         else:
             report_stats['s3_bad_list'].append(outfile)
+            report_stats['objects_not_processed'] += 1
 
 
 # Remove the temporary local files used to transfer
