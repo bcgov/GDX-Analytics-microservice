@@ -15,11 +15,7 @@
 
   "column_count": 1,
 
-  "columns": [
-
-    "id"
-
-  ],
+  "columns": [ "id"],
 
   "delim": ",",
 
