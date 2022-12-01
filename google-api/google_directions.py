@@ -291,7 +291,6 @@ def execute_query(config_dbtable, config_bucket, conn_string, account, object_ke
                     "Object key %s."),
                     account['clientShortname'], object_key.split('/')[-1])
                 outfile = goodfile
-                print('outfile in else: ', outfile)
                 report_stats['good_rs_list'].append(outfile)
                 report_stats['loaded_to_rs'] += 1
     return outfile
