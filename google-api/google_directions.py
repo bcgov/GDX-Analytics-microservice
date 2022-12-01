@@ -114,7 +114,6 @@ can establish a connection to Redshift
 
 """
 def redshift_connection():
-    # set up the Redshift connection
     dbname = 'snowplow'
     host = 'redshift.analytics.gov.bc.ca'
     port = '5439'
@@ -361,6 +360,10 @@ def write_to_s3(resource, config_bucket, object_key, csv_stream, outfile):
     return object_summary
 
 
+def print_list(report_string, report_list):
+    print('\n', report_string)
+    for i, item in enumerate(report_list, 1):
+            print(f"\n{i}: {item}")
 
 """ Will run at end of script to print out accumulated report_stats
 reports out the data from the main program loop
@@ -388,29 +391,23 @@ def report(data):
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Objects output to processed/good: {data["good"]}')
     print(f'Objects output to processed/bad: {data["bad"]}\n')
+
     # Print all fully processed locations in good
-    print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
-        for i, item in enumerate(data['good_list'], 1):
-            print(f"\n{i}: {item}")
+        print_list('Objects loaded RedShift and to S3 /good:', data['good_list'])
 
     # Print all fully processed locations in bad
     if data['bad_list']:
-        print(f'\nObjects loaded RedShift and to S3 /bad:')
-        for i, item in enumerate(data['bad_list'], 1):
-            print(f"\n{i}: {item}")
+        print_list('Objects loaded RedShift and to S3 /bad:', data['bad_list'])
 
     # Print failed load to RedShift
     if data['failed_rs_list']:
-        print(f'\nList of objects that failed to copy to Redshift:')
-        for i, item in enumerate(data['failed_rs_list'], 1):
-            print(f'\n{i}: {item}')
+        print_list('List of objects that failed to copy to Redshift:', data['failed_rs_list'])
 
     # Print unsuccessful API calls 
     if data['not_retrieved_list']:
-        print(f'\nList of sites that were not processed do to Google API Error:')
-        for i, site in enumerate(data['not_retrieved_list']), 1:
-            print(f'\n{i}: {site}')
+        print_list('List of sites that were not processed do to Google API Error:', data['not_retrieved_list'])
+
 
 def main():
     # Command line arguments
