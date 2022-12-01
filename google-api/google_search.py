@@ -556,7 +556,7 @@ for site_item in config_sites:  # noqa: C901
 
 # Count all failed loads to RedShift
 report_stats['failed_rs'] = len(report_stats['failed_to_rs'])
-
+'''
 # Get PDT build start time
 yvr_dt_pdt_start = (yvr_tz
                     .normalize(
@@ -583,3 +583,5 @@ with psycopg2.connect(conn_string) as conn:
             logger.info("Google Search PDT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
+'''
+report(report_stats)
