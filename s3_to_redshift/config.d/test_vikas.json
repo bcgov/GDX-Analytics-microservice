@@ -9,7 +9,7 @@
 
   "directory": "vikas_test",
 
-  "doc": "limesurvey-analytics.*",
+  "doc": "test_id.*",
 
   "dbtable": "test.test_vikas",
 
