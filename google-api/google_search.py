@@ -248,6 +248,12 @@ conn_string = (
     f"user='{pguser}' "
     f"password={pgpass}")
 
+""" Used to clean report list printing"""
+def print_list(report_string, report_list):
+    print('\n' + report_string)
+    for i, site in enumerate(report_list, 1):
+        print(f"{i}: {site}")
+
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''Reports out the data from the main program loop'''
@@ -281,22 +287,18 @@ def report(data):
 
     # Print all processed sites
     if data['processed']:
-        print('Objects loaded to S3 and copied to RedShift:')
-        for i, site in enumerate(data['processed'], 1):
-            #removed newline character per GDXDSD-5197
-            print(f"{i}: {site}")
+        print_list('Objects loaded to S3 and copied to RedShift:', data['processed'])
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
-        print('\nList of objects that failed to copy to Redshift:')
-        for i, item in enumerate(data['failed_to_rs']):
-            print(f'\n{i}: {item}')
+        print_list('List of objects that failed to copy to Redshift:', data['failed_to_rs'])
 
     # If anything failed do to early exit, print it
     if data['failed_api_call']:
-        print('List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['failed_api_call']):
-            print(f'\n{i}: {site}')
+        print_list('List of sites that were not processed due to early exit:', data['failed_api_call'])
+
+    if data['failed_verification']:
+        print_list('List of sites that were not processed as they are not verified:', data['failed_verification'])
 
 
 # Reporting variables. Accumulates as the the sites lare looped over
@@ -309,7 +311,8 @@ report_stats = {
     'processed': [],  # API call, load to S3, and copy to Redshift all OK
     'failed_to_rs': [],  # Objects that failed to copy to Redshift
     'failed_api_call': [],  # Objects not processed due to early exit
-    'pdt_build_success': False  # True if successfull
+    'pdt_build_success': False,  # True if successfull
+    'failed_verification':  [] # Holds non-verified site names
 }
 
 report_stats['sites'] = len(config_sites)
@@ -322,7 +325,8 @@ for site_item in config_sites:
 for site_item in config_sites:  # noqa: C901
     # read the config for the site name and default start date if specified
     site_name = site_item['name']
-
+    site_okay = True
+    
     # get the last loaded date.
     # may be None if this site has not previously been loaded into Redshift
     last_loaded_date = last_loaded(site_name)
@@ -346,6 +350,8 @@ for site_item in config_sites:  # noqa: C901
     # Load 30 days at a time until the data in Redshift has
     # caught up to the most recently available data from Google
     while last_loaded_date is None or last_loaded_date <= latest_date:
+        if not site_okay:
+            break
 
         # if there isn't data in Redshift for this site,
         # start at the start_date_default set earlier
@@ -390,6 +396,8 @@ for site_item in config_sites:  # noqa: C901
         date_in_range = ()
         max_date_in_data = '0'
         for date_in_range in daterange(start_dt, end_dt):
+            if not site_okay:
+                break
             # A wait time of 250ms each query reduces chance of HTTP 429 error
             # "Rate Limit Exceeded", handled below
             wait_time = 0.25
@@ -433,6 +441,7 @@ for site_item in config_sites:  # noqa: C901
                         if retry == 11:
                             logger.error(("Failing with HTTP error after 10 "
                                           "retries with query time easening."))
+                            report_stats['failed_verification'].append(site_name)
                             report_stats['failed_api'] += 1
                             report_stats['retrieved'] -= 1
                             # Break out of this loop
@@ -450,7 +459,10 @@ for site_item in config_sites:  # noqa: C901
                 # Check to see if we were able to reach the site
                 if retry ==  11:
                     # if not go to the next site.
-                    continue
+                    logger.info('Site: %s  not verified. Skipping to next site.', site_name)
+                    site_okay = False
+                    index = index + 1
+                    break
 
                 index = index + 1
 
