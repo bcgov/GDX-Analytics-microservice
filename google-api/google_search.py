@@ -435,9 +435,9 @@ for site_item in config_sites:  # noqa: C901
                                           "retries with query time easening."))
                             report_stats['failed_api'] += 1
                             report_stats['retrieved'] -= 1
-                            # Run report to output any stats avaiable
-                            report(report_stats)
-                            sys.exit()
+                            # Break out of this loop
+                            break  
+                        
                         wait_time = wait_time * 2
                         logger.warning(
                             "retrying site %s: %s with wait time %s",
@@ -446,6 +446,11 @@ for site_item in config_sites:  # noqa: C901
                         sleep(wait_time)
                     else:
                         break
+
+                # Check to see if we were able to reach the site
+                if retry ==  11:
+                    # if not go to the next site.
+                    continue
 
                 index = index + 1
 
