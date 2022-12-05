@@ -121,6 +121,15 @@
     {
       "name": "https://www.broadwaysubway.ca/",
       "start_date_default": "2022-08-29"
+    },
+    {
+      "name": "https://cleanbc.gov.bc.ca/",
+      "start_date_default": "2018-12-05"
+    },
+    {
+      "name": "https://goelectricbc.gov.bc.ca/",
+      "start_date_default": "2019-09-16"
     }
+
   ]
 }
