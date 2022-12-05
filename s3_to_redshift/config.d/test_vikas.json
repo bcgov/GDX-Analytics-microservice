@@ -1,0 +1,25 @@
+{
+
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  
+    "source": "client",
+  
+    "destination": "processed",
+  
+    "directory": "vikas_test",
+  
+    "doc": "test_id.*",
+  
+    "dbtable": "test.test_vikas",
+  
+    "column_count": 1,
+  
+    "columns": [ "id"],
+  
+    "delim": ",",
+  
+    "truncate": false
+    
+  }
+  
+  
