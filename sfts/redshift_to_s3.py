@@ -211,7 +211,10 @@ def object_key_builder(key_prefix, *args):
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
-    
+    if data['failed_redshift_queries'] or data['failed_unloads']:
+        print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n')
+    else: 
+        print(f'***The microservice ran successfully ***\n')
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
@@ -221,10 +224,7 @@ def report(data):
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
-    if data['failed_redshift_queries'] or data['failed_unloads']:
-        print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n')
-    else: 
-        print(f'***The microservice ran successfully ***\n')
+
 
     print(
     	f'Microservice started at: '
