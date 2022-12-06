@@ -211,8 +211,7 @@ def object_key_builder(key_prefix, *args):
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
-    if data['failed_redshift_queries'] or data['failed_unloads']:
-        print(f'*** ATTN: A failure occured ***\n')
+    
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
@@ -222,11 +221,9 @@ def report(data):
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
-    
-    #Print if the query to redshift is success/fail - Vikas 
-    if ('failed_redshift_queries') or ('failed_unloads'):
-        print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
-    else:
+    if data['failed_redshift_queries'] or data['failed_unloads']:
+        print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n')
+    else: 
         print(f'***The microservice ran successfully ***\n')
 
     print(
@@ -235,19 +232,17 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
-    
-    #Print additional messages to standardize reports - Vikas 
-    print(f'\nObjects to process: {data["objects"]}')
 
-"""     if data["sucessful_unloads"]:
-        print("\nList of objects successfully processed:")
-        for i, meta in enumerate(data['sucessful_unloads'], 1):
-            print(f"{i}: {meta.key}")
+#    if data['sucessful_unloads']:
+#         print("\nList of objects successfully processed:")
+#         for i, meta in enumerate(data['sucessful_unloads'], 1):
+#             print(f"{i}: {meta.key}")
+            
 
-    if data["failed_unloads"]:
+    if data['failed_unloads']:
         print('\nList of objects that failed to process:')
         for i, meta in enumerate(data['failed_unloads'], 1):
-            print(f"{i}: {meta.key}") """
+            print(f"{i}: {meta.key}") 
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
