@@ -6,6 +6,6 @@
   "object_prefix": "test",
   "dml": "test.sql",
   "header": true,
-  "sfts_path": "CITZ_AP_GDX/Shared/Secured/microservice/doug_test",
+  "sfts_path": "CITZ_AP_GDX/Shared/microservice/doug_test",
   "extension": ".csv"
 }
