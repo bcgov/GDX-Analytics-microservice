@@ -246,7 +246,7 @@ def report(data):
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'objects':0,  #Script runs on a per object basis
+    'objects':1,  #Script runs on a per object basis
     'processed':0,
     'redshift_queries': 0,
     'failed_redshift_queries':0,
