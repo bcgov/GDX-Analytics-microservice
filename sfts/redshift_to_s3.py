@@ -233,10 +233,10 @@ def report(data):
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
 
-#    if data['sucessful_unloads']:
-#         print("\nList of objects successfully processed:")
-#         for i, meta in enumerate(data['sucessful_unloads'], 1):
-#             print(f"{i}: {meta.key}")
+    if data['sucessful_unloads']:
+         print("\nList of objects successfully processed:")
+         for i, meta in enumerate(data['sucessful_unloads'], 1):
+             print(f"{i}: {meta.key}")
             
 
     if data['failed_unloads']:
