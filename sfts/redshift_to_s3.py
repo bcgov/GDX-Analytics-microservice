@@ -222,17 +222,36 @@ def report(data):
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
         .astimezone(yvr_tz)))
+    
+    #Print if the query to redshift is success/fail - Vikas 
+    if ('failed_redshift_queries'> 0 or 'failed_unloads' > 0):
+        print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
+    else:
+        print(f'***The microservice ran successfully ***\n')
+
     print(
     	f'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
+    
+    #Print additional messages to standardize reports - Vikas 
+    print(f'\nObjects to process: {data["objects"]}')
 
+    if data["sucessful_unloads"]:
+        print("\nList of objects successfully processed:")
+        for i, meta in enumerate(data['sucessful_unloads'], 1):
+            print(f"{i}: {meta.key}")
+
+    if data["failed_unloads"]:
+        print('\nList of objects that failed to process:')
+        for i, meta in enumerate(data['failed_unloads'], 1):
+            print(f"{i}: {meta.key}")
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'objects':1,  #Script runs on a per object basis
+    'objects':0,  #Script runs on a per object basis
     'processed':0,
     'redshift_queries': 0,
     'failed_redshift_queries':0,
