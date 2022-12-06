@@ -224,7 +224,7 @@ def report(data):
         .astimezone(yvr_tz)))
     
     #Print if the query to redshift is success/fail - Vikas 
-    if (int('failed_redshift_queries')> 0) or (int('failed_unloads') > 0):
+    if ('failed_redshift_queries') or ('failed_unloads'):
         print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'***The microservice ran successfully ***\n')
