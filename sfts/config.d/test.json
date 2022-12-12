@@ -8,6 +8,6 @@
     "header": false,
     "extension": ".csv",
     "sql_parse_key": "pmrp_date_range",
-    "start_date": "unsent",
-    "end_date": "max"
+    "start_date": "20201101",
+    "end_date": "20201104"
   } 
