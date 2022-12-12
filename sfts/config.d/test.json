@@ -3,7 +3,7 @@
     "source": "client",
     "directory": "vikas_test/test_pmrp",
     "destination": "processed",
-    "object_prefix": "vikas",
+    "object_prefix": "pmrp",
     "dml": "pmrp_date_range.sql",
     "header": false,
     "extension": ".csv",
