@@ -1,13 +1,13 @@
 {
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
-    "directory": "vikas_test",
+    "directory": "vikas_test/test_pmrp",
     "destination": "processed",
     "object_prefix": "vikas",
     "dml": "pmrp_date_range.sql",
     "header": false,
     "extension": ".csv",
     "sql_parse_key": "pmrp_date_range",
-    "start_date": "20221201",
-    "end_date": "20221202"
+    "start_date": "unsent",
+    "end_date": "max"
   } 
