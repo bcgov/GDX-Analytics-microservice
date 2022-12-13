@@ -129,6 +129,10 @@
     {
       "name": "https://goelectricbc.gov.bc.ca/",
       "start_date_default": "2019-09-16"
+    },
+    {
+      "name": "https://communityclimatefunding.gov.bc.ca/",
+      "start_date_default": "2022-11-24"
     }
 
   ]
