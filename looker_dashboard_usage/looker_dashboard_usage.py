@@ -109,7 +109,7 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            password=os.environ['pgpass'])
 
 # START CHANGES - 2022/11/28 BEO GDXDSD-5398
-def structure_report(item_name):
+def structure_output_item(item_name):
   """create a standard structure for reporting item folder"""
   if item_name== 'user_facts':
     item_name = 'looker_user_facts'
@@ -158,11 +158,11 @@ def report(data):
       "\nList of objects successfully fully ingested from S3, processed, "
       "loaded to S3 ('good'), and copied to Redshift:")
     for i, item in enumerate(data['good_list'], 1):
-      print(f"{i}.",structure_report(item))
+      print(f"{i}.",structure_output_item(item))
   if data['bad_list']:
     print('\nList of objects that failed to process:')
     for i, item in enumerate(data['bad_list'], 1):
-      print(f"{i}.",structure_report(item))
+      print(f"{i}.",structure_output_item(item))
   return()
   # END changes - 2022/11/28 BEO GDXDSD-5398
 
@@ -220,10 +220,18 @@ def query_mysql_db(table):
 
 # Takes a dataframe and writes it to the specified bucket in S3
 def write_dataframe_as_csv_to_s3(df, filename):
-  if filename == 'user_facts':
-    filename = 'looker_user_facts'
-  outfile=f'{filename}.{prev_date}'
-  object_key = f"{source}/{directory}/{outfile}"
+  """writes a dataframe in CSV format to S3.
+  Usage:
+  df = dataframe
+  filename is S3 filename target
+  """
+  # START CHANGES - 2022/11/28 BEO GDXDSD-5398 - commented out code and replaced with one line
+  #if filename == 'user_facts':
+  #  filename = 'looker_user_facts'
+  #outfile=f'{filename}.{prev_date}'
+  #object_key = f"{source}/{directory}/{outfile}"
+  object_key = structure_output_item(filename)
+  # END changes - 2022/11/28 BEO GDXDSD-5398
   csv_buffer = StringIO()
   df.to_csv(csv_buffer, header=True, index=False, sep="|")
   try:
