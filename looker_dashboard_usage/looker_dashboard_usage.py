@@ -108,9 +108,17 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            user=os.environ['pguser'],
            password=os.environ['pgpass'])
 
+# START CHANGES - 2022/11/28 BEO GDXDSD-5398
+def structure_report(item_name):
+  """create a standard structure for reporting item folder"""
+  if item_name== 'user_facts':
+    item_name = 'looker_user_facts'
+  report_line= f"{source}/{directory}/{item_name}.{prev_date}"
+  return(report_line)
+# END changes - 2022/11/28 BEO GDXDSD-5398
 
 def report(data):
-  '''reports out the data from the main program loop'''
+  # reports out the data from the main program loop
   # if no objects were processed; do not print a report
   if data["objects"] == 0:
     return
@@ -144,17 +152,20 @@ def report(data):
   print(f'Objects that failed to process: {data["failed"]}')
   print(f'Objects output to \'processed/good\': {data["good"]}')
   print(f'Objects output to \'processed/bad\': {data["bad"]}')
-
+  # START CHANGES - 2022/11/28 BEO GDXDSD-5398
   if data['good_list']:
     print(
       "\nList of objects successfully fully ingested from S3, processed, "
       "loaded to S3 ('good'), and copied to Redshift:")
     for i, item in enumerate(data['good_list'], 1):
-      print(f"{i}. {source}/{directory}/{item}.{prev_date}")
+      print(f"{i}.",structure_report(item))
   if data['bad_list']:
     print('\nList of objects that failed to process:')
     for i, item in enumerate(data['bad_list'], 1):
-      print(f"{i}. {source}/{directory}/{item}.{prev_date}")
+      print(f"{i}.",structure_report(item))
+  return()
+  # END changes - 2022/11/28 BEO GDXDSD-5398
+
 
 # Mysql Database connection string
 def get_looker_db_connection():
