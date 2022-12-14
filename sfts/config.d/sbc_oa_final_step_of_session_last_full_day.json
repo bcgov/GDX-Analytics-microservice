@@ -6,6 +6,6 @@
   "object_prefix": "sbc_online_appointments_final_step_of_session",
   "dml": "sbc_oa_final_step_of_session_last_full_day.sql",
   "header": true,
-  "sfts_path": "CITZ_AP_GDX/Shared/microservice/doug_test/GDXDSD-4539//final_step_of_session/daily",
+  "sfts_path": "CITZ_AP_GDX/Shared/microservice/doug_test/GDXDSD-4539/final_step_of_session/daily",
   "extension": ".csv"
 }
