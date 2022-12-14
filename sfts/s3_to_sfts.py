@@ -230,6 +230,7 @@ try:
          "xfer",
          f"-user:{sfts_user}",
          f"-password:{sfts_pass}",
+         "-quiterror",
          f"-s:{sfts_conf}",
          "filetransfer.gov.bc.ca"])
     xfer_proc = True
