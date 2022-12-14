@@ -118,8 +118,8 @@ def structure_output_item(item_name):
 # END changes - 2022/11/28 BEO GDXDSD-5398
 
 def report(data):
-  # reports out the data from the main program loop
-  # if no objects were processed; do not print a report
+  """reports out the data from the main program loop
+  if no objects were processed; do not print a report"""
   if data["objects"] == 0:
     return
   print(f'Report: {__file__}\n')
