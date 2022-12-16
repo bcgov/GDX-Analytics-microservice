@@ -232,7 +232,6 @@ def post_api(gmbv49so, bodyvar, name, report_stats, account):
         logger.exception(
             "Request contains an invalid argument. Skipping.")
         report_stats['not_retrieved'] += 1
-        badfiles += 1
         clean_exit(1,'Request to API caused an Error.')
 
     # If retreived, report it
