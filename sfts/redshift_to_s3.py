@@ -229,12 +229,26 @@ def report(data):
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
+
+    print(f'\nObjects to process: {data["objects"]}')
+
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
 
         #Print additional messages to standardize reports - Vikas 
-    print(f'\nObjects to process: {data["objects"]}')
-    print(f'\nSuccessful Objects: {data["sucessful_unloads"]}')
-    print(f'\nUnsuccessful Objects: {data["failed_unloads"]}')
+ 
+    
+    if data["sucessful_unloads"]:
+        print(f'\nObjects successful loaded to S3: {data["sucessful_unloads"]}')
+        print("\nList of objects successfully processed:")
+        for i, meta in enumerate(data['sucessful_unloads'].items(), 1):
+            print(f"{i}: {meta.key}")
+
+    if data["failed_unloads"]:
+        print(f'\nObjects unsuccessful loaded to S3: {data["failed_unloads"]}')
+        print('\nList of objects that failed to process:')
+        for i, meta in enumerate(data['failed_unloads'].items(), 1):
+            print(f"{i}: {meta.key}")  
+
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
