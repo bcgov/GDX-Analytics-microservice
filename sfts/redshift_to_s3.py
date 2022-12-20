@@ -238,7 +238,7 @@ def report(data):
         #Print additional messages to standardize reports - Vikas 
  
     
-    if data["sucessful_unloads"]:
+"""     if data["sucessful_unloads"]:
         
         print("\nList of objects successfully processed:")
         for i, meta in enumerate(data['sucessful_unloads'], 1):
@@ -249,7 +249,7 @@ def report(data):
         print('\nList of objects that failed to process:')
         for i, item in enumerate(data["failed_unloads"], 1):
             print(f"\n{i}: data['objects'].[item]")  
-
+ """
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
