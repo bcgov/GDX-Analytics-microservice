@@ -246,8 +246,8 @@ def report(data):
     if data["failed_unloads"]:
         print(f'\nObjects unsuccessful loaded to S3: {data["failed_unloads"]}')
         print('\nList of objects that failed to process:')
-        for i, meta in enumerate(data['failed_unloads'].items(), 1):
-            print(f"{i}: {meta.key}")  
+        for i, item in enumerate(data["objects"].items(), 1):
+            print(f"\n{i}: {item}")  
 
 
 
