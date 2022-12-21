@@ -212,9 +212,9 @@ def object_key_builder(key_prefix, *args):
 def report(data):
     '''reports out the data from the main program loop'''
     if data['failed_redshift_queries'] or data['failed_unloads']:
-            print(f'*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
+            print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
-        print(f'***The microservice ran successfully. ***\n')
+        print(f'\n***The microservice ran successfully. ***\n')
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
@@ -231,23 +231,21 @@ def report(data):
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
 
     print(f'\nObjects to process: {data["objects"]}')
-
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
     print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
     print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
         #Print additional messages to standardize reports - Vikas 
  
     
-"""     if data["sucessful_unloads"]:
+    if data["sucessful_unloads"]:
         
-        print("\nList of objects successfully processed:")
-        for i, meta in enumerate(data['sucessful_unloads'], 1):
-            print(f"{i}: {meta.key}")
+        print("\nList of objects successfully processed:", data['objects'])
 
+""" 
     if data["failed_unloads"]:
         
         print('\nList of objects that failed to process:')
-        for i, item in enumerate(data["failed_unloads"], 1):
+        for i, item in enumerate(data["failed_unloads"], 1):    
             print(f"\n{i}: data['objects'].[item]")  
  """
 
