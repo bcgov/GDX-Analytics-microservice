@@ -208,16 +208,25 @@ def object_key_builder(key_prefix, *args):
     object_key = '_'.join(str(part) for part in key_parts)
     return object_key
 
+#test code change - Vikas Dec 22
+def structure_output_item(item_name):
+  """create a standard structure for reporting item folder"""
+  item_name = 'pmrp'
+  report_line= f"{source}/{directory}/{item_name}"
+  return(report_line)
+
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
     if data['failed_redshift_queries'] or data['failed_unloads']:
             print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
-        print(f'\n***The microservice ran successfully. ***\n')
+        print(f'\n***The microservice ran successfully***\n')
+    
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
+
     if 'start_date' and 'end_date' in config:
         print(f'Requested Dates: {start_date} to {end_date}\n')
     # Get times from system and convert to Americas/Vancouver for printing
@@ -232,22 +241,29 @@ def report(data):
 
     print(f'\nObjects to process: {data["objects"]}')
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
-    print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
-    print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
-        #Print additional messages to standardize reports - Vikas 
- 
     
+    #Print additional messages to standardize reports - Vikas 
+ 
     if data["sucessful_unloads"]:
-        
+        print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
         print("\nList of objects successfully processed:", object_key)
-
-""" 
+ 
     if data["failed_unloads"]:
-        
+        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
+        print("\nList of objects unsuccessfully processed:", object_key)
+
+    if data['good_list']:
+        print(
+        "\nList of objects successfully fully ingested from S3, processed, "
+        "loaded to S3 ('good'), and copied to Redshift:")
+        for i, item in enumerate(data['good_list'], 1):
+            print(f"{i}.",structure_output_item(item))
+
+    if data['bad_list']:
         print('\nList of objects that failed to process:')
-        for i, item in enumerate(data["failed_unloads"], 1):    
-            print(f"\n{i}: data['objects'].[item]")  
- """
+        for i, item in enumerate(data['bad_list'], 1):
+             print(f"{i}.",structure_output_item(item))
+  
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
@@ -258,7 +274,9 @@ report_stats = {
     'failed_redshift_queries':0,
     'good_redshift_queries':0,
     'sucessful_unloads':0,
-    'failed_unloads':0
+    'failed_unloads':0,
+    'good_list': [],
+    'bad_list' : []
 }
 
 if 'start_date' in config and 'end_date' in config:
