@@ -241,8 +241,8 @@ def report(data):
     if data["sucessful_unloads"]:
         print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
         print(
-        "\nList of objects successfully fully ingested from S3, processed, "
-        "loaded to S3 ('good'), and copied to Redshift:")
+        "\nList of objects successfully fully copied from redshift, processed, "
+        "loaded to S3 ('good')")
         for i, item in enumerate(data['good_list'], 1):
             print(f"{i}.",item)
  
