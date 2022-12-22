@@ -239,7 +239,7 @@ def report(data):
     
     if data["sucessful_unloads"]:
         
-        print("\nList of objects successfully processed:", data["objects"])
+        print("\nList of objects successfully processed:", object_key)
 
 """ 
     if data["failed_unloads"]:
