@@ -371,6 +371,8 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
+            report_stats['bad'] += 1
+            report_stats['bad_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
@@ -378,5 +380,7 @@ with psycopg2.connect(conn_string) as conn:
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, source_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
+            report_stats['good'] += 1
+            report_stats['good_list'].append(object_key)
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
