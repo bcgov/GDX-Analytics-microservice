@@ -247,23 +247,19 @@ def report(data):
     if data["sucessful_unloads"]:
         print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
         print("\nList of objects successfully processed:", object_key)
- 
-    if data["failed_unloads"]:
-        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
-        print("\nList of objects unsuccessfully processed:", object_key)
-
-    if data['good_list']:
         print(
         "\nList of objects successfully fully ingested from S3, processed, "
         "loaded to S3 ('good'), and copied to Redshift:")
         for i, item in enumerate(data['good_list'], 1):
-            print(f"{i}.",structure_output_item(item))
-
-    if data['bad_list']:
+            print(f"{i}.",{item})
+ 
+    if data["failed_unloads"]:
+        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
+        print("\nList of objects unsuccessfully processed:", object_key)
         print('\nList of objects that failed to process:')
         for i, item in enumerate(data['bad_list'], 1):
              print(f"{i}.",structure_output_item(item))
-  
+
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
