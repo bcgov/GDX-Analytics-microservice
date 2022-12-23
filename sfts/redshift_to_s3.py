@@ -241,8 +241,7 @@ def report(data):
     if data["sucessful_unloads"]:
         print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
         print(
-        "\nList of objects successfully fully copied from redshift, processed, "
-        "loaded to S3 ('good')")
+        "\nList of objects successfully loaded to S3")
         for i, item in enumerate(data['good_list'], 1):
             print(f"{i}.",item)
  
@@ -360,7 +359,7 @@ with psycopg2.connect(conn_string) as conn:
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
             
-            report_stats['bad_list'].append(last_modified_object_key)
+            report_stats['bad_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
@@ -369,6 +368,6 @@ with psycopg2.connect(conn_string) as conn:
                 bucket, source_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
             
-            report_stats['good_list'].append(last_modified_object_key)
+            report_stats['good_list'].append(object_key)
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
