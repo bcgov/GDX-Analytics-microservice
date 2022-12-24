@@ -243,13 +243,13 @@ def report(data):
         print(
         "\nList of objects successfully loaded to S3")
         for i, item in enumerate(data['good_list'], 1):
-            print(f"{i}.",f'{source}/{directory}/item')
+            print(f"{i}.",f'{source}/{directory}/{item}')
  
     if data["failed_unloads"]:
         print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
         print('\nList of objects that failed to process:')
         for i, item in enumerate(data['bad_list'], 1):
-             print(f"{i}.",f'{source}/{directory}/item')
+             print(f"{i}.",f'{source}/{directory}/{item}')
 
 
 
