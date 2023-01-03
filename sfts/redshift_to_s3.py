@@ -208,7 +208,6 @@ def object_key_builder(key_prefix, *args):
     object_key = '_'.join(str(part) for part in key_parts)
     return object_key
 
-
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
@@ -236,12 +235,11 @@ def report(data):
     print(f'\nObjects to process: {data["objects"]}')
     print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
     
-    #Print additional messages to standardize reports - Vikas 
+    #Print additional messages to standardize reports
  
     if data["sucessful_unloads"]:
         print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
-        print(
-        "\nList of objects successfully loaded to S3")
+        print("\nList of objects successfully loaded to S3")
         for i, item in enumerate(data['good_list'], 1):
             print(f"{i}.",f'{source}/{directory}/{item}')
  
@@ -250,8 +248,6 @@ def report(data):
         print('\nList of objects that failed to process:')
         for i, item in enumerate(data['bad_list'], 1):
              print(f"{i}.",f'{source}/{directory}/{item}')
-
-
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -358,7 +354,6 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
-            
             report_stats['bad_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
@@ -367,7 +362,6 @@ with psycopg2.connect(conn_string) as conn:
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, source_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
-            
             report_stats['good_list'].append(object_key)
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
