@@ -213,7 +213,7 @@ def object_key_builder(key_prefix, *args):
 def report(data):
     '''reports out the data from the main program loop'''
     if data['failed_redshift_queries'] or data['failed_unloads']:
-            print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
+        print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'\n***The microservice ran successfully***\n')
     
