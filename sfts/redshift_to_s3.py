@@ -212,10 +212,14 @@ def object_key_builder(key_prefix, *args):
 def report(data):
     '''reports out the data from the main program loop'''
     if data['failed_redshift_queries'] or data['failed_unloads']:
-        print(f'*** ATTN: A failure occured ***\n')
+        print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
+    else:
+        print(f'\n***The microservice ran successfully***\n')
+    
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
+
     if 'start_date' and 'end_date' in config:
         print(f'Requested Dates: {start_date} to {end_date}\n')
     # Get times from system and convert to Americas/Vancouver for printing
@@ -227,8 +231,23 @@ def report(data):
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
-    print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
 
+    print(f'\nObjects to process: {data["objects"]}')
+    print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
+    
+    #Print additional messages to standardize reports
+ 
+    if data["sucessful_unloads"]:
+        print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
+        print("\nList of objects successfully loaded to S3")
+        for i, item in enumerate(data['good_list'], 1):
+            print(f"{i}.",f'{source}/{directory}/{item}')
+ 
+    if data["failed_unloads"]:
+        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
+        print('\nList of objects that failed to process:')
+        for i, item in enumerate(data['bad_list'], 1):
+             print(f"{i}.",f'{source}/{directory}/{item}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -238,7 +257,9 @@ report_stats = {
     'failed_redshift_queries':0,
     'good_redshift_queries':0,
     'sucessful_unloads':0,
-    'failed_unloads':0
+    'failed_unloads':0,
+    'good_list': [],
+    'bad_list' : []
 }
 
 if 'start_date' in config and 'end_date' in config:
@@ -333,6 +354,7 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
+            report_stats['bad_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
@@ -340,6 +362,6 @@ with psycopg2.connect(conn_string) as conn:
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, source_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
+            report_stats['good_list'].append(object_key)
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
-
