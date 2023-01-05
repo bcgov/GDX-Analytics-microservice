@@ -3,8 +3,8 @@
   "source": "client",
   "directory": "sbc_WebTraffic/historical",
   "destination": "processed",
-  "object_prefix": "sbc_WebTraffic_clicks",
-  "dml": "sbc_WebTraffic_clicks_historical.sql",
+  "object_prefix": "sbc_WebTraffic_click",
+  "dml": "sbc_WebTraffic_click_historical.sql",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/WebTraffic_data/historical",
   "extension": ".csv"

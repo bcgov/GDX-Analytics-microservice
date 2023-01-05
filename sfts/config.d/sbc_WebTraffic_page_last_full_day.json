@@ -3,8 +3,8 @@
   "source": "client",
   "directory": "sbc_WebTraffic/daily",
   "destination": "processed",
-  "object_prefix": "sbc_WebTraffic_pages",
-  "dml": "sbc_WebTraffic_pages_last_full_day.sql",
+  "object_prefix": "sbc_WebTraffic_page",
+  "dml": "sbc_WebTraffic_page_last_full_day.sql",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/WebTraffic_data/daily",
   "extension": ".csv"
