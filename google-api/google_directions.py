@@ -12,7 +12,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
+#               : place your credentials_mybusiness.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -40,12 +40,12 @@
 #               :   directory as 'credentials_mybusiness.json'
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file 'mybusiness.dat',
+#               :   validation, which will create a file 'credentials_mybusiness.dat',
 #               :   saving that auhtorization.
 #               :
 # Usage         : e.g.:
 #               : $ python google_directions.py -o credentials_mybusiness.json\
-#               :   -a mybusiness.dat -c google_directions.json
+#               :   -a credentials_mybusiness.dat -c config_directions.json
 #
 #               : the flags specified in the usage example above are:
 #               : -o <OAuth Credentials JSON file>
@@ -223,16 +223,26 @@ def check_days(account):
 
 
 """Posts the API request"""
-def post_api(gmbv49so, bodyvar, name, report_stats, account):
-    try:
-        response = \
-            gmbv49so.accounts().locations().\
-            reportInsights(body=bodyvar, name=name).execute()
-    except googleapiclient.errors.HttpError:
-        logger.exception(
-            "Request contains an invalid argument. Skipping.")
-        report_stats['not_retrieved'] += 1
-        clean_exit(1,'Request to API caused an Error.')
+def post_api(gmbv49so, bodyvar, report_stats, account):
+    name = account['name']
+    error_count = 0
+    wait_time = 0.25
+    while error_count < 11:
+        try:
+            response = \
+                gmbv49so.accounts().locations().\
+                reportInsights(body=bodyvar, name=name).execute()
+        except googleapiclient.errors.HttpError:
+            if error_count == 10:
+                logger.exception(
+                    "Request contains an invalid argument. Skipping.")
+                report_stats['not_retrieved'] += 1
+                clean_exit(1,'Request to API caused an Error.')
+            error_count += 1
+            sleep(wait_time)
+            wait_time = wait_time * 2
+            logger.warning("retrying connection to Google Analytics with wait time %s", wait_time)
+        break
 
     # If retreived, report it
     logger.info(f"{account['clientShortname']} Retrieved.")
@@ -587,7 +597,7 @@ def main():
                 report_stats['locations'] += 1
                 logger.info("Request JSON -- \n%s", json.dumps(bodyvar, indent=2))
 
-                response = post_api(gmbv49so, bodyvar, name, report_stats, account)
+                response = post_api(gmbv49so, bodyvar, report_stats, account)
                 
                 # stitch all responses responses for later iterative processing
                 stitched_responses['locationDrivingDirectionMetrics'] += \
