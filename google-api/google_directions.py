@@ -12,7 +12,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your mybusiness.json file in the location defined
+#               : place your credentials.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -242,7 +242,8 @@ def post_api(gmbv49so, bodyvar, report_stats, account):
             sleep(wait_time)
             wait_time = wait_time * 2
             logger.warning("retrying connection to Google Analytics with wait time %s", wait_time)
-        break
+        else:
+            break
 
     # If retreived, report it
     logger.info(f"{account['clientShortname']} Retrieved.")
