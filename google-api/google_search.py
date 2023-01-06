@@ -19,8 +19,8 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
-#               : below.
+#               : place your credentials_search.json file in the location
+#               : defined below.
 #               :
 #               : ------------------
 #               : To set up the Google end of things, following this:
@@ -47,11 +47,11 @@
 #               :   Choose Other, and provide a name for this OAuth client ID.
 #               :
 #               :   Download the JSON file and place it in your directory as
-#               :   "credentials.json" as described by the variable below
+#               :   "credentials_search.json" as described by the variable below
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file "credentials.dat",
-#               :   saving that auhtorization.
+#               :   validation, which will create a file
+#               :   "credentials_search.dat", saving that auhtorization.
 
 
 import re
@@ -162,7 +162,7 @@ if CLIENT_SECRET is None or AUTHORIZATION is None or CONFIG is None:
     logger.error('Missing one or more requied arguments.')
     sys.exit(1)
 
-# calling the Google API. If credentials.dat is not yet generated
+# calling the Google API. If credentials_search.dat is not yet generated
 # then brower based Google Account validation will be required
 API_NAME = 'searchconsole'
 API_VERSION = 'v1'
@@ -303,7 +303,7 @@ def report(data):
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
-    'sites': 0,  # Number of sites in google_search.json
+    'sites': 0,  # Number of sites in config_search.json
     'retrieved': 0,  # Successful API calls
     'no_new_data': 0,  # Sites where last_loaded_date < 2 days
     'failed_api': 0,
@@ -578,7 +578,8 @@ yvr_dt_pdt_start = (yvr_tz
                     .normalize(
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
-
+report(report_stats)
+'''
 # This query will INSERT INTO cmslite.google_pdt
 # cmslite.google_pdt, a derived table built from google.googlesearch
 # Get sql for pdt build form dml folder
@@ -599,3 +600,4 @@ with psycopg2.connect(conn_string) as conn:
             logger.info("Google Search PDT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
+'''
