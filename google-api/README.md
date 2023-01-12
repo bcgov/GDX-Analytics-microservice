@@ -164,7 +164,7 @@ The JSON configuration fields are as described below:
 | `aggregate_days[]` | string | A 1 to 3 item list that can include only unique values of `"SEVEN"`, `"THIRTY"` or `"NINETY"` |
 
 ### Credentials and Authentication
-All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration files (eg. `'credentials.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. 
+All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration files (eg. `'credentials_search.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. 
 
 Go to your Google Console at https://console.cloud.google.com/. 
 
