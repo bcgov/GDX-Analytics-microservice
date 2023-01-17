@@ -19,7 +19,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
+#               : place your google_search.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -47,7 +47,7 @@
 #               :   Choose Other, and provide a name for this OAuth client ID.
 #               :
 #               :   Download the JSON file and place it in your directory as
-#               :   "credentials.json" as described by the variable below
+#               :   "search.json" as described by the variable below
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
 #               :   validation, which will create a file "credentials.dat",
@@ -162,7 +162,7 @@ if CLIENT_SECRET is None or AUTHORIZATION is None or CONFIG is None:
     logger.error('Missing one or more requied arguments.')
     sys.exit(1)
 
-# calling the Google API. If credentials.dat is not yet generated
+# calling the Google API. If credentials_search.dat is not yet generated
 # then brower based Google Account validation will be required
 API_NAME = 'searchconsole'
 API_VERSION = 'v1'
