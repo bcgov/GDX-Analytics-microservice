@@ -19,8 +19,8 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your google_search.json file in the location defined
-#               : below.
+#               : place your credentials_search.json file in the location
+#               : defined below.
 #               :
 #               : ------------------
 #               : To set up the Google end of things, following this:
@@ -47,11 +47,11 @@
 #               :   Choose Other, and provide a name for this OAuth client ID.
 #               :
 #               :   Download the JSON file and place it in your directory as
-#               :   "search.json" as described by the variable below
+#               :   "credentials_search.json" as described by the variable below
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file "credentials.dat",
-#               :   saving that auhtorization.
+#               :   validation, which will create a file
+#               :   "credentials_search.dat", saving that auhtorization.
 
 
 import re
@@ -303,7 +303,7 @@ def report(data):
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
-    'sites': 0,  # Number of sites in google_search.json
+    'sites': 0,  # Number of sites in config_search.json
     'retrieved': 0,  # Successful API calls
     'no_new_data': 0,  # Sites where last_loaded_date < 2 days
     'failed_api': 0,

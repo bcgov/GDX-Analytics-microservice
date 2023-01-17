@@ -12,7 +12,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
+#               : place your credentials_mybusiness.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -40,12 +40,12 @@
 #               :   directory as 'credentials_mybusiness.json'
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file 'mybusiness.dat',
-#               :   saving that auhtorization.
+#               :   validation, which will create a file 
+#               :   'credentials_mybusiness.dat', saving that auhtorization.
 #               :
 # Usage         : e.g.:
 #               : $ python google_directions.py -o credentials_mybusiness.json\
-#               :   -a mybusiness.dat -c google_directions.json
+#               :   -a credentials_mybusiness.dat -c config_directions.json
 #
 #               : the flags specified in the usage example above are:
 #               : -o <OAuth Credentials JSON file>
