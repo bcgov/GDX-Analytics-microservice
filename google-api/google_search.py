@@ -584,8 +584,6 @@ yvr_dt_start = (yvr_tz
 # Get sql for dt build form dml folder
 query = open('dml/{}'.format(dml_file), 'r').read()
 
-report(report_stats)
-'''
 # Execute the query and log the outcome
 logger.info(query)
 with psycopg2.connect(conn_string) as conn:
@@ -601,4 +599,3 @@ with psycopg2.connect(conn_string) as conn:
             logger.info("Google Search DT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
-'''
