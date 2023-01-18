@@ -223,7 +223,8 @@ def check_days(account):
 
 
 """Posts the API request"""
-def post_api(gmbv49so, bodyvar, report_stats, name):
+def post_api(gmbv49so, bodyvar, report_stats, account):
+    name = account['name']
     error_count = 0
     wait_time = 0.25
     while error_count < 11:
@@ -597,7 +598,7 @@ def main():
                 report_stats['locations'] += 1
                 logger.info("Request JSON -- \n%s", json.dumps(bodyvar, indent=2))
 
-                response = post_api(gmbv49so, bodyvar, report_stats, name)
+                response = post_api(gmbv49so, bodyvar, report_stats, account)
                 
                 # stitch all responses responses for later iterative processing
                 stitched_responses['locationDrivingDirectionMetrics'] += \
