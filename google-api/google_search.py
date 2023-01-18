@@ -267,14 +267,14 @@ def report(data):
         return
     print(f'Report: {__file__}\n')
     print(f'Config: {CONFIG}\n')
-    if report_stats['pdt_build_success']:
+    if report_stats['dt_build_success']:
         print(
-            'PDT build started at: '
-            f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            'DT build started at: '
+            f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
+            f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     else:
-        print('Google Search PDT build failed\n')
+        print('Google Search DT build failed\n')
     print(
         'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
@@ -311,7 +311,7 @@ report_stats = {
     'processed': [],  # API call, load to S3, and copy to Redshift all OK
     'failed_to_rs': [],  # Objects that failed to copy to Redshift
     'failed_api_call': [],  # Objects not processed due to early exit
-    'pdt_build_success': False,  # True if successfull
+    'dt_build_success': False,  # True if successfull
     'failed_verification':  [] # Holds non-verified site names
 }
 
@@ -573,17 +573,19 @@ for site_item in config_sites:  # noqa: C901
 
 # Count all failed loads to RedShift
 report_stats['failed_rs'] = len(report_stats['failed_to_rs'])
-# Get PDT build start time
-yvr_dt_pdt_start = (yvr_tz
+# Get DT build start time
+yvr_dt_start = (yvr_tz
                     .normalize(
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
 
-# This query will INSERT INTO cmslite.google_pdt
-# cmslite.google_pdt, a derived table built from google.googlesearch
-# Get sql for pdt build form dml folder
+# This query will INSERT INTO cmslite.google_dt
+# cmslite.google_dt, a derived table built from google.googlesearch
+# Get sql for dt build form dml folder
 query = open('dml/{}'.format(dml_file), 'r').read()
 
+report(report_stats)
+'''
 # Execute the query and log the outcome
 logger.info(query)
 with psycopg2.connect(conn_string) as conn:
@@ -591,11 +593,12 @@ with psycopg2.connect(conn_string) as conn:
         try:
             curs.execute(query)
         except psycopg2.Error:
-            logger.exception("Google Search PDT loading failed")
+            logger.exception("Google Search DT loading failed")
             report(report_stats)
-            clean_exit(1, 'Could not rebuild PDT in Redshift.')
+            clean_exit(1, 'Could not rebuild DT in Redshift.')
         else:
-            report_stats['pdt_build_success'] = True
-            logger.info("Google Search PDT loaded successfully")
+            report_stats['dt_build_success'] = True
+            logger.info("Google Search DT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
+'''
