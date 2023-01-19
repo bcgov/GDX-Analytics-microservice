@@ -1,8 +1,8 @@
 -- perform this as a transaction.
 -- Either the whole query completes, or it leaves the old table intact
 BEGIN;
-DROP TABLE IF EXISTS cmslite.google_pdt;
-CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
+DROP TABLE IF EXISTS cmslite.google_dt;
+CREATE TABLE IF NOT EXISTS cmslite.google_dt (
         site              VARCHAR(255)    ENCODE ZSTD,
         date              date            ,
         query             VARCHAR(2048)   ENCODE ZSTD,
@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS cmslite.google_pdt (
         subsubtopic       VARCHAR(2047)   ENCODE ZSTD)
         COMPOUND SORTKEY (date,page_urlhost,theme,page,clicks);
 
-ALTER TABLE cmslite.google_pdt OWNER TO microservice;
-GRANT SELECT ON cmslite.google_pdt TO looker;
+ALTER TABLE cmslite.google_dt OWNER TO microservice;
+GRANT SELECT ON cmslite.google_dt TO looker;
 
-INSERT INTO cmslite.google_pdt
+INSERT INTO cmslite.google_dt
 SELECT gs.*,
        COALESCE(themes.node_id, '') AS node_id,
        SPLIT_PART(gs.page, '/', 3)  AS page_urlhost,
@@ -82,6 +82,6 @@ WHERE
     )
     OR (gs.site = 'sc-domain:engage.gov.bc.ca');
 
-ANALYZE cmslite.google_pdt;
+ANALYZE cmslite.google_dt;
 
 COMMIT;
