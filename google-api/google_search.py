@@ -267,14 +267,21 @@ def report(data):
         return
     print(f'Report: {__file__}\n')
     print(f'Config: {CONFIG}\n')
-    if report_stats['dt_build_success']:
+    
+    if (report_stats['dt_build_success'] == None):
+        #variable not changed build not attempted
+        print('Google Search DT not attempted')
+    elif (report_stats['dt_build_success'] == True):
+        #variable changed to True build successful
         print(
             'DT build started at: '
             f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     else:
+        #variable changed to False build failed
         print('Google Search DT build failed\n')
+    
     print(
         'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
@@ -311,7 +318,7 @@ report_stats = {
     'processed': [],  # API call, load to S3, and copy to Redshift all OK
     'failed_to_rs': [],  # Objects that failed to copy to Redshift
     'failed_api_call': [],  # Objects not processed due to early exit
-    'dt_build_success': False,  # True if successfull
+    'dt_build_success': None,  # True if successfull, False if failed
     'failed_verification':  [] # Holds non-verified site names
 }
 
@@ -592,6 +599,7 @@ with psycopg2.connect(conn_string) as conn:
             curs.execute(query)
         except psycopg2.Error:
             logger.exception("Google Search DT loading failed")
+            report_stats['dt_build_success'] = False
             report(report_stats)
             clean_exit(1, 'Could not rebuild DT in Redshift.')
         else:
