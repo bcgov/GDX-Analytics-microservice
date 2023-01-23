@@ -270,17 +270,17 @@ def report(data):
     
     if (report_stats['dt_build_success'] == None):
         #variable not changed build not attempted
-        print('Google Search DT not attempted')
+        print('Google Search derived table build not attempted')
     elif (report_stats['dt_build_success'] == True):
         #variable changed to True build successful
         print(
-            'DT build started at: '
+            'Derived table build started at: '
             f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     else:
         #variable changed to False build failed
-        print('Google Search DT build failed\n')
+        print('Google Search derived table build failed\n')
     
     print(
         'Microservice started at: '
