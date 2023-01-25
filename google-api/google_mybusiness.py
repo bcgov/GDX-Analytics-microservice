@@ -69,6 +69,7 @@ from pytz import timezone
 import dateutil.relativedelta
 from datetime import timedelta
 from tzlocal import get_localzone
+from time import sleep
 
 import googleapiclient.errors
 from googleapiclient.discovery import build
@@ -214,6 +215,38 @@ def last_loaded(dbtable, location_id):
     con.close()
     return last_loaded_date
 
+def get_locations(gmbBIso, account_uri):
+    """
+    Used to request list of locations for current account.
+    Will attempt 10 times to query Google API before
+    reporting an error and exiting.
+    """
+    wait_time = 0.25
+    error_count = 0
+    while error_count < 11:
+        try:
+            locations = \
+                gmbBIso.accounts().locations().list(
+                parent=account_uri,pageSize=100,readMask='name,title').execute()
+        except googleapiclient.errors.HttpError:
+            if error_count == 10:
+                logger.exception(
+                    "Request hit 503 error. Exiting after 10th attempt."
+                )
+                clean_exit(1, "Request to API hit 503 error")
+            error_count += 1
+            sleep(wait_time)
+            wait_time = wait_time *2
+            logger.warning(
+                "Retrying connection to Google Analytics with %s wait time", wait_time
+            )
+        else:
+            error_count = 11
+
+    logger.info("Retrieved list of locations.")
+    return locations
+
+
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
@@ -331,9 +364,8 @@ for account in validated_accounts:
     df = pd.DataFrame()
     account_uri = account['uri']
     # Create a list of locations in this account
-    locations = (
-        gmbBIso.accounts().locations().list(
-            parent=account_uri,pageSize=100,readMask='name,title').execute())
+    locations = get_locations(gmbBIso, account_uri)
+    
     # we will handle each location separately
     for loc in locations['locations']:
 
