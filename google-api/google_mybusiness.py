@@ -231,7 +231,7 @@ def get_locations(gmbBIso, account_uri):
         except googleapiclient.errors.HttpError:
             if error_count == 10:
                 logger.exception(
-                    "Request hit 503 error. Exiting after 10thh attempt."
+                    "Request hit 503 error. Exiting after 10th attempt."
                 )
                 clean_exit(1, "Request to API hit 503 error")
             error_count += 1

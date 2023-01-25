@@ -140,6 +140,29 @@ def last_loaded(_s):
     con.close()
     return lld
 
+def catch_503(exe, error_503, bodyvar, account):
+    error_count = 0
+    wait_time = 0.25
+    
+    while error_count < 11:
+        try:
+            responce = exe.accounts().locations().reportInsights(body=bodyvar, name=name).execute()
+        except error_503:
+            if error_count == 10:
+                logger.exception(
+                    "Request terminated after 10th attempt. Abotring."
+                )
+                clean_exit(1, 'Request to API hit 503 Error.')
+            error_count += 1
+            sleep(wait_time)
+            wait_time = wait_time * 2
+            logger.warning(
+               "Retrying connection to Google with wait time %s", wait_time
+            )
+        else:
+            error_count = 11
+    logger.info(f"{account['clientShortname']} Retrieved.")
+    return response
 
 # the latest available Google API data is two less than the query date (today)
 latest_date = date.today() - timedelta(days=2)
