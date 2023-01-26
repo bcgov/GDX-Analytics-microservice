@@ -68,6 +68,7 @@ import httplib2
 import googleapiclient.errors
 import pandas as pd
 import lib.logs as log
+from time import sleep
 from io import StringIO
 from pytz import timezone
 from oauth2client import tools
