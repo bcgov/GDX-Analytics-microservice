@@ -1,7 +1,8 @@
 SELECT * FROM (
-    -- based off of the explore https://analytics.gov.bc.ca/explore/snowplow_web_block/clicks?qid=Kr77A80314WnfjexYJqUin&origin_space=37&toggle=fil
+    -- based off of the explore https://analytics.gov.bc.ca/explore/snowplow_web_block/clicks?qid=kne2Lk4BeP22VdmbRguVYD&origin_space=37&toggle=fil
     SELECT
         (TO_CHAR(DATE_TRUNC(''second'', clicks.collector_tstamp ), ''YYYY-MM-DD HH24:MI:SS'')) AS "clicks.click_time_time",
+        clicks.click_id  AS "clicks.click_id",
         clicks.session_id  AS "clicks.session_id",
         clicks.target_url  AS "clicks.target_url",
             (CASE WHEN clicks.is_government THEN ''Yes'' ELSE ''No'' END) AS "clicks.is_government",
@@ -16,7 +17,8 @@ SELECT * FROM (
         3,
         4,
         5,
-        6
+        6,
+        7
     ORDER BY
         1
 )
