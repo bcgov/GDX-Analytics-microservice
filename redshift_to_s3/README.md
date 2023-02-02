@@ -1,11 +1,11 @@
-# Secure File Transfer System microservice
+# Redshift to S3 microservice
 
-This folder contains scripts, configuration files (within the [config.d](./config.d/) folder), and SQL formatted DML files (within the [dml](./dml/) folder) that enable the the Secure File Transfer System (SFTS) microservice implemented on the GDX-Analytics platform.
+This folder contains the script, configuration files (within the [config.d](./config.d/) folder), and SQL formatted DML files (within the [dml](./dml/) folder) that enable the the Redshift to S3 microservice implemented on the GDX-Analytics platform.
 
 
 ## Overview
 
-Two scripts exist to separate their functions into smaller, potentially independently operating services. Used together in sequence, they perform the overall function of copying data from Redshift to SFTS. S3 and EC2 are required as intermediary services (EC2 to execute the scripts and store and modify temporary files, and S3 to store objects unloaded from Redshift). The "first" script in this process is `redshift_to_s3.py`, and the "second" script is `s3_to_sfts.py`. A example below demonstrates the sequential use of the scripts to perform the overall service ([skip to Usage Example section](#usage-example)).
+The [redshift_to_s3.py](./redshift_to_s3.py) script performs the function of copying data from Redshift into S3 and EC2. This script can be used preceeding the [S3 to SFTS microservice](../s3_to_sfts/) to store files in S3 and EC2 as an intermediary service (EC2 to execute the scripts and store and modify temporary files, and S3 to store objects unloaded from Redshift). A example below demonstrates the use of the `redshift_to_s3.py` script to perform an unload of data from Redshift into a file stored in S3 ([skip to Usage Example section](#usage-example)).  
 
 ### Setup
 
@@ -14,8 +14,6 @@ The Pipfiles included in this repository instructs pipenv on what dependencies a
 ```
 pipenv install
 ```
-
-### `redshift_to_s3.py`
 
 The Redshift to S3 microservice requires:
 
@@ -48,62 +46,23 @@ The output object will be under the configured S3 bucket and path. The key for t
  - runtime timestamp (`20200325T153025`): used to identify independent runs of the same query.
  - `part000` an unavoidable artifact of the RedShift `UNLOAD` processing. See the section on `PARALLEL` in https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html for more detail.
 
-### `s3_to_sfts.py`
-
-The S3 to SFTS microservice requires:
-
- - A Java runtime environment that can be invoked with the command line `java`
-
- - a `json` configuration file passed as a second command line argument to run.
-
- - The following environment variables must be set:
-
-  - `$xfer_path`
-
-    the path to the folder containing the MOVEit XFer Client Tools. The XFer Client Tools can be downloaded from the link labelled "Client Tools Zip (EZ, Freely, Xfer)" at  https://community.ipswitch.com/s/article/Direct-Download-Links-for-Transfer-and-Automation-2018).
-
-    For example:
-    ```
-    export xfer_path=/path/to/xfer/jar/files/
-    ```
-    the folder _must_ contain `jna.jar` and `xfer.jar`
-
-  - `$sfts_user`
-
-    the service account user configured for access to the Secure File Transfer system, and with write access to SFTS path defined by the value for `sfts_path` in the json configuration file.
-
-    ```
-    export sfts_user=username  ## do not include an IDIR/ prefix in the username
-    ```
-
-  - `$sfts_pass`
-
-    the password associated with the `$sfts_user` service account.
-
-The configuration file format is described in more detail below. Usage is like:
-
-```
-pipenv run python s3_to_sfts.py -c config.d/config.json
-```
 
 ## Configuration
 
 ### Environment Variables
 
-The S3 to Redshift microservice requires the following environment variables be set to run correctly.
+The Redshift to S3 microservice requires the following environment variables be set to run correctly.
 
 - `sfts_user`: the SFTS username used with `sfts_pass` to access the SFTS database;
 - `sfts_pass`: the SFTS password used with `sfts_user` to access the SFTS database;
-- `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from S3 to Redshift; and,
-- `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from S3 to Redshift.
+- `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from Redshift to S3; and,
+- `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from Redshift to S3.
 
 ### Configuration File
 
 Store configuration files in in [config.d/](./config.d/).
 
-A single well formed configuration file is sufficient to pass all required values to either script (`redshift_to_s3` and `s3_to_sfts`). While some parameters are used exclusively by one script or the other, enough parameters are shared between both scripts that a single configuration file is recommended. This will reduce the likelihood of input errors, reduce maintenance burden, and encapsulates into a single configuration the overall function for which these two scripts executed in sequence were originally intended for.
-
-The JSON configuration is required as an argument proceeding the `-c` flag when running the `s3_to_redshift.py` and the `s3_to_sfts.py` scripts.
+The JSON configuration is required as an argument proceeding the `-c` flag when running the `redshift_to_s3.py` script.
 
 The structure of the config file should resemble the following:
 
@@ -165,27 +124,21 @@ Note that there are some particular issues that are likely to cause problems:
 For more information see the Amazon Redshift documentation for UNLOAD: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
 
 ## Usage example
-This example supposes that a client desires an "Example" service to transfer content from Redshift to SFTS as a comma delimited file.
+This example supposes that a client desires an "Example" service to transfer content from Redshift to S3 as a pipe delimited file.
 
 The configuration file for this example service is created as: [`config.d/example.json`](./config.d/example.json); and the DML file that stores the SQL statement selecting the data they wish to copy from Redshift is created as: [`dml/pmrp_date_range.sql`](./dml/pmrp_date_range.sql).
 
 The example service may be run once as follows:
 
 ```
-## step 1
 $ pipenv run python redshift_to_s3.py -c config.d/example.json
-
-## step 2
-$ pipenv run python s3_to_sfts.py -c config.d/example.json
 ```
 
-The first step created an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/pmrp_gdx/example`, which stores delimited content emitted from Redshift, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `pmrp_YYYYMMDD_YYYYMMDD_YYYYMMDDTHH_part000` (where the dates in the key name are computed values).
-
-The second step transferred that file (and any other files matching the configured `"object_prefix"` value if they had not already been transferred) from S3 to the BC Government SFTS endpoint. The second script may also modify the filename before transfer by appending the value of the configured `"extension"` parameter.
+This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/pmrp_gdx/example`, which stores delimited content emitted from Redshift, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `pmrp_YYYYMMDD_YYYYMMDD_YYYYMMDDTHH_part000` (where the dates in the key name are computed values).
 
 ## Project Status
 
-As new projects require loading modeled data into SFTS, new configuration files will be prepared to support the consumption of those data sources.
+As new projects require loading modeled data into S3, new configuration files will be prepared to support the consumption of those data sources.
 
 This project is ongoing.
 
