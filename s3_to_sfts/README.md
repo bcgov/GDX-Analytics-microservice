@@ -1,6 +1,6 @@
 # S3 to SFTS microservice
 
-This folder contains scripts, configuration files (within the [config.d](./config.d/) folder) that enable the the S3 to SFTS microservice implemented on the GDX-Analytics platform.
+This folder contains scripts, configuration files (within the [config.d](./config.d/) folder) that enable the the S3 to SFTS microservice implemented on the GDX-Analytics platform. 
 
 
 ## Overview
