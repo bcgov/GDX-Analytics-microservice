@@ -6,8 +6,6 @@
   "object_prefix": "pmrp_qdata",
   "dml": "pmrp_qdata_dates.sql",
   "header": true,
-  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
-  "extension": ".csv",
   "sql_parse_key": "pmrp_qdata_dates",
   "date_list":["2021-01-01","2021-02-04","2021-05-08"]
 }
