@@ -75,8 +75,6 @@ The structure of the config file should resemble the following:
   "object_prefix": String,
   "dml": String,
   "header": Boolean,
-  "sfts_path": String,
-  "extension": String,
   "sql_parse_key": String,
   "start_date": String,
   "end_date": String,
@@ -93,8 +91,6 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
 - `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run as an UNLOAD command.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
-- `"sfts_path"`: The folder path in SFTS where the objects retrieved from S3 will be uploaded to.
-- `"extension"`: A postfix to the file name. As an extension, it must include the "`.`" character before the extension type, such as: `".csv"`. If no extension is needed then the value should be an empty string, like `""`. The extension is applied to the file created by `s3_to_redshift.py` at the time of downloading the source object from S3 to the local filesystem where the script is running. The extension is never applied to the source object key on S3 (that key is defined by the Redshift UNLOAD function used in `redshift_to_s3`, which does not support custom object key extensions).
 - `"sql_parse_key"`: [OPTIONAL] if the file referenced by `"dml"` contains a tag to be completed through some value that must be computed at runtime, reference that value here. It must be a tag that the `redshift_to_s3.py` script knows how to process (it must exist in that scripts `SQLPARSE` dictionary and have a function defined for it). Valid strings for this are:
   - `"pmrp_date_range"`: referenced in the dml SQL file as "`{pmrp_date_range}`". This populates a start and end date range for the select query based on the configured `"start_date"` and `"end_date"` values. If setting `"sql_parse_key"` to `"pmrp_date_range"` then you _MUST_ set a `"start_date"` _and_ an `"end_date"`.
   - `"pmrp_qdata_dates"`: referenced in the dml SQL file as "`{pmrp_qdata_dates}`". This populates the list of requested dates as chained OR conditions in the select query based on the configured `"date_list"` values. If setting `"sql_parse_key"` to `"pmrp_qdata_dates"` then you _MUST_ set a `"date_list"`.
