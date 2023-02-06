@@ -4,7 +4,6 @@
   "directory": "pmrp_gdx/example",
   "destination": "processed",
   "object_prefix": "test_pmrp",
-  "dml": "pmrp_date_range.sql",
   "header": false,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN",
   "extension": ".csv",

@@ -4,7 +4,6 @@
   "directory": "pmrp_qdata/dates/Jun_2022_change",
   "destination": "processed",
   "object_prefix": "pmrp_qdata",
-  "dml": "pmrp_qdata_dates.sql",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
   "extension": ".csv",
