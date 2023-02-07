@@ -6,8 +6,5 @@
   "object_prefix": "pmrp_qdata",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
-  "extension": ".csv",
-  "sql_parse_key": "pmrp_date_range",
-  "start_date": "20180508",
-  "end_date": "20220622"
+  "extension": ".csv"
 }
