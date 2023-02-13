@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "pmrp_qdata/dates/Jun_2022_change",
+  "destination": "processed",
+  "object_prefix": "pmrp_qdata",
+  "dml": "pmrp_qdata_dates.sql",
+  "header": true,
+  "sql_parse_key": "pmrp_qdata_dates",
+  "date_list":["2021-01-01","2021-02-04","2021-05-08"]
+}

@@ -1,10 +1,10 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "theq_sdpr/daily",
+  "directory": "pmrp_qdata/daily/Jun_2022_change",
   "destination": "processed",
-  "object_prefix": "sdpr",
-  "dml": "sdpr_last_full_day.sql",
+  "object_prefix": "pmrp_qdata",
   "header": true,
+  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
   "extension": ".csv"
 }

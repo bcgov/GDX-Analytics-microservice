@@ -1,0 +1,12 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "directory": "pmrp_gdx/pmrp_date_range",
+  "destination": "processed",
+  "object_prefix": "pmrp",
+  "dml": "pmrp_date_range.sql",
+  "header": false,
+  "sql_parse_key": "pmrp_date_range",
+  "start_date": "unsent",
+  "end_date": "max"
+}
