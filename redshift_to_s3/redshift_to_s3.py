@@ -45,7 +45,7 @@ def clean_exit(code, message):
 pguser = os.environ['pguser']
 pgpass = os.environ['pgpass']
 
-# AWS Redshift and S3 configuration
+# set up AWS Redshift connection
 conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 """.format(dbname='snowplow',
@@ -53,6 +53,9 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            port='5439',
            user=pguser,
            password=pgpass)
+
+# set up S3 connection
+client = boto3.client('s3')
 
 # Command line arguments
 parser = argparse.ArgumentParser(
@@ -69,15 +72,18 @@ config_file = sys.argv[2]
 with open(config) as f:
     config = json.load(f)
 
-object_prefix = config['object_prefix']
 bucket = config['bucket']
-
-source = config['source']
+storage = config['storage']
+archive = config['archive']
 directory = config['directory']
-source_prefix = f'{source}/{directory}'
 
-destination = config['destination']
-good_prefix = f"{destination}/good/{config['source']}/{config['directory']}"
+object_prefix = config['object_prefix']
+
+# creates the paths to the objects in s3 but does not have the object names
+storage_prefix = f'{storage}/{directory}'
+good_prefix = f"{archive}/good/{config['storage']}/{config['directory']}"
+bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"
+batch_prefix = f"{archive}/batch/{config['storage']}/{config['directory']}"
 
 dml_file = config['dml']
 header = config['header']
@@ -144,8 +150,6 @@ def return_query(local_query):
 
 def last_modified_object_key(prefix):
     '''return last modified object key'''
-    # set up S3 connection
-    client = boto3.client('s3')
     # extract the list of objects
     list_objs = client.list_objects_v2(Bucket=bucket, Prefix=prefix)
 
@@ -241,13 +245,13 @@ def report(data):
         print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
         print("\nList of objects successfully loaded to S3")
         for i, item in enumerate(data['good_list'], 1):
-            print(f"{i}.",f'{source}/{directory}/{item}')
+            print(f"{i}.",f'{storage}/{directory}/{item}')
  
     if data["failed_unloads"]:
         print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
         print('\nList of objects that failed to process:')
         for i, item in enumerate(data['bad_list'], 1):
-             print(f"{i}.",f'{source}/{directory}/{item}')
+             print(f"{i}.",f'{storage}/{directory}/{item}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -321,11 +325,12 @@ if sql_parse_key:
 
 # The UNLOAD query to support S3 loading direct from a Redshift query
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
-# This UNLOAD inserts into the S3 SOURCE path. Use s3_to_sfts.py to move these
-# SOURCE files into the SFTS, copying them to DESTINATION GOOD/BAD paths
+# This UNLOAD inserts into the S3 STORAGE path. Use s3_to_sfts.py to move these
+# STORAGE files into the SFTS, copying them to ARCHIVE GOOD/BAD paths
+# TODO: change this from writing directly to the storage path to writing to the batch path
 log_query = '''
 UNLOAD ('{request_query}')
-TO 's3://{bucket}/{source_prefix}/{object_key}_part'
+TO 's3://{bucket}/{storage_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
 PARALLEL OFF
@@ -333,7 +338,7 @@ PARALLEL OFF
 '''.format(
     request_query=request_query,
     bucket=bucket,
-    source_prefix=source_prefix,
+    storage_prefix=storage_prefix,
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
@@ -360,7 +365,7 @@ with psycopg2.connect(conn_string) as conn:
         else:
             logger.info(
                 'UNLOAD successful. Object prefix is %s/%s/%s',
-                bucket, source_prefix, object_key)
+                bucket, storage_prefix, object_key)
             report_stats['sucessful_unloads'] += 1
             report_stats['good_list'].append(object_key)
             report(report_stats)

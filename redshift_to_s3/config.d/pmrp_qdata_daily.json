@@ -1,9 +1,10 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
-  "source": "client",
+  "storage": "client",
+  "archive": "processed",
   "directory": "pmrp_qdata/daily/Jun_2022_change",
-  "destination": "processed",
   "object_prefix": "pmrp_qdata",
   "dml": "pmrp_qdata_daily.sql",
-  "header": true
+  "header": true,
+  "extension": ".csv"
 }
