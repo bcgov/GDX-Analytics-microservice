@@ -241,40 +241,63 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
 
-    print(f'\nObjects to process: {data["objects"]}')
-    print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
+    print(f'\nObjects unloaded to S3 {batch_prefix}: {data["successful_unloads"]}/{data["successful_unloads"]+data["failed_unloads"]}')
     
     #Print additional messages to standardize reports
  
-    if data["sucessful_unloads"]:
-        print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
-        print("\nList of objects successfully loaded to S3")
-        for i, item in enumerate(data['good_list'], 1):
-            print(f"{i}.",f'{storage}/{directory}/{item}')
+    if data["successful_unloads"]:
+        print(f'\nObjects successfully unloaded to S3 {batch_prefix}: {data["successful_unloads"]}')
+        for i, item in enumerate(data['successful_unloads_list'], 1):
+            print(f"{i}.",f'{item}')
  
     if data["failed_unloads"]:
-        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
-        print('\nList of objects that failed to process:')
-        for i, item in enumerate(data['bad_list'], 1):
-             print(f"{i}.",f'{storage}/{directory}/{item}')
+        print(f'\nObjects unsuccessfully unloaded to S3 {batch_prefix}: {data["failed_unloads"]}')
+        for i, item in enumerate(data['failed_unloads_list'], 1):
+             print(f"{i}.",f'{item}')
+    
+    print(f'\n\nObjects to process: {data["unprocessed_objects"]}')
+
+    # Print all objects loaded into s3/client
+    if data["storage_objects"]:
+        print(f'\nObjects processed to S3 {storage_prefix}: {data["good_objects"]}')
+        if data['storage_objects_list']:
+            for i, item in enumerate(data['storage_objects_list'], 1):
+                print(f"{i}: {item}")
+    
+    print(f'\n\nObjects to archive: {data["good_objects"]+data["bad_objects"]}')
+
+    # Print all objects loaded into s3/good
+    if data["good_objects"]:
+        print(f'\nObjects processed to S3 {good_prefix}: {data["good_objects"]}')
+        if data['good_objects_list']:
+            for i, item in enumerate(data['good_objects_list'], 1):
+                print(f"{i}: {item}")
+
+    # Print all objects loaded into s3/bad
+    if data["bad_objects"]:
+        print(f'\nObjects processed to S3 {bad_prefix}: {data["bad_objects"]}')
+        if data['bad_objects_list']:
+            for i, item in enumerate(data['bad_objects_list'], 1):
+                print(f"{i}: {item}")
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'objects':1,  #Script runs on a per object basis
-    'unprocessed_objects': 0,
-    'unprocessed_objects_list': [],
-    'objects_processed': 0,
-    'objects_not_processed': 0,
-    'processed':0,
     'redshift_queries': 0,
     'failed_redshift_queries':0,
     'good_redshift_queries':0,
-    'sucessful_unloads':0,
+    'successful_unloads':0,
+    'successful_unloads_list': [],
     'failed_unloads':0,
-    'good_list': [],
-    'bad_list' : [],
-    's3_good_list': [],
-    's3_bad_list' : []
+    'failed_unloads_list': [],
+    'unprocessed_objects': 0,
+    #'unprocessed_objects_list': [],
+    'storage_objects': 0,
+    'storage_objects_list': [],
+    'good_objects': 0,
+    'good_objects_list': [],
+    'bad_objects': 0,
+    'bad_objects_list' : []
 }
 
 if 'start_date' in config and 'end_date' in config:
@@ -366,8 +389,8 @@ def get_unprocessed_objects():
     for object_summary in res_bucket.objects.filter(Prefix=batch_prefix): # batch_prefix may need a trailing /
         key = object_summary.key
         filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-        goodfile = f"{archive}/good/{key}"
-        badfile = f"{archive}/bad/{key}"
+        goodfile = f"{good_prefix}/{filename}"
+        badfile = f"{bad_prefix}/{filename}"
 
         def is_processed():
             '''Check to see if the file has been processed already'''
@@ -395,7 +418,7 @@ def get_unprocessed_objects():
             objects_to_process.append(object_summary)
             logger.info('added %a for processing', filename)
             report_stats['unprocessed_objects'] += 1
-            report_stats['unprocessed_objects_list'].append(object_summary)
+            #report_stats['unprocessed_objects_list'].append(object_summary)
     return objects_to_process
 
 with psycopg2.connect(conn_string) as conn:
@@ -409,65 +432,74 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
-            report_stats['bad_list'].append(object_key)
+            report_stats['failed_unloads_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
             logger.info(
                 'UNLOAD successful. Object prefix is %s/%s/%s',
                 bucket, storage_prefix, object_key)
-            report_stats['sucessful_unloads'] += 1
+            report_stats['successful_unloads'] += 1
+            report_stats['successful_unloads_list'].append(object_key)
 
             # optionally add the file extension and transfer to storage folders
             objects = get_unprocessed_objects()
             for object in objects:
                 key = object.key
                 filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-                copy_from_prefix = ''
-                copy_to_prefix = ''
+                filename_with_extension = ''
                 copy_good_prefix = f"{good_prefix}/{filename}"
                 copy_bad_prefix = f"{bad_prefix}/{filename}"
+                copy_from_prefix = f"{batch_prefix}/{filename}"
                 if 'extension' in config:
                     extension = config['extension']
+                    filename_with_extension = f"{filename}{extension}"
                     logger.info(
-                        'File extension set in %s as %s',
+                        'File extension set in %s as ''%s''',
                         config_file, extension)
-                    copy_from_prefix = f"{batch_prefix}/{filename}"
-                    copy_to_prefix = f"{storage_prefix}/{filename}{extension}"
                 else:
+                    filename_with_extension = filename
                     logger.info(
                         'File extension not set in %s',
                         config_file)
-                    copy_from_prefix = f"{batch_prefix}/{filename}"
-                    copy_to_prefix = f"{storage_prefix}/{filename}"
                 try:
+                    copy_to_prefix = f"{storage_prefix}/{filename_with_extension}"
                     logger.info(
-                        'Copying from %s',
-                        copy_from_prefix)
+                        'Copying from s3://%s/%s',
+                        bucket, copy_from_prefix)
                     logger.info(
-                        'Copying to %s',
-                        copy_to_prefix)
+                        'Copying to s3://%s/%s',
+                        bucket, copy_to_prefix)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_to_prefix)
                 except ClientError:
-                    logger.exception('Exception copying object %s', copy_to_prefix)
+                    logger.exception(
+                        'Exception copying from s3://%s/%s',
+                        bucket, copy_from_prefix)
+                    logger.exception(
+                        'to s3://%s/%s',
+                        bucket, copy_to_prefix)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_bad_prefix)
-                    report_stats['s3_bad_list'].append(object_key)
-                    report_stats['objects_not_processed'] += 1
+                    report_stats['bad_objects_list'].append(filename)
+                    report_stats['bad_objects'] += 1
+                    
+                    report(report_stats)
+                    clean_exit(1,'Failed boto3 copy_object attempt.')
                 else:
                     logger.info('copied %s to %s', object.key, copy_to_prefix)
+                    report_stats['storage_objects'] += 1
+                    report_stats['storage_objects_list'].append(filename_with_extension)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_good_prefix)
-                    report_stats['objects_processed'] += 1
-                    report_stats['s3_good_list'].append(object_key)
+                    report_stats['good_objects'] += 1
+                    report_stats['good_objects_list'].append(filename)
 
-            report_stats['good_list'].append(object_key)
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
