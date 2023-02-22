@@ -66,10 +66,10 @@ directory = config['directory']
 object_prefix = config['object_prefix']
 
 # creates the paths to the objects in s3 but does not have the object names
-storage_prefix = f'{storage}/{directory}'
-good_prefix = f"{archive}/good/{config['storage']}/{config['directory']}"
-bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"
-batch_prefix = f"{archive}/batch/{config['storage']}/{config['directory']}"
+batch_prefix = f"{archive}/batch/{config['storage']}/{config['directory']}" # where the data is temporarly stored when unloaded from redshift
+storage_prefix = f'{storage}/{directory}'                                   # where the final file for the client is stored
+good_prefix = f"{archive}/good/{config['storage']}/{config['directory']}"   # where the unloaded data is archived if the storage is successful
+bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"     # where the unloaded data is archived if the storage is unsuccessful
 
 dml_file = config['dml']
 header = config['header']
@@ -220,7 +220,7 @@ def object_key_builder(key_prefix, *args):
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
-    if data['failed_redshift_queries'] or data['failed_unloads']:
+    if data['failed_redshift_queries'] or data['failed_unloads'] or data['unstored_objects'] or data['bad_objects']:
         print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'\n***The microservice ran successfully***\n')
@@ -267,7 +267,7 @@ def report(data):
             for i, item in enumerate(data['stored_objects_list'], 1):
                 print(f"{i}: {storage_prefix}/{item}")
 
-    # Print all objects loaded into s3/client
+    # Print all objects not loaded into s3/client
     if data["unstored_objects"]:
         print(f'Objects not stored to s3 /client: {data["unstored_objects"]}')
         print(f'\nList of objects not stored to S3 /client:')
@@ -295,7 +295,6 @@ def report(data):
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'objects':1,  #Script runs on a per object basis
     'redshift_queries': 0,
     'failed_redshift_queries':0,
     'good_redshift_queries':0,
@@ -460,11 +459,13 @@ with psycopg2.connect(conn_string) as conn:
             for object in objects:
                 key = object.key
                 filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-                filename_with_extension = ''
+
+                # final paths that include the filenames
                 copy_good_prefix = f"{good_prefix}/{filename}"
                 copy_bad_prefix = f"{bad_prefix}/{filename}"
                 copy_from_prefix = f"{batch_prefix}/{filename}"
                 if 'extension' in config:
+                    # if an extension was set in the config, add it to the end of the file
                     extension = config['extension']
                     filename_with_extension = f"{filename}{extension}"
                     logger.info('File extension set in %s as "%s"', config_file, extension)
@@ -472,37 +473,44 @@ with psycopg2.connect(conn_string) as conn:
                     filename_with_extension = filename
                     logger.info('File extension not set in %s', config_file)
                 try:
+                    # final storage path that includes the filename and optional extension
                     copy_to_prefix = f"{storage_prefix}/{filename_with_extension}"
-                    logger.info('Copying from s3://%s/%s', bucket, copy_from_prefix)
-                    logger.info('Copying to s3://%s/%s', bucket, copy_to_prefix)
+                    logger.info('Copying to s3 /client ...')
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_to_prefix)
                 except ClientError:
-                    logger.exception(
-                        'Exception copying from s3://%s/%s',
-                        bucket, copy_from_prefix)
+                    logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
                     logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
                     report_stats['unstored_objects'] += 1
                     report_stats['unstored_objects_list'].append(filename_with_extension)
+                    
+                    logger.info('Copying to s3 /bad ...')
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_bad_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
                     report_stats['bad_objects_list'].append(filename)
                     report_stats['bad_objects'] += 1
                     
                     report(report_stats)
                     clean_exit(1,'Failed boto3 copy_object attempt.')
                 else:
-                    logger.info('copied %s to %s', object.key, copy_to_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
                     report_stats['stored_objects'] += 1
                     report_stats['stored_objects_list'].append(filename_with_extension)
+                    
+                    logger.info('Copying to s3 /good ...')
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
                         Key=copy_good_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
                     report_stats['good_objects'] += 1
                     report_stats['good_objects_list'].append(filename)
 
