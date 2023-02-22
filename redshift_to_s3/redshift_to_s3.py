@@ -224,7 +224,7 @@ def report(data):
         print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'\n***The microservice ran successfully***\n')
-    
+ 
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
@@ -241,44 +241,57 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
 
-    print(f'\nObjects unloaded to S3 {batch_prefix}: {data["successful_unloads"]}/{data["successful_unloads"]+data["failed_unloads"]}')
-    
+    print(f'\nObjects loaded to S3 /batch: {data["successful_unloads"]}/{data["successful_unloads"]+data["failed_unloads"]}')
+
     #Print additional messages to standardize reports
- 
+
     if data["successful_unloads"]:
-        print(f'\nObjects successfully unloaded to S3 {batch_prefix}: {data["successful_unloads"]}')
+        print(f'Objects successfully loaded to S3 /batch: {data["successful_unloads"]}')
+        print("\nList of objects successfully loaded to S3 /batch")
         for i, item in enumerate(data['successful_unloads_list'], 1):
-            print(f"{i}.",f'{item}')
- 
+            print(f"{i}.",f'{batch_prefix}/{item}')
+
     if data["failed_unloads"]:
-        print(f'\nObjects unsuccessfully unloaded to S3 {batch_prefix}: {data["failed_unloads"]}')
+        print(f'\nObjects unsuccessfully loaded to S3 /batch: {data["failed_unloads"]}')
+        print("\nList of objects unsuccessfully loaded to S3 /batch:")
         for i, item in enumerate(data['failed_unloads_list'], 1):
-             print(f"{i}.",f'{item}')
+             print(f"{i}.",f'{batch_prefix}/{item}')
     
-    print(f'\n\nObjects to process: {data["unprocessed_objects"]}')
+    print(f'\n\nObjects to store: {data["unprocessed_objects"]}')
 
     # Print all objects loaded into s3/client
-    if data["storage_objects"]:
-        print(f'\nObjects processed to S3 {storage_prefix}: {data["good_objects"]}')
-        if data['storage_objects_list']:
-            for i, item in enumerate(data['storage_objects_list'], 1):
-                print(f"{i}: {item}")
-    
-    print(f'\n\nObjects to archive: {data["good_objects"]+data["bad_objects"]}')
+    if data["stored_objects"]:
+        print(f'Objects stored to s3 /client: {data["stored_objects"]}')
+        print(f'\nList of objects stored to S3 /client:')
+        if data['stored_objects_list']:
+            for i, item in enumerate(data['stored_objects_list'], 1):
+                print(f"{i}: {storage_prefix}/{item}")
+
+    # Print all objects loaded into s3/client
+    if data["unstored_objects"]:
+        print(f'Objects not stored to s3 /client: {data["unstored_objects"]}')
+        print(f'\nList of objects not stored to S3 /client:')
+        if data['unstored_objects_list']:
+            for i, item in enumerate(data['unstored_objects_list'], 1):
+                print(f"{i}: {storage_prefix}/{item}")
+
+    print(f'\n\nObjects to process: {data["unprocessed_objects"]}')
 
     # Print all objects loaded into s3/good
     if data["good_objects"]:
-        print(f'\nObjects processed to S3 {good_prefix}: {data["good_objects"]}')
+        print(f'Objects processed to s3 /good: {data["good_objects"]}')
+        print(f'\nList of objects processed to S3 /good:')
         if data['good_objects_list']:
             for i, item in enumerate(data['good_objects_list'], 1):
-                print(f"{i}: {item}")
+                print(f"{i}: {good_prefix}/{item}")
 
     # Print all objects loaded into s3/bad
     if data["bad_objects"]:
-        print(f'\nObjects processed to S3 {bad_prefix}: {data["bad_objects"]}')
+        print(f'Objects processed to s3 /bad: {data["bad_objects"]}')
+        print(f'\nList of objects processed to S3 /bad:')
         if data['bad_objects_list']:
             for i, item in enumerate(data['bad_objects_list'], 1):
-                print(f"{i}: {item}")
+                print(f"{i}: {bad_prefix}/{item}")
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -291,9 +304,10 @@ report_stats = {
     'failed_unloads':0,
     'failed_unloads_list': [],
     'unprocessed_objects': 0,
-    #'unprocessed_objects_list': [],
-    'storage_objects': 0,
-    'storage_objects_list': [],
+    'stored_objects': 0,
+    'stored_objects_list': [],
+    'unstored_objects': 0,
+    'unstored_objects_list': [],
     'good_objects': 0,
     'good_objects_list': [],
     'bad_objects': 0,
@@ -418,7 +432,6 @@ def get_unprocessed_objects():
             objects_to_process.append(object_summary)
             logger.info('added %a for processing', filename)
             report_stats['unprocessed_objects'] += 1
-            #report_stats['unprocessed_objects_list'].append(object_summary)
     return objects_to_process
 
 with psycopg2.connect(conn_string) as conn:
@@ -454,22 +467,14 @@ with psycopg2.connect(conn_string) as conn:
                 if 'extension' in config:
                     extension = config['extension']
                     filename_with_extension = f"{filename}{extension}"
-                    logger.info(
-                        'File extension set in %s as ''%s''',
-                        config_file, extension)
+                    logger.info('File extension set in %s as "%s"', config_file, extension)
                 else:
                     filename_with_extension = filename
-                    logger.info(
-                        'File extension not set in %s',
-                        config_file)
+                    logger.info('File extension not set in %s', config_file)
                 try:
                     copy_to_prefix = f"{storage_prefix}/{filename_with_extension}"
-                    logger.info(
-                        'Copying from s3://%s/%s',
-                        bucket, copy_from_prefix)
-                    logger.info(
-                        'Copying to s3://%s/%s',
-                        bucket, copy_to_prefix)
+                    logger.info('Copying from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copying to s3://%s/%s', bucket, copy_to_prefix)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
@@ -478,9 +483,9 @@ with psycopg2.connect(conn_string) as conn:
                     logger.exception(
                         'Exception copying from s3://%s/%s',
                         bucket, copy_from_prefix)
-                    logger.exception(
-                        'to s3://%s/%s',
-                        bucket, copy_to_prefix)
+                    logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
+                    report_stats['unstored_objects'] += 1
+                    report_stats['unstored_objects_list'].append(filename_with_extension)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
@@ -492,8 +497,8 @@ with psycopg2.connect(conn_string) as conn:
                     clean_exit(1,'Failed boto3 copy_object attempt.')
                 else:
                     logger.info('copied %s to %s', object.key, copy_to_prefix)
-                    report_stats['storage_objects'] += 1
-                    report_stats['storage_objects_list'].append(filename_with_extension)
+                    report_stats['stored_objects'] += 1
+                    report_stats['stored_objects_list'].append(filename_with_extension)
                     client.copy_object(
                         Bucket=bucket,
                         CopySource='{}/{}'.format(bucket, copy_from_prefix),
