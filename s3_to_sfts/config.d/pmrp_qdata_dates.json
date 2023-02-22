@@ -1,8 +1,8 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
-  "source": "client",
+  "storage": "client",
+  "archive": "processed",
   "directory": "pmrp_qdata/dates/Jun_2022_change",
-  "destination": "processed",
   "object_prefix": "pmrp_qdata",
   "header": true,
   "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",

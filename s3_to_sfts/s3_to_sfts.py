@@ -68,10 +68,10 @@ with open(config) as f:
     config = json.load(f)
 
 config_bucket = config['bucket']
-source = config['source']
+storage = config['storage']
 directory = config['directory']
-prefix = source + "/" + directory + "/"
-destination = config['destination']
+prefix = storage + "/" + directory + "/"
+archive = config['archive']
 object_prefix = config['object_prefix']
 sfts_path = config['sfts_path']
 extension = config['extension']
@@ -107,14 +107,14 @@ def is_processed():
     try:
         client.head_object(Bucket=config_bucket, Key=goodfile)
     except ClientError:
-        pass  # this object does not exist under the good destination path
+        pass  # this object does not exist under the good archive path
     else:
         logger.info("%s was processed as good already.", filename)
         return True
     try:
         client.head_object(Bucket=config_bucket, Key=badfile)
     except ClientError:
-        pass  # this object does not exist under the bad destination path
+        pass  # this object does not exist under the bad archive path
     else:
         logger.info("%s was processed as bad already.", filename)
         return True
@@ -177,8 +177,8 @@ objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=prefix):
     key = object_summary.key
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{destination}/good/{key}"
-    badfile = f"{destination}/bad/{key}"
+    goodfile = f"{archive}/good/{key}"
+    badfile = f"{archive}/bad/{key}"
     # skip to next object if already processed
     if is_processed():
         continue
@@ -241,15 +241,15 @@ except subprocess.CalledProcessError:
 else:
     report_stats['objects_to_sfts'] = True
 
-# copy the processed files to their outfile destination path
+# copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
     if xfer_proc:
-        outfile = f"{destination}/good/{key}"
+        outfile = f"{archive}/good/{key}"
     else:
-        outfile = f"{destination}/bad/{key}"
+        outfile = f"{archive}/bad/{key}"
     try:
         client.copy_object(
             Bucket=config_bucket,
