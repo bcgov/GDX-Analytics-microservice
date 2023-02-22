@@ -74,7 +74,10 @@ prefix = storage + "/" + directory + "/"
 archive = config['archive']
 object_prefix = config['object_prefix']
 sfts_path = config['sfts_path']
-extension = config['extension']
+if 'extension' in config:
+    extension = config['extension']
+else:
+    extension = ''
 
 # Get required environment variables
 sfts_user = os.environ['sfts_user']
