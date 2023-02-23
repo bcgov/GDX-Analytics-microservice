@@ -75,9 +75,9 @@ The structure of the config file should resemble the following:
 ```
 {
   "bucket": String,
-  "source": String,
+  "storage": String,
+  "archive": String,
   "directory": String,
-  "destination": String,
   "object_prefix": String,
   "header": Boolean,
   "sfts_path": String,
@@ -88,9 +88,9 @@ The structure of the config file should resemble the following:
 The keys in the config file are defined as follows. All parameters are required in order to use one configuration file for both scripts (which is recommended for service encapsulation and ease of maintenance):
 
 - `"bucket"`: the label defining the S3 bucket that the microservice will reference.
-- `"source"`: the first prefix of source objects, as in: `"s3://<bucket>/<source>/.../<object>"`.
-- `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<source>/<directory>/<object>"` or `"s3://<bucket>/<destination>/<good|bad|batch>/<source>/<directory>/<object>"`
-- `"destination"`: the first prefix of processed objects, as in `"s3://<bucket>/<destination>/<good|bad|batch>"`.
+- `"storage"`: the first prefix for where the objects to be transfered are stored, as in: `"s3://<bucket>/<storage>/.../<object>"`.
+- `"destination"`: the first prefix of processed objects are archived, as in `"s3://<bucket>/<archive>/<good|bad|batch>"`.
+- `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<source>/<directory>/<object>"` or `"s3://<bucket>/<archive>/<good|bad|batch>/<storage>/<directory>/<object>"`
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
 - `"sfts_path"`: The folder path in SFTS where the objects retrieved from S3 will be uploaded to.
