@@ -180,8 +180,8 @@ objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=prefix):
     key = object_summary.key
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{archive}/good/{key}"
-    badfile = f"{archive}/bad/{key}"
+    goodfile = f"{archive}/good/sfts/{key}"
+    badfile = f"{archive}/bad/sfts/{key}"
     # skip to next object if already processed
     if is_processed():
         continue
@@ -250,9 +250,9 @@ for obj in objects_to_process:
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
     if xfer_proc:
-        outfile = f"{archive}/good/{key}"
+        outfile = f"{archive}/good/sfts/{key}"
     else:
-        outfile = f"{archive}/bad/{key}"
+        outfile = f"{archive}/bad/sfts/{key}"
     try:
         client.copy_object(
             Bucket=config_bucket,
