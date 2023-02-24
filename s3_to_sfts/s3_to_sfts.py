@@ -68,11 +68,20 @@ with open(config) as f:
     config = json.load(f)
 
 config_bucket = config['bucket']
-storage = config['storage']
-directory = config['directory']
-prefix = storage + "/" + directory + "/"
+
+source = config['source']
+source_client = config['source_client']
+source_directory = config['source_directory']
+source_prefix = f'{source}/{source_client}/{source_directory}/'
+
 archive = config['archive']
+archive_client = config['archive_client']
+archive_directory = config['archive_directory']
+good_archive_prefix = f'{archive}/good/{source}/{archive_client}/{archive_directory}'
+bad_archive_prefix = f'{archive}/bad/{source}/{archive_client}/{archive_directory}'
+
 object_prefix = config['object_prefix']
+
 sfts_path = config['sfts_path']
 if 'extension' in config:
     extension = config['extension']
@@ -93,7 +102,7 @@ bucket_name = res_bucket.name
 
 def download_object(o):
     '''downloads object to a tmp directoy'''
-    dl_name = o.replace(prefix, '')
+    dl_name = o.replace(source_prefix, '')
     try:
         res_bucket.download_file(o, './tmp/{0}{1}'.format(dl_name, extension))
     except ClientError as e:
@@ -177,15 +186,16 @@ report_stats = {
 # objects_to_process will contain zero or more objects if truncate = False
 filename_regex = fr'^{object_prefix}'
 objects_to_process = []
-for object_summary in res_bucket.objects.filter(Prefix=prefix):
+for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     key = object_summary.key
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{archive}/good/sfts/{key}"
-    badfile = f"{archive}/bad/sfts/{key}"
+    goodfile = f"{good_archive_prefix}/{filename}"
+    badfile = f"{bad_archive_prefix}/{filename}"
     # skip to next object if already processed
     if is_processed():
         continue
     if re.search(filename_regex, filename):
+        # an s3 object needs to be added to the list as we use an s3 function to download the object later
         objects_to_process.append(object_summary)
         logger.info('added %a for processing', filename)
         report_stats['objects'] += 1
@@ -210,7 +220,7 @@ sf_full_path = os.path.realpath(sf.name)
 sf.write('cd {}\n'.format(sfts_path))
 # write all file names downloaded in "A" in the objects_to_process list
 for obj in objects_to_process:
-    transfer_file = f"./tmp/{obj.key.replace(prefix, '')}{extension}"
+    transfer_file = f"./tmp/{obj.key.replace(source_prefix, '')}{extension}"
     sf.write('put {}\n'.format(transfer_file))
 sf.write('quit\n')
 sf.close()
@@ -247,12 +257,14 @@ else:
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
+    file = key[key.rfind('/')+1:]  # get the file (after the last '/')
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
+    # append the file to the good or bad archive path
     if xfer_proc:
-        outfile = f"{archive}/good/sfts/{key}"
+        outfile = f"{good_archive_prefix}/{file}"
     else:
-        outfile = f"{archive}/bad/sfts/{key}"
+        outfile = f"{bad_archive_prefix}/{file}"
     try:
         client.copy_object(
             Bucket=config_bucket,
