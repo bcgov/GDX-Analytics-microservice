@@ -76,8 +76,11 @@ The structure of the config file should resemble the following:
 {
   "bucket": String,
   "source": String,
-  "directory": String,
-  "destination": String,
+  "source_client": String,
+  "source_directory": String,
+  "archive": String,
+  "archive_client": String,
+  "archive_directory": String,
   "object_prefix": String,
   "header": Boolean,
   "sfts_path": String,
@@ -88,9 +91,12 @@ The structure of the config file should resemble the following:
 The keys in the config file are defined as follows. All parameters are required in order to use one configuration file for both scripts (which is recommended for service encapsulation and ease of maintenance):
 
 - `"bucket"`: the label defining the S3 bucket that the microservice will reference.
-- `"source"`: the first prefix of source objects, as in: `"s3://<bucket>/<source>/.../<object>"`.
-- `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<source>/<directory>/<object>"` or `"s3://<bucket>/<destination>/<good|bad|batch>/<source>/<directory>/<object>"`
-- `"destination"`: the first prefix of processed objects, as in `"s3://<bucket>/<destination>/<good|bad|batch>"`.
+- `"source"`: the first prefix for where the objects to be transfered are sourced from, as in: `"s3://<bucket>/<source>/.../<object>"`.
+- `"source_client"`: the client prefix for where the objects to be transfered are sourced from, as in: `"s3://<bucket>/<source>/<source_client>/.../<object>"`.
+- `"source_directory"`: the last path prefix before the object itself where the object to be transfered is sourced from, as in: `"s3://<bucket>/<source>/<source_client>/<source_directory>/<object>"`.
+- `"archive"`: the first prefix of where processed objects are archived, as in `"s3://<bucket>/<archive>/<good|bad|batch>/<source>/.../<object>"`.
+- `"archive_client"`: the client prefix of where processed objects are archived, as in `"s3://<bucket>/<archive>/<good|bad|batch>/<source>/<archive_client>/.../<object>"`.
+- `"archive_directory"`: the last path prefix before the object itself where the object will be archived: `"s3://<bucket>/<archive>/<good|bad|batch>/<source>/<archive_client>/<archive_directory>/<object>"`
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
 - `"sfts_path"`: The folder path in SFTS where the objects retrieved from S3 will be uploaded to.

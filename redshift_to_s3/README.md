@@ -70,24 +70,25 @@ The structure of the config file should resemble the following:
 {
   "bucket": String,
   "source": String,
+  "archive": String,
   "directory": String,
-  "destination": String,
   "object_prefix": String,
   "dml": String,
   "header": Boolean,
   "sql_parse_key": String,
   "start_date": String,
   "end_date": String,
-  "date_list": [String]
+  "date_list": [String],
+  "extension": [String]
 }
 ```
 
 The keys in the config file are defined as follows. All parameters are required in order to use one configuration file for both scripts (which is recommended for service encapsulation and ease of maintenance):
 
 - `"bucket"`: the label defining the S3 bucket that the microservice will reference.
-- `"source"`: the first prefix of source objects, as in: `"s3://<bucket>/<source>/.../<object>"`.
-- `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<source>/<directory>/<object>"` or `"s3://<bucket>/<destination>/<good|bad|batch>/<source>/<directory>/<object>"`
-- `"destination"`: the first prefix of processed objects, as in `"s3://<bucket>/<destination>/<good|bad|batch>"`.
+- `"storage"`: the first prefix of where the objects will be stored for the client, as in: `"s3://<bucket>/<storage>/.../<object>"`.
+- `"archive"`: the first prefix of where processed objects are archived, as in `"s3://<bucket>/<archive>/<good|bad|batch>"`.
+- `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<storage>/<directory>/<object>"` or `"s3://<bucket>/<archive>/<good|bad|batch>/<storage>/<directory>/<object>"`
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
 - `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run as an UNLOAD command.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
@@ -106,6 +107,7 @@ The keys in the config file are defined as follows. All parameters are required 
   - `"unsent"` as an alias for `"max"`.
 - `"date_list"`: [Only use `"date_list"` if also setting `'slq_parse_key'`, otherwise exclude `"date_list"` from config file] A list of arbitrary dates. Will be used to populate part of the resultant file name and may be used to determine query logic. It must be set as:
   - `["YYYYMMDD","YYYMMDD","YYYMMDD"]` value where `YYYY` is a 4-digit year value, `MM` is a 2-digit month value, and `DD` is a two digit day value. For example: `"20200220"` would represent a start date of February 20th, 2020. You may request one or multiple dates.
+- `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
 
 ### DML File
 

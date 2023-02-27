@@ -23,7 +23,9 @@ from tzlocal import get_localzone
 from pytz import timezone
 import psycopg2
 import boto3
+from botocore.exceptions import ClientError
 import lib.logs as log
+import re
 
 logger = logging.getLogger(__name__)
 log.setup()
@@ -41,19 +43,6 @@ def clean_exit(code, message):
     sys.exit(code)
 
 
-# Get required environment variables
-pguser = os.environ['pguser']
-pgpass = os.environ['pgpass']
-
-# AWS Redshift and S3 configuration
-conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
-""".format(dbname='snowplow',
-           host='redshift.analytics.gov.bc.ca',
-           port='5439',
-           user=pguser,
-           password=pgpass)
-
 # Command line arguments
 parser = argparse.ArgumentParser(
     description='GDX Analytics ETL utility for PRMP.')
@@ -69,15 +58,18 @@ config_file = sys.argv[2]
 with open(config) as f:
     config = json.load(f)
 
-object_prefix = config['object_prefix']
 bucket = config['bucket']
-
-source = config['source']
+storage = config['storage']
+archive = config['archive']
 directory = config['directory']
-source_prefix = f'{source}/{directory}'
 
-destination = config['destination']
-good_prefix = f"{destination}/good/{config['source']}/{config['directory']}"
+object_prefix = config['object_prefix']
+
+# creates the paths to the objects in s3 but does not have the object names
+batch_prefix = f"{archive}/batch/{config['storage']}/{config['directory']}" # where the data is temporarly stored when unloaded from redshift
+storage_prefix = f'{storage}/{directory}'                                   # where the final file for the client is stored
+good_prefix = f"{archive}/good/{config['storage']}/{config['directory']}"   # where the unloaded data is archived if the storage is successful
+bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"     # where the unloaded data is archived if the storage is unsuccessful
 
 dml_file = config['dml']
 header = config['header']
@@ -87,6 +79,25 @@ sql_parse_key = \
 
 if 'date_list' in config:
     dates = config['date_list']
+
+# Get required environment variables
+pguser = os.environ['pguser']
+pgpass = os.environ['pgpass']
+
+# set up AWS Redshift connection
+conn_string = """
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
+""".format(dbname='snowplow',
+           host='redshift.analytics.gov.bc.ca',
+           port='5439',
+           user=pguser,
+           password=pgpass)
+
+# set up S3 connection
+client = boto3.client('s3')  # low-level functional API
+resource = boto3.resource('s3')  # high-level object-oriented API
+res_bucket = resource.Bucket(bucket)  # resource bucket object
+bucket_name = res_bucket.name
 
 def raise_(ex):
     '''to raise generic exceptions'''
@@ -144,8 +155,6 @@ def return_query(local_query):
 
 def last_modified_object_key(prefix):
     '''return last modified object key'''
-    # set up S3 connection
-    client = boto3.client('s3')
     # extract the list of objects
     list_objs = client.list_objects_v2(Bucket=bucket, Prefix=prefix)
 
@@ -211,11 +220,11 @@ def object_key_builder(key_prefix, *args):
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
-    if data['failed_redshift_queries'] or data['failed_unloads']:
+    if data['failed_redshift_queries'] or data['failed_unloads'] or data['unstored_objects'] or data['bad_objects']:
         print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'\n***The microservice ran successfully***\n')
-    
+ 
     print(f'Report: {__file__}\n')
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
@@ -232,34 +241,76 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
 
-    print(f'\nObjects to process: {data["objects"]}')
-    print(f'Objects loaded to S3: {data["sucessful_unloads"]}/{data["objects"]}')
-    
+    print(f'\nObjects loaded to S3 /batch: {data["successful_unloads"]}/{data["successful_unloads"]+data["failed_unloads"]}')
+
     #Print additional messages to standardize reports
- 
-    if data["sucessful_unloads"]:
-        print(f'Objects successful loaded to S3: {data["sucessful_unloads"]}')
-        print("\nList of objects successfully loaded to S3")
-        for i, item in enumerate(data['good_list'], 1):
-            print(f"{i}.",f'{source}/{directory}/{item}')
- 
+
+    if data["successful_unloads"]:
+        print(f'Objects successfully loaded to S3 /batch: {data["successful_unloads"]}')
+        print("\nList of objects successfully loaded to S3 /batch")
+        for i, item in enumerate(data['successful_unloads_list'], 1):
+            print(f"{i}.",f'{batch_prefix}/{item}')
+
     if data["failed_unloads"]:
-        print(f'Objects unsuccessful loaded to S3: {data["failed_unloads"]}')
-        print('\nList of objects that failed to process:')
-        for i, item in enumerate(data['bad_list'], 1):
-             print(f"{i}.",f'{source}/{directory}/{item}')
+        print(f'\nObjects unsuccessfully loaded to S3 /batch: {data["failed_unloads"]}')
+        print("\nList of objects unsuccessfully loaded to S3 /batch:")
+        for i, item in enumerate(data['failed_unloads_list'], 1):
+             print(f"{i}.",f'{batch_prefix}/{item}')
+    
+    print(f'\n\nObjects to store: {data["unprocessed_objects"]}')
+
+    # Print all objects loaded into s3/client
+    if data["stored_objects"]:
+        print(f'Objects stored to s3 /client: {data["stored_objects"]}')
+        print(f'\nList of objects stored to S3 /client:')
+        if data['stored_objects_list']:
+            for i, item in enumerate(data['stored_objects_list'], 1):
+                print(f"{i}: {storage_prefix}/{item}")
+
+    # Print all objects not loaded into s3/client
+    if data["unstored_objects"]:
+        print(f'Objects not stored to s3 /client: {data["unstored_objects"]}')
+        print(f'\nList of objects not stored to S3 /client:')
+        if data['unstored_objects_list']:
+            for i, item in enumerate(data['unstored_objects_list'], 1):
+                print(f"{i}: {storage_prefix}/{item}")
+
+    print(f'\n\nObjects to process: {data["unprocessed_objects"]}')
+
+    # Print all objects loaded into s3/good
+    if data["good_objects"]:
+        print(f'Objects processed to s3 /good: {data["good_objects"]}')
+        print(f'\nList of objects processed to S3 /good:')
+        if data['good_objects_list']:
+            for i, item in enumerate(data['good_objects_list'], 1):
+                print(f"{i}: {good_prefix}/{item}")
+
+    # Print all objects loaded into s3/bad
+    if data["bad_objects"]:
+        print(f'Objects processed to s3 /bad: {data["bad_objects"]}')
+        print(f'\nList of objects processed to S3 /bad:')
+        if data['bad_objects_list']:
+            for i, item in enumerate(data['bad_objects_list'], 1):
+                print(f"{i}: {bad_prefix}/{item}")
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'objects':1,  #Script runs on a per object basis
-    'processed':0,
     'redshift_queries': 0,
     'failed_redshift_queries':0,
     'good_redshift_queries':0,
-    'sucessful_unloads':0,
+    'successful_unloads':0,
+    'successful_unloads_list': [],
     'failed_unloads':0,
-    'good_list': [],
-    'bad_list' : []
+    'failed_unloads_list': [],
+    'unprocessed_objects': 0,
+    'stored_objects': 0,
+    'stored_objects_list': [],
+    'unstored_objects': 0,
+    'unstored_objects_list': [],
+    'good_objects': 0,
+    'good_objects_list': [],
+    'bad_objects': 0,
+    'bad_objects_list' : []
 }
 
 if 'start_date' in config and 'end_date' in config:
@@ -321,11 +372,10 @@ if sql_parse_key:
 
 # The UNLOAD query to support S3 loading direct from a Redshift query
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
-# This UNLOAD inserts into the S3 SOURCE path. Use s3_to_sfts.py to move these
-# SOURCE files into the SFTS, copying them to DESTINATION GOOD/BAD paths
+# This UNLOAD inserts into the S3 BATCH path
 log_query = '''
 UNLOAD ('{request_query}')
-TO 's3://{bucket}/{source_prefix}/{object_key}_part'
+TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
 PARALLEL OFF
@@ -333,7 +383,7 @@ PARALLEL OFF
 '''.format(
     request_query=request_query,
     bucket=bucket,
-    source_prefix=source_prefix,
+    batch_prefix=batch_prefix,
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
@@ -342,6 +392,46 @@ PARALLEL OFF
 query = log_query.format(
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+
+def get_unprocessed_objects():
+    # This bucket scan will find unprocessed objects matching on the object prefix
+    # objects_to_process will contain zero or one objects if truncate = True
+    # objects_to_process will contain zero or more objects if truncate = False
+    filename_regex = fr'^{object_prefix}'
+    objects_to_process = []
+    for object_summary in res_bucket.objects.filter(Prefix=batch_prefix): # batch_prefix may need a trailing /
+        key = object_summary.key
+        filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
+        goodfile = f"{good_prefix}/{filename}"
+        badfile = f"{bad_prefix}/{filename}"
+
+        def is_processed():
+            '''Check to see if the file has been processed already'''
+            try:
+                client.head_object(Bucket=bucket, Key=goodfile)
+            except ClientError:
+                pass  # this object does not exist under the good destination path
+            else:
+                logger.info("%s was processed as good already.", filename)
+                return True
+            try:
+                client.head_object(Bucket=bucket, Key=badfile)
+            except ClientError:
+                pass  # this object does not exist under the bad destination path
+            else:
+                logger.info("%s was processed as bad already.", filename)
+                return True
+            logger.info("%s has not been processed.", filename)
+            return False
+
+        # skip to next object if already processed
+        if is_processed():
+            continue
+        if re.search(filename_regex, filename):
+            objects_to_process.append(object_summary)
+            logger.info('added %a for processing', filename)
+            report_stats['unprocessed_objects'] += 1
+    return objects_to_process
 
 with psycopg2.connect(conn_string) as conn:
     with conn.cursor() as curs:
@@ -354,14 +444,75 @@ with psycopg2.connect(conn_string) as conn:
             logger.error(('UNLOAD transaction on %s failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
-            report_stats['bad_list'].append(object_key)
+            report_stats['failed_unloads_list'].append(object_key)
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
             logger.info(
                 'UNLOAD successful. Object prefix is %s/%s/%s',
-                bucket, source_prefix, object_key)
-            report_stats['sucessful_unloads'] += 1
-            report_stats['good_list'].append(object_key)
+                bucket, storage_prefix, object_key)
+            report_stats['successful_unloads'] += 1
+            report_stats['successful_unloads_list'].append(object_key)
+
+            # optionally add the file extension and transfer to storage folders
+            objects = get_unprocessed_objects()
+            for object in objects:
+                key = object.key
+                filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
+
+                # final paths that include the filenames
+                copy_good_prefix = f"{good_prefix}/{filename}"
+                copy_bad_prefix = f"{bad_prefix}/{filename}"
+                copy_from_prefix = f"{batch_prefix}/{filename}"
+                if 'extension' in config:
+                    # if an extension was set in the config, add it to the end of the file
+                    extension = config['extension']
+                    filename_with_extension = f"{filename}{extension}"
+                    logger.info('File extension set in %s as "%s"', config_file, extension)
+                else:
+                    filename_with_extension = filename
+                    logger.info('File extension not set in %s', config_file)
+                try:
+                    # final storage path that includes the filename and optional extension
+                    copy_to_prefix = f"{storage_prefix}/{filename_with_extension}"
+                    logger.info('Copying to s3 /client ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_to_prefix)
+                except ClientError:
+                    logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
+                    report_stats['unstored_objects'] += 1
+                    report_stats['unstored_objects_list'].append(filename_with_extension)
+                    
+                    logger.info('Copying to s3 /bad ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_bad_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
+                    report_stats['bad_objects_list'].append(filename)
+                    report_stats['bad_objects'] += 1
+                    
+                    report(report_stats)
+                    clean_exit(1,'Failed boto3 copy_object attempt.')
+                else:
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
+                    report_stats['stored_objects'] += 1
+                    report_stats['stored_objects_list'].append(filename_with_extension)
+                    
+                    logger.info('Copying to s3 /good ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_good_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
+                    report_stats['good_objects'] += 1
+                    report_stats['good_objects_list'].append(filename)
+
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
