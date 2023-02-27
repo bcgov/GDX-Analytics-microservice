@@ -13,7 +13,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
+#               : place your credentials_mybusiness.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -26,9 +26,10 @@
 #               : Create a new project at
 #               : https://console.developers.google.com/projectcreate
 #               :
-#               : Click 'Create Credentials' selecting:
-#               :   Click on the small text to select that you want to create
-#               :   a 'client id'. You will have to configure a consent screen.
+#               : Under 'APIs & Services' Click 'Credentials':
+#               :   Click on 'Create Credentials' at the top of the screen
+#               :   to select that you want to create an 'OAuth client id'. 
+#               :   You will have to configure a consent screen.
 #               :   You must provide an Application name, and
 #               :   under 'Scopes for Google APIs' add the scopes:
 #               :   '../auth/business.manage'.
@@ -40,12 +41,12 @@
 #               :   directory as 'credentials_mybusiness.json'
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file 'mybusiness.dat',
-#               :   saving that auhtorization.
+#               :   validation, which will create a file
+#               :   'credentials_mybusiness.dat', saving that auhtorization.
 #               :
 # Usage         : e.g.:
 #               : $ python google_mybusiness.py -o credentials_mybusiness.json\
-#               :  -a mybusiness.dat -c google_mybusiness.json
+#               :  -a credentials_mybusiness.dat -c config_mybusiness.json
 #               :
 #               : the flags specified in the usage example above are:
 #               : -o <OAuth Credentials JSON file>
@@ -68,6 +69,7 @@ from pytz import timezone
 import dateutil.relativedelta
 from datetime import timedelta
 from tzlocal import get_localzone
+from time import sleep
 
 import googleapiclient.errors
 from googleapiclient.discovery import build
@@ -112,7 +114,7 @@ parser.add_argument('-d', '--debug', help='Run in debug mode.',
 flags = parser.parse_args()
 
 CLIENT_SECRET = flags.cred  # credentials_mybusiness.json
-AUTHORIZATION = flags.auth  # mybusiness.dat
+AUTHORIZATION = flags.auth  # credentials_mybusiness.dat
 CONFIG = flags.conf
 
 
@@ -149,13 +151,17 @@ conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
-
-# Initialize the OAuth2 authorization flow.
-# The string urn:ietf:wg:oauth:2.0:oob is for non-web-based applications.
-# The prompt='consent' Retrieves the refresh token.
+'''
+Initialize the OAuth2 authorization flow.
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+       scope is  google APIs authorization web address
+       redirect_uri specifies a loopback protocol 4201 selected as a random open port 
+         -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+'''
 flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
-                               redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+                               redirect_uri='http://127.0.0.1:4201',
                                prompt='consent')
 
 
@@ -209,6 +215,38 @@ def last_loaded(dbtable, location_id):
     con.close()
     return last_loaded_date
 
+def get_locations(gmbBIso, account_uri):
+    """
+    Used to request list of locations for current account.
+    Will attempt 10 times to query Google API before
+    reporting an error and exiting.
+    """
+    wait_time = 0.25
+    error_count = 0
+    while error_count < 11:
+        try:
+            locations = \
+                gmbBIso.accounts().locations().list(
+                parent=account_uri,pageSize=100,readMask='name,title').execute()
+        except googleapiclient.errors.HttpError:
+            if error_count == 10:
+                logger.exception(
+                    "Request hit 503 error. Exiting after 10th attempt."
+                )
+                clean_exit(1, "Request to API hit 503 error")
+            error_count += 1
+            sleep(wait_time)
+            wait_time = wait_time *2
+            logger.warning(
+                "Retrying connection to Google Analytics with %s wait time", wait_time
+            )
+        else:
+            error_count = 11
+
+    logger.info("Retrieved list of locations.")
+    return locations
+
+
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
@@ -232,7 +270,8 @@ def report(data):
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Files loads to S3 /good: {data["good"]}')
-    print(f'Files loads to S3 /bad: {data["bad"]}\n')
+    print(f'Files loads to S3 /bad: {data["bad"]}')
+    print(f'Sites failed due to hitting an error: {len(data["failed_process_list"])}\n')
 
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
@@ -256,9 +295,14 @@ def report(data):
     # Print unsuccessful API calls 
     if  data['not_retrieved_list']:
         print(f'List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['not_retrieved_list']), 1:
+        for i, site in enumerate(data['not_retrieved_list'], 1):
             print(f'\n{i}: {site}')
 
+    #print any  failed sites
+    if data['failed_process_list']:
+        print(f'List of sites that were skipped due to hitting an error:')
+        for i, site in enumerate(data['failed_process_list'], 1):
+            print(f'\n{i}: {site}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -278,7 +322,9 @@ report_stats = {
     'good_rs_list':[],
     'failed_rs_list':[],
     'good_list':[],  # Made it all the way through
-    'bad_list':[]
+    'bad_list':[],
+    #this will be used to capture any and all sites that are skipped over in the loop 
+    'failed_process_list':[]
 }
 
 # Location Check
@@ -318,9 +364,8 @@ for account in validated_accounts:
     df = pd.DataFrame()
     account_uri = account['uri']
     # Create a list of locations in this account
-    locations = (
-        gmbBIso.accounts().locations().list(
-            parent=account_uri,pageSize=100,readMask='name,title').execute())
+    locations = get_locations(gmbBIso, account_uri)
+    
     # we will handle each location separately
     for loc in locations['locations']:
 
@@ -445,6 +490,7 @@ for account in validated_accounts:
         except KeyError:
             logger.exception(
                     'Error. Could not find location %s', loc['title'])
+            report_stats['failed_process_list'].append(location_name)
             continue
 
         for metric in metrics:
@@ -545,7 +591,7 @@ for account in validated_accounts:
                     outfile = goodfile
                     report_stats['good_rs_list'].append(outfile)
                     report_stats['loaded_to_rs'] += 1
-                    report_stats
+                    report_stats['processed'] += 1
                     
         # copy the object to the S3 outfile (processed/good/ or processed/bad/)
         try:

@@ -4,7 +4,7 @@
   "destination": "processed",
   "directory": "google_gdx",
   "dbtable": "google.googlesearch",
-  "dml": "cmslite.google_pdt.sql",
+  "dml": "cmslite.google_dt.sql",
   "sites": [
     {
       "name": "https://www2.gov.bc.ca/"
@@ -80,6 +80,10 @@
       "start_date_default": "2020-09-14"
     },
     {
+      "name": "https://iiobc.ca/",
+      "start_date_default": "2020-09-14"
+    },
+    {
       "name": "https://professionalgovernancebc.ca/",
       "start_date_default": "2020-09-14"
     },
@@ -117,6 +121,19 @@
     {
       "name": "https://www.broadwaysubway.ca/",
       "start_date_default": "2022-08-29"
+    },
+    {
+      "name": "https://cleanbc.gov.bc.ca/",
+      "start_date_default": "2018-12-05"
+    },
+    {
+      "name": "https://goelectricbc.gov.bc.ca/",
+      "start_date_default": "2019-09-16"
+    },
+    {
+      "name": "https://communityclimatefunding.gov.bc.ca/",
+      "start_date_default": "2022-11-24"
     }
+
   ]
 }

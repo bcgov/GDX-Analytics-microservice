@@ -19,8 +19,8 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
-#               : below.
+#               : place your credentials_search.json file in the location
+#               : defined below.
 #               :
 #               : ------------------
 #               : To set up the Google end of things, following this:
@@ -35,9 +35,10 @@
 #               : Enable the API via "+ Enable APIs and Services" by choosing:
 #               :      "Google Search Console API"
 #               :
-#               : Click "Create Credentials" selecting:
-#               :   Click on the small text to select that you want to create
-#               :   a "client id". You will have to configure a consent screen.
+#               : Under 'APIs & Services' Click 'Credentials':
+#               :   Click on 'Create Credentials' at the top of the screen
+#               :   to select that you want to create an 'OAuth client id'. 
+#               :   You will have to configure a consent screen.
 #               :   You must provide an Application name, and
 #               :   under "Scopes for Google APIs" add the scopes:
 #               :   "../auth/webmasters" and "../auth/webmasters.readonly".
@@ -46,11 +47,11 @@
 #               :   Choose Other, and provide a name for this OAuth client ID.
 #               :
 #               :   Download the JSON file and place it in your directory as
-#               :   "credentials.json" as described by the variable below
+#               :   "credentials_search.json" as described by the variable below
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file "credentials.dat",
-#               :   saving that auhtorization.
+#               :   validation, which will create a file
+#               :   "credentials_search.dat", saving that auhtorization.
 
 
 import re
@@ -161,17 +162,25 @@ if CLIENT_SECRET is None or AUTHORIZATION is None or CONFIG is None:
     logger.error('Missing one or more requied arguments.')
     sys.exit(1)
 
-# calling the Google API. If credentials.dat is not yet generated
+# calling the Google API. If credentials_search.dat is not yet generated
 # then brower based Google Account validation will be required
 API_NAME = 'searchconsole'
 API_VERSION = 'v1'
 DISCOVERY_URI = 'https://searchconsole.googleapis.com/$discovery/rest'
 
 flow_scope = 'https://www.googleapis.com/auth/webmasters.readonly'
+'''
+connect to Google Analytics Business account to pull data 
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+       scope is  google APIs authorization web address
+       redirect_uri specifies a loopback protocol 4200 selected as a random open port 
+       -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+'''
 flow = flow_from_clientsecrets(
     CLIENT_SECRET,
     scope=flow_scope,
-    redirect_uri='urn:ietf:wg:oauth:2.0:oob')
+    redirect_uri='http://127.0.0.1:4200')
 
 flow.params['access_type'] = 'offline'
 flow.params['approval_prompt'] = 'force'
@@ -239,6 +248,12 @@ conn_string = (
     f"user='{pguser}' "
     f"password={pgpass}")
 
+""" Used to clean report list printing"""
+def print_list(report_string, report_list):
+    print('\n' + report_string)
+    for i, site in enumerate(report_list, 1):
+        print(f"{i}: {site}")
+
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''Reports out the data from the main program loop'''
@@ -252,14 +267,21 @@ def report(data):
         return
     print(f'Report: {__file__}\n')
     print(f'Config: {CONFIG}\n')
-    if report_stats['pdt_build_success']:
+    
+    if (report_stats['dt_build_success'] == None):
+        #variable not changed build not attempted
+        print('Google Search derived table build not attempted')
+    elif (report_stats['dt_build_success'] == True):
+        #variable changed to True build successful
         print(
-            'PDT build started at: '
-            f'{yvr_dt_pdt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
+            'Derived table build started at: '
+            f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
             f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
-            f'elapsing: {yvr_dt_end - yvr_dt_pdt_start}.')
+            f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     else:
-        print('Google Search PDT build failed\n')
+        #variable changed to False build failed
+        print('Google Search derived table build failed\n')
+    
     print(
         'Microservice started at: '
         f'{yvr_dt_start.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
@@ -272,27 +294,23 @@ def report(data):
 
     # Print all processed sites
     if data['processed']:
-        print('Objects loaded to S3 and copied to RedShift:')
-        for i, site in enumerate(data['processed'], 1):
-            #removed newline character per GDXDSD-5197
-            print(f"{i}: {site}")
+        print_list('Objects loaded to S3 and copied to RedShift:', data['processed'])
 
     # If anything failed to copy to RedShift, print it.
     if data['failed_to_rs']:
-        print('\nList of objects that failed to copy to Redshift:')
-        for i, item in enumerate(data['failed_to_rs']):
-            print(f'\n{i}: {item}')
+        print_list('List of objects that failed to copy to Redshift:', data['failed_to_rs'])
 
     # If anything failed do to early exit, print it
     if data['failed_api_call']:
-        print('List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['failed_api_call']):
-            print(f'\n{i}: {site}')
+        print_list('List of sites that were not processed due to early exit:', data['failed_api_call'])
+
+    if data['failed_verification']:
+        print_list('List of sites that were not processed as they are not verified:', data['failed_verification'])
 
 
 # Reporting variables. Accumulates as the the sites lare looped over
 report_stats = {
-    'sites': 0,  # Number of sites in google_search.json
+    'sites': 0,  # Number of sites in config_search.json
     'retrieved': 0,  # Successful API calls
     'no_new_data': 0,  # Sites where last_loaded_date < 2 days
     'failed_api': 0,
@@ -300,7 +318,8 @@ report_stats = {
     'processed': [],  # API call, load to S3, and copy to Redshift all OK
     'failed_to_rs': [],  # Objects that failed to copy to Redshift
     'failed_api_call': [],  # Objects not processed due to early exit
-    'pdt_build_success': False  # True if successfull
+    'dt_build_success': None,  # True if successfull, False if failed
+    'failed_verification':  [] # Holds non-verified site names
 }
 
 report_stats['sites'] = len(config_sites)
@@ -313,7 +332,8 @@ for site_item in config_sites:
 for site_item in config_sites:  # noqa: C901
     # read the config for the site name and default start date if specified
     site_name = site_item['name']
-
+    site_okay = True
+    
     # get the last loaded date.
     # may be None if this site has not previously been loaded into Redshift
     last_loaded_date = last_loaded(site_name)
@@ -337,6 +357,8 @@ for site_item in config_sites:  # noqa: C901
     # Load 30 days at a time until the data in Redshift has
     # caught up to the most recently available data from Google
     while last_loaded_date is None or last_loaded_date <= latest_date:
+        if not site_okay:
+            break
 
         # if there isn't data in Redshift for this site,
         # start at the start_date_default set earlier
@@ -381,6 +403,8 @@ for site_item in config_sites:  # noqa: C901
         date_in_range = ()
         max_date_in_data = '0'
         for date_in_range in daterange(start_dt, end_dt):
+            if not site_okay:
+                break
             # A wait time of 250ms each query reduces chance of HTTP 429 error
             # "Rate Limit Exceeded", handled below
             wait_time = 0.25
@@ -424,11 +448,12 @@ for site_item in config_sites:  # noqa: C901
                         if retry == 11:
                             logger.error(("Failing with HTTP error after 10 "
                                           "retries with query time easening."))
+                            report_stats['failed_verification'].append(site_name)
                             report_stats['failed_api'] += 1
                             report_stats['retrieved'] -= 1
-                            # Run report to output any stats avaiable
-                            report(report_stats)
-                            sys.exit()
+                            # Break out of this loop
+                            break  
+                        
                         wait_time = wait_time * 2
                         logger.warning(
                             "retrying site %s: %s with wait time %s",
@@ -437,6 +462,14 @@ for site_item in config_sites:  # noqa: C901
                         sleep(wait_time)
                     else:
                         break
+
+                # Check to see if we were able to reach the site
+                if retry ==  11:
+                    # if not go to the next site.
+                    logger.info('Site: %s  not verified. Skipping to next site.', site_name)
+                    site_okay = False
+                    index = index + 1
+                    break
 
                 index = index + 1
 
@@ -547,16 +580,15 @@ for site_item in config_sites:  # noqa: C901
 
 # Count all failed loads to RedShift
 report_stats['failed_rs'] = len(report_stats['failed_to_rs'])
-
-# Get PDT build start time
-yvr_dt_pdt_start = (yvr_tz
+# Get DT build start time
+yvr_dt_start = (yvr_tz
                     .normalize(
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
 
-# This query will INSERT INTO cmslite.google_pdt
-# cmslite.google_pdt, a derived table built from google.googlesearch
-# Get sql for pdt build form dml folder
+# This query will INSERT INTO cmslite.google_dt
+# cmslite.google_dt, a derived table built from google.googlesearch
+# Get sql for dt build form dml folder
 query = open('dml/{}'.format(dml_file), 'r').read()
 
 # Execute the query and log the outcome
@@ -566,11 +598,12 @@ with psycopg2.connect(conn_string) as conn:
         try:
             curs.execute(query)
         except psycopg2.Error:
-            logger.exception("Google Search PDT loading failed")
+            logger.exception("Google Search DT loading failed")
+            report_stats['dt_build_success'] = False
             report(report_stats)
-            clean_exit(1, 'Could not rebuild PDT in Redshift.')
+            clean_exit(1, 'Could not rebuild DT in Redshift.')
         else:
-            report_stats['pdt_build_success'] = True
-            logger.info("Google Search PDT loaded successfully")
+            report_stats['dt_build_success'] = True
+            logger.info("Google Search DT loaded successfully")
             report(report_stats)
             clean_exit(0, 'Finished successfully.')
