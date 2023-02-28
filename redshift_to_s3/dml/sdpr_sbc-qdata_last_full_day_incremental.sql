@@ -56,8 +56,8 @@ SELECT * FROM (
             20,
             21
     ),
-    "update_rows" AS (    
-        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=ycwCCgvZQ3p3p6O4FTt1lm 
+    "update_rows" AS (  
+        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=Gv2rbpnr3aWhWjYmBRNDUa
         SELECT
             1 AS "update_flag",
             (DATE("welcome_time")) AS "cfms_poc.date",
@@ -89,7 +89,7 @@ SELECT * FROM (
             AVG((1.00 * cfms_poc.hold_duration)/(60*60*24) ) AS "cfms_poc.hold_duration_per_service_average"
         FROM
             "derived"."theq_step1" AS "cfms_poc"
-        WHERE ((( "latest_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "latest_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND ((( "welcome_time" ) >= ((TIMESTAMP ''2022-04-01'')) AND ( "welcome_time" ) < ((DATEADD(day,0, DATE_TRUNC(''day'',GETDATE()) ))))) AND "program_name" IN (''SDPR'', ''SDPR - POC'') AND (TRANSLATE(TRANSLATE(cfms_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
+        WHERE ((( "latest_time" ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( "latest_time" ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND ((( "welcome_time" ) >= ((TIMESTAMP ''2022-04-01'')) AND ( "welcome_time" ) < ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))))) AND "program_name" IN (''SDPR'', ''SDPR - POC'') AND (TRANSLATE(TRANSLATE(cfms_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
         GROUP BY
             1,
             2,
