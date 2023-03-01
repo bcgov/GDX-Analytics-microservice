@@ -265,7 +265,7 @@ else:
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
-    archive_key = key.replace(f'{client}/{source_client}', f'{client}/{archive_client}', 1)
+    archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
     # append the file to the good or bad archive path
