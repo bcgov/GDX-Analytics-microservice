@@ -186,8 +186,11 @@ filename_regex = fr'^{object_prefix}'
 objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     key = object_summary.key
-    # destination key removes the old client folder name and puts the new one in
-    archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
+    # replaces the source client folders with the archive client folders
+    archive_key = key.replace(
+        f'{source}/{source_client}/{source_directory}', 
+        f'{source}/{archive_client}/{archive_directory}', 
+        1)
 
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
     goodfile = f"{archive}/good/{archive_key}"
@@ -258,7 +261,11 @@ else:
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
-    archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
+    # replaces the source client folders with the archive client folders
+    archive_key = key.replace(
+        f'{source}/{source_client}/{source_directory}', 
+        f'{source}/{archive_client}/{archive_directory}', 
+        1)
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
     if xfer_proc:
