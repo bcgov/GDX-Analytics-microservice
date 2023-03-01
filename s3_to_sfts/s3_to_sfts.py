@@ -77,8 +77,6 @@ source_prefix = f'{source}/{source_client}/{source_directory}/'
 archive = config['archive']
 archive_client = config['archive_client']
 archive_directory = config['archive_directory']
-good_archive_prefix = f'{archive}/good/{source}/{archive_client}/{archive_directory}'
-bad_archive_prefix = f'{archive}/bad/{source}/{archive_client}/{archive_directory}'
 
 object_prefix = config['object_prefix']
 
@@ -103,7 +101,6 @@ bucket_name = res_bucket.name
 def download_object(o):
     '''downloads object to a tmp directoy'''
     dl_name = o.replace(source_prefix, '')
-    #dl_name = o[o.rfind('/')+1:] # get the filename (after the last '/')
     try:
         res_bucket.download_file(o, './tmp/{0}{1}'.format(dl_name, extension))
     except ClientError as e:
@@ -189,14 +186,11 @@ filename_regex = fr'^{object_prefix}'
 objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     key = object_summary.key
-    
     # destination key removes the old client folder name and puts the new one in
-    # this will have to be mirrored further down the code as I made the same change there
     archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
-    #'client/google-mybusiness-sfts_sbc/pmrp_date_range/gdxdsd_3300/pmrp_20201103_20201114_20201126T183404_part000'
 
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{archive}/good/{archive_key}" # edit good_archive_prefix
+    goodfile = f"{archive}/good/{archive_key}"
     badfile = f"{archive}/bad/{archive_key}"
     # skip to next object if already processed
     if is_processed():
@@ -228,7 +222,6 @@ sf.write('cd {}\n'.format(sfts_path))
 # write all file names downloaded in "A" in the objects_to_process list
 for obj in objects_to_process:
     transfer_file = f"./tmp/{obj.key.replace(source_prefix, '')}{extension}"
-    #transfer_file = f"./tmp/{obj.key[obj.key.rfind('/')+1:]}{extension}"
     sf.write('put {}\n'.format(transfer_file))
 sf.write('quit\n')
 sf.close()
@@ -268,7 +261,6 @@ for obj in objects_to_process:
     archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
-    # append the file to the good or bad archive path
     if xfer_proc:
         outfile = f"{archive}/good/{archive_key}"
     else:
