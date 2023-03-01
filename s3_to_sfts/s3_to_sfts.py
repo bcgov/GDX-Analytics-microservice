@@ -103,6 +103,7 @@ bucket_name = res_bucket.name
 def download_object(o):
     '''downloads object to a tmp directoy'''
     dl_name = o.replace(source_prefix, '')
+    #dl_name = o[o.rfind('/')+1:] # get the filename (after the last '/')
     try:
         res_bucket.download_file(o, './tmp/{0}{1}'.format(dl_name, extension))
     except ClientError as e:
@@ -188,9 +189,15 @@ filename_regex = fr'^{object_prefix}'
 objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     key = object_summary.key
+    
+    # destination key removes the old client folder name and puts the new one in
+    # this will have to be mirrored further down the code as I made the same change there
+    archive_key = key.replace(f'{client}/{source_client}', f'{client}/{archive_client}', 1)
+    #'client/google-mybusiness-sfts_sbc/pmrp_date_range/gdxdsd_3300/pmrp_20201103_20201114_20201126T183404_part000'
+
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{good_archive_prefix}/{filename}"
-    badfile = f"{bad_archive_prefix}/{filename}"
+    goodfile = f"{archive}/good/{archive_key}" # edit good_archive_prefix
+    badfile = f"{archive}/bad/{archive_key}"
     # skip to next object if already processed
     if is_processed():
         continue
@@ -221,6 +228,7 @@ sf.write('cd {}\n'.format(sfts_path))
 # write all file names downloaded in "A" in the objects_to_process list
 for obj in objects_to_process:
     transfer_file = f"./tmp/{obj.key.replace(source_prefix, '')}{extension}"
+    #transfer_file = f"./tmp/{obj.key[obj.key.rfind('/')+1:]}{extension}"
     sf.write('put {}\n'.format(transfer_file))
 sf.write('quit\n')
 sf.close()
@@ -257,14 +265,14 @@ else:
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
-    file = key[key.rfind('/')+1:]  # get the file (after the last '/')
+    archive_key = key.replace(f'{client}/{source_client}', f'{client}/{archive_client}', 1)
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
     # append the file to the good or bad archive path
     if xfer_proc:
-        outfile = f"{good_archive_prefix}/{file}"
+        outfile = f"{archive}/good/{archive_key}"
     else:
-        outfile = f"{bad_archive_prefix}/{file}"
+        outfile = f"{archive}/bad/{archive_key}"
     try:
         client.copy_object(
             Bucket=config_bucket,
