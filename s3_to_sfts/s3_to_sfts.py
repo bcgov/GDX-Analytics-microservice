@@ -192,7 +192,7 @@ for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     
     # destination key removes the old client folder name and puts the new one in
     # this will have to be mirrored further down the code as I made the same change there
-    archive_key = key.replace(f'{client}/{source_client}', f'{client}/{archive_client}', 1)
+    archive_key = key.replace(f'{source}/{source_client}', f'{source}/{archive_client}', 1)
     #'client/google-mybusiness-sfts_sbc/pmrp_date_range/gdxdsd_3300/pmrp_20201103_20201114_20201126T183404_part000'
 
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
