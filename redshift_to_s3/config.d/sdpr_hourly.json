@@ -1,7 +1,7 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
-  "directory": "theq_sdpr/hourly/Oct_2022_incremental_update",
+  "directory": "theq_sdprabi/sdpr_hourly/v01-Mar_2023_incremental",
   "destination": "processed",
   "object_prefix": "sdpr_hourly",
   "dml": "sdpr_hourly.sql",
