@@ -409,7 +409,7 @@ def get_unprocessed_objects():
     # objects_to_process will contain zero or more objects if truncate = False
     filename_regex = fr'^{object_prefix}'
     objects_to_process = []
-    for object_summary in res_bucket.objects.filter(Prefix=batch_prefix): # batch_prefix may need a trailing /
+    for object_summary in res_bucket.objects.filter(Prefix=f'{batch_prefix}/'): # batch_prefix may need a trailing /
         key = object_summary.key
         filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
         goodfile = f"{good_prefix}/{filename}"
