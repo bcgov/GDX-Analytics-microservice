@@ -77,8 +77,6 @@ source_prefix = f'{source}/{source_client}/{source_directory}/'
 archive = config['archive']
 archive_client = config['archive_client']
 archive_directory = config['archive_directory']
-good_archive_prefix = f'{archive}/good/{source}/{archive_client}/{archive_directory}'
-bad_archive_prefix = f'{archive}/bad/{source}/{archive_client}/{archive_directory}'
 
 object_prefix = config['object_prefix']
 
@@ -188,9 +186,15 @@ filename_regex = fr'^{object_prefix}'
 objects_to_process = []
 for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
     key = object_summary.key
+    # replaces the source client folders with the archive client folders
+    archive_key = key.replace(
+        f'{source}/{source_client}/{source_directory}', 
+        f'{source}/{archive_client}/{archive_directory}', 
+        1)
+
     filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-    goodfile = f"{good_archive_prefix}/{filename}"
-    badfile = f"{bad_archive_prefix}/{filename}"
+    goodfile = f"{archive}/good/{archive_key}"
+    badfile = f"{archive}/bad/{archive_key}"
     # skip to next object if already processed
     if is_processed():
         continue
@@ -257,14 +261,17 @@ else:
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
     key = obj.key
-    file = key[key.rfind('/')+1:]  # get the file (after the last '/')
+    # replaces the source client folders with the archive client folders
+    archive_key = key.replace(
+        f'{source}/{source_client}/{source_directory}', 
+        f'{source}/{archive_client}/{archive_directory}', 
+        1)
     # TODO: check SFTS endpoint to determine which files reached SFTS
     # currently it's all based on whether or not the XFER call returned 0 or 1
-    # append the file to the good or bad archive path
     if xfer_proc:
-        outfile = f"{good_archive_prefix}/{file}"
+        outfile = f"{archive}/good/{archive_key}"
     else:
-        outfile = f"{bad_archive_prefix}/{file}"
+        outfile = f"{archive}/bad/{archive_key}"
     try:
         client.copy_object(
             Bucket=config_bucket,
