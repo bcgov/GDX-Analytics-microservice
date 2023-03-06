@@ -77,6 +77,8 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
+delimiter = False if 'delimiter' not in config else config['delimiter']
+
 if 'date_list' in config:
     dates = config['date_list']
 
@@ -369,6 +371,12 @@ if sql_parse_key:
     # pass the keyword_dict to the request query formatter
     request_query = request_query.format(**keyword_dict)
 
+# If there is no delimiter specified in the config file
+# build the delimiter string for the UNLOAD query, else leave it blank
+if delimiter:
+    delimiter_string = "delimiter '{delimiter}'".format(delimiter=delimiter)
+else:
+    delimiter_string = ""
 
 # The UNLOAD query to support S3 loading direct from a Redshift query
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
@@ -378,6 +386,7 @@ UNLOAD ('{request_query}')
 TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
+{delimiter_string}
 PARALLEL OFF
 {header}
 '''.format(
@@ -387,6 +396,7 @@ PARALLEL OFF
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
+    delimiter_string=delimiter_string,
     header='HEADER' if header else '')
 
 query = log_query.format(
@@ -399,7 +409,7 @@ def get_unprocessed_objects():
     # objects_to_process will contain zero or more objects if truncate = False
     filename_regex = fr'^{object_prefix}'
     objects_to_process = []
-    for object_summary in res_bucket.objects.filter(Prefix=batch_prefix): # batch_prefix may need a trailing /
+    for object_summary in res_bucket.objects.filter(Prefix=f'{batch_prefix}/'): # batch_prefix may need a trailing /
         key = object_summary.key
         filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
         goodfile = f"{good_prefix}/{filename}"

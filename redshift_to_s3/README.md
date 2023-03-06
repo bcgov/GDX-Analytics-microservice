@@ -78,8 +78,9 @@ The structure of the config file should resemble the following:
   "sql_parse_key": String,
   "start_date": String,
   "end_date": String,
-  "date_list": [String],
-  "extension": [String]
+  "date_list": String,
+  "extension": String,
+  "delimiter": String
 }
 ```
 
@@ -108,6 +109,7 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"date_list"`: [Only use `"date_list"` if also setting `'slq_parse_key'`, otherwise exclude `"date_list"` from config file] A list of arbitrary dates. Will be used to populate part of the resultant file name and may be used to determine query logic. It must be set as:
   - `["YYYYMMDD","YYYMMDD","YYYMMDD"]` value where `YYYY` is a 4-digit year value, `MM` is a 2-digit month value, and `DD` is a two digit day value. For example: `"20200220"` would represent a start date of February 20th, 2020. You may request one or multiple dates.
 - `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
+- `"delimiter"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If the delimiter is not set, it will default to use the pipe character `|` as the delimiter.
 
 ### DML File
 
