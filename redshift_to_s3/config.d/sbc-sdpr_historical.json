@@ -4,7 +4,7 @@
   "archive": "processed",
   "directory": "theq_sdprabi/sbc-sdpr_historical/v01-Mar_2023_incremental/",
   "object_prefix": "sbc-sdpr_historical",
-  "dml": "sdpr_sbc-qdata_historical.sql",
+  "dml": "sbc-sdpr_historical.sql",
   "header": true,
   "extension": ".csv",
   "delimiter": ","

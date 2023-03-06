@@ -4,7 +4,7 @@
   "archive": "processed",
   "directory": "theq-sdprabi/sbc-sdpr_daily-incremental/v01-Mar_2023_incremental",
   "object_prefix": "sbc-sdpr_daily-incremental",
-  "dml": "sdpr_sbc-qdata_last_full_day_incremental.sql",
+  "dml": "sbc-sdpr_last_full_day_incremental.sql",
   "header": true,
   "extension": ".csv",
   "delimiter": ","
