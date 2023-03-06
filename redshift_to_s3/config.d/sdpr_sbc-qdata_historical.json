@@ -5,5 +5,7 @@
   "directory": "theq_sdpr/sbc/historical/Feb_2023_change",
   "object_prefix": "sdpr_sbc-theq_historical",
   "dml": "sdpr_sbc-qdata_historical.sql",
-  "header": true
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ","
 }

@@ -5,5 +5,7 @@
   "directory": "theq_sdpr/sbc/daily/Feb_2023_change",
   "object_prefix": "sdpr_sbc-theq_daily",
   "dml": "sdpr_sbc-qdata_last_full_day_incremental.sql",
-  "header": true
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ","
 }
