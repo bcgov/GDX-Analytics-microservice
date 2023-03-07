@@ -330,18 +330,6 @@ report_stats = {
     'failed_process_list':[]
 }
 
-metrics = [
-    'business_impressions_desktop_maps',
-    'business_impressions_desktop_search',
-    'business_impressions_mobile_maps',
-    'business_impressions_mobile_search',
-    'business_conversations',
-    'business_direction_request',
-    'call_clicks',
-    'website_clicks',
-    'business_bookings'
-]
-
 # Location Check
 
 # Create a list of accounts using My Business Account Management API
@@ -371,10 +359,7 @@ for loc in config_locations:
         continue
 
 # iterate over ever location of every account
-badfiles = 0
 for account in validated_accounts:
-
-    dbtable = config_dbtable
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     account_uri = account['uri']
@@ -450,7 +435,7 @@ for account in validated_accounts:
 
         logger.info("Querying range from %s to %s", start_date, end_date)
 
-        #defining array to store incoming data and processed into dict objects
+        #defining dict to store incoming data and processed into dict objects
         daily_data = {}
         
         for metric in config_metrics:
@@ -471,8 +456,9 @@ for account in validated_accounts:
                 dailyMetric = daily_m.execute()
             except error:
                 logger.exception(
-                    "Error trying to collect ", metric, " for location: ", loc['title']
+                    "Error trying to collect ", metric, " for location: ", loc['title'] , " with error:"
                 )
+                logger.exception(error)
                 report_stats['failed_process_list'].append(location_name)
                 continue
             
@@ -581,7 +567,6 @@ for account in validated_accounts:
                     outfile = badfile
                     report_stats['failed_rs_list'].append(outfile)
                     report_stats['failed_rs'] += 1
-                    badfiles += 1
                 else:
                     logger.info("".join((
                         "Loaded {0} successfully."
@@ -601,7 +586,6 @@ for account in validated_accounts:
         except boto3.exceptions.ClientError:
             logger.exception("S3 transfer to %s failed", outfile)
             report_stats['failed_s3_list'].append(outfile)
-            badfiles += 1
             clean_exit(1,f'S3 transfer of {object_key} to {outfile} failed.')
         else:
             if outfile == goodfile:
