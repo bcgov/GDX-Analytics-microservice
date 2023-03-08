@@ -1,6 +1,6 @@
 SELECT * FROM (
     WITH "new_rows" AS (
-        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=VmltsfZUBNw8YZPXmZmNrU
+        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=RAUofMqct4PwggRWU8Vxe0
         SELECT
             0 AS "update_flag",
             (DATE("welcome_time")) AS "cfms_poc.date",
@@ -14,6 +14,8 @@ SELECT * FROM (
             "channel_sort" AS "cfms_poc.channel_sort",
             "channel" AS "cfms_poc.channel",
             "counter_type" AS "cfms_poc.counter_type",
+                (CASE WHEN "inaccurate_time" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.inaccurate_time",
+                (CASE WHEN "no_wait_visit" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.no_wait_visit",
             "program_name" AS "cfms_poc.program_name",
             "transaction_name" AS "cfms_poc.transaction_name",
             "service_count" AS "cfms_poc.service_count",
@@ -54,10 +56,11 @@ SELECT * FROM (
             18,
             19,
             20,
-            21
+            21,
+            22
     ),
     "update_rows" AS (  
-        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=Gv2rbpnr3aWhWjYmBRNDUa
+        -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=Ahy97tVG3NWj03JC5uDKBY
         SELECT
             1 AS "update_flag",
             (DATE("welcome_time")) AS "cfms_poc.date",
@@ -71,6 +74,8 @@ SELECT * FROM (
             "channel_sort" AS "cfms_poc.channel_sort",
             "channel" AS "cfms_poc.channel",
             "counter_type" AS "cfms_poc.counter_type",
+                (CASE WHEN "inaccurate_time" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.inaccurate_time",
+                (CASE WHEN "no_wait_visit" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.no_wait_visit",
             "program_name" AS "cfms_poc.program_name",
             "transaction_name" AS "cfms_poc.transaction_name",
             "service_count" AS "cfms_poc.service_count",
@@ -111,7 +116,8 @@ SELECT * FROM (
             18,
             19,
             20,
-            21
+            21,
+            22
     )
     SELECT * FROM new_rows UNION SELECT * FROM update_rows
     ORDER BY

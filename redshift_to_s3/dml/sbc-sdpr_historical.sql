@@ -1,5 +1,5 @@
 SELECT * FROM (
-    -- based off the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=H06WA2R2HRArNwplJ71XTr
+    -- based off the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=rIafnogWdKLz1bM9ZNnjLL
     SELECT
         (DATE("welcome_time")) AS "cfms_poc.date",
             (TO_CHAR(DATE_TRUNC(''second'', "welcome_time"), ''YYYY-MM-DD HH24:MI:SS'')) AS "cfms_poc.welcome_time",
@@ -12,6 +12,8 @@ SELECT * FROM (
         "channel_sort" AS "cfms_poc.channel_sort",
         "channel" AS "cfms_poc.channel",
         "counter_type" AS "cfms_poc.counter_type",
+            (CASE WHEN "inaccurate_time" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.inaccurate_time",
+            (CASE WHEN "no_wait_visit" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.no_wait_visit",
         "program_name" AS "cfms_poc.program_name",
         "transaction_name" AS "cfms_poc.transaction_name",
         "service_count" AS "cfms_poc.service_count",
@@ -51,7 +53,9 @@ SELECT * FROM (
         17,
         18,
         19,
-        20
+        20,
+        21,
+        22
     ORDER BY
         2
 )
