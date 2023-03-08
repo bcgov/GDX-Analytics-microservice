@@ -57,7 +57,8 @@ SELECT * FROM (
             19,
             20,
             21,
-            22
+            22,
+            23
     ),
     "update_rows" AS (  
         -- based off of the explore https://analytics.gov.bc.ca/explore/cfms_poc/cfms_poc?toggle=fil&qid=Ahy97tVG3NWj03JC5uDKBY
@@ -117,7 +118,8 @@ SELECT * FROM (
             19,
             20,
             21,
-            22
+            22,
+            23
     )
     SELECT * FROM new_rows UNION SELECT * FROM update_rows
     ORDER BY
