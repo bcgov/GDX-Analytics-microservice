@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "theq_sdpr/daily-incremental/v02-Mar_2023_new_columns",
+  "directory": "theq_sdpr/daily-incremental/v01-Mar_2023_incremental",
   "object_prefix": "sdpr_daily_incremental",
   "dml": "sdpr_last_full_day_incremental.sql",
   "header": true,
