@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "theq_sdprabi/sbc-sdpr_historical/v01-Mar_2023_incremental",
+  "directory": "theq_sdprabi/sbc-sdpr_historical/v02-Mar_2023_new_columns",
   "object_prefix": "sbc-sdpr_historical",
   "dml": "sbc-sdpr_historical.sql",
   "header": true,
