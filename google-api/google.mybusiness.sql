@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS test.mybusiness5659;
-CREATE TABLE IF NOT EXISTS test.mybusiness5659 (
+DROP TABLE IF EXISTS google.mybusiness;
+CREATE TABLE IF NOT EXISTS google.mybusiness (
     date   DATE,
     client   VARCHAR(255)    ENCODE ZSTD,
     location   VARCHAR(255)    ENCODE ZSTD,
@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS test.mybusiness5659 (
     website_clicks   INTEGER,
     business_bookings   INTEGER
 );
-ALTER TABLE test.mybusiness5659 OWNER TO microservice;
-GRANT SELECT ON TABLE test.mybusiness5659 TO LOOKER;
+ALTER TABLE google.mybusiness OWNER TO microservice;
+GRANT SELECT ON TABLE google.mybusiness TO LOOKER;
