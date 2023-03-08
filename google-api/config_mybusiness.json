@@ -2,8 +2,8 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "source": "client",
   "destination": "processed",
-  "directory": "taylor_test",
-  "dbtable": "test.mybusiness5659",
+  "directory": "google_mybusiness",
+  "dbtable": "google.mybusiness",
   "metrics": [
     "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
     "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
