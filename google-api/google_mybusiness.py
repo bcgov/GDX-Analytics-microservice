@@ -3,8 +3,8 @@
 # Script Name   : google_mybusiness.py
 #
 #
-# Description   : A script to access the Google Locations/My Business
-#               : api, download analytcs info and dump to a CSV in S3
+# Description   : A script to access the Google My Business api,
+#               : download analytcs info and dump to a CSV in S3
 #               : The resulting file is loaded to Redshift and then
 #               : available to Looker through the project google_api.
 #
