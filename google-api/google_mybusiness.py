@@ -3,8 +3,8 @@
 # Script Name   : google_mybusiness.py
 #
 #
-# Description   : A script to access the Google Locations/My Business
-#               : api, download analytcs info and dump to a CSV in S3
+# Description   : A script to access the Google My Business api,
+#               : download analytcs info and dump to a CSV in S3
 #               : The resulting file is loaded to Redshift and then
 #               : available to Looker through the project google_api.
 #
@@ -196,6 +196,9 @@ DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybu
 gmbv49so = build('mybusiness','v4',http=http,
                  discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
 
+# https://businessprofileperformance.googleapis.com/$discovery/rest?version=v1
+gmbv1 = build('businessprofileperformance', 'v1', http=http, static_discovery=False)
+
 # Check for a last loaded date in Redshift
 # Load the Redshift connection
 def last_loaded(dbtable, location_id):
@@ -356,10 +359,7 @@ for loc in config_locations:
         continue
 
 # iterate over ever location of every account
-badfiles = 0
 for account in validated_accounts:
-
-    dbtable = config_dbtable
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     account_uri = account['uri']
@@ -406,10 +406,11 @@ for account in validated_accounts:
             start_date = start_date.isoformat()
 
         start_time = start_date + 'T01:00:00Z'
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
 
         # the most recently available data from the Google API is 2 days before
         # the query time. More details in the API reference at:
-        # https://developers.google.com/my-business/reference/rest/v4/accounts.locations/reportInsights
+        # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
             datetime.datetime.today().date() - timedelta(days=2)).isoformat()
         # if an end_date is defined in the config file, use that date
@@ -422,6 +423,7 @@ for account in validated_accounts:
                 location_name)
 
         end_time = end_date + 'T01:00:00Z'
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
         # if start and end times are same, then there's no new data
         if start_time == end_time:
@@ -433,101 +435,84 @@ for account in validated_accounts:
 
         logger.info("Querying range from %s to %s", start_date, end_date)
 
-        # the API call must construct each metric request in a list of dicts
-        metricRequests = []
+        #defining dict to store incoming data and processed into dict objects
+        daily_data = {}
+        
         for metric in config_metrics:
-            metricRequests.append(
-                {
-                    'metric': metric,
-                    'options': 'AGGREGATED_DAILY'
-                    }
+            #defining the API call using necessary parameters
+            logger.info("Processing metric: %s", metric)
+            daily_m = gmbv1.locations().getDailyMetricsTimeSeries(
+                name=location_uri,
+                dailyMetric=metric,
+                dailyRange_endDate_day=end_date.day,
+                dailyRange_endDate_month=end_date.month,
+                dailyRange_endDate_year=end_date.year,
+                dailyRange_startDate_day=start_date.day,
+                dailyRange_startDate_month=start_date.month,
+                dailyRange_startDate_year=start_date.year
+            )
+            try:
+                #executing the call
+                dailyMetric = daily_m.execute()
+            except error:
+                logger.exception(
+                    "Error trying to collect ", metric, " for location: ", loc['title'] , " with error:"
                 )
+                logger.exception(error)
+                report_stats['failed_process_list'].append(location_name)
+                continue
+            
+            #pulling out the necessary data
+            daily_metrics = dailyMetric['timeSeries']['datedValues']
 
-        bodyvar = {
-            'locationNames': [f'{account_uri}/{location_uri}'],
-            'basicRequest': {
-                # https://developers.google.com/my-business/reference/rest/v4/Metric
-                'metricRequests': metricRequests,
-                # https://developers.google.com/my-business/reference/rest/v4/BasicMetricsRequest
-                # The maximum range is 18 months from the request date.
-                'timeRange': {
-                    'startTime': f'{start_time}',
-                    'endTime': f'{end_time}'
-                    }
-                }
-            }
+            for date_value in daily_metrics:
+                year = date_value['date']['year']
+                month = date_value['date']['month']
+                day = date_value['date']['day']
+                date = datetime.datetime(year, month, day).date()
+                
+                if 'value' in date_value:
+                    metric_val = int(date_value['value'])
+                else:
+                    metric_val = 0
 
-        #This is unnecessary as we use bodyvar to create reportInsights 
-        #then log each element of reportInsights later. 
-        #logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
-
-        # retrieves the request for this location.
-        # ReportInsights are called from the v4.9 Google My Business API
-        try:
-            reportInsights = \
-                gmbv49so.accounts().locations().\
-                reportInsights(body=bodyvar, name=account_uri).execute()
-        except googleapiclient.errors.HttpError:
-            logger.exception("Request contains an invalid argument. Skipping.")
-            report_stats['not_retrieved_list'].append(location_name)
-            report_stats['not_retrieved'] += 1
-            badfiles += 1
-            continue
-        else:
-            # If retreived, report it
-            logger.info(f"{location_name} Retrieved.")
-            report_stats['retrieved_list'].append(location_name)
-            report_stats['retrieved'] += 1
-
-        # Write API response for every location to debug log    
-        #This is unnecessary as we parse this json file and log later
-        #logger.info("Response body\n%s", reportInsights)
-
-        # We constrain API calls to one location at a time, so
-        # there is only one element in the locationMetrics list:
-        try:
-            metrics = reportInsights['locationMetrics'][0]['metricValues']
-        except KeyError:
-            logger.exception(
-                    'Error. Could not find location %s', loc['title'])
-            report_stats['failed_process_list'].append(location_name)
-            continue
-
-        for metric in metrics:
-            metric_name = metric['metric'].lower()
-
-            logger.info("processing metric: %s", metric_name)
-
-            # iterate on the dimensional values for this metric.
-
-            dimVals = metric['dimensionalValues']
-            for results in dimVals:
-                # just get the YYYY-MM-DD day; dropping the T07:00:00Z
-                day = results['timeDimension']['timeRange']['startTime'][:10]
-                client = account['client_shortname']
-                value = results['value'] if 'value' in results else 0
-                row = pd.DataFrame([{'date': day,
-                                     'client': client,
-                                     'location': location_name,
-                                     'location_id': f'{account_uri}/{location_uri}',
-                                     metric_name: int(value)}])
-                # Since we are growing both rows and columns, we must concat
-                # the dataframe with the new row. This will create NaN values.
-                df = pd.concat([df, row], sort=False)
+                if date not in daily_data:
+                    daily_data[date] = {metric: metric_val}
+                elif metric not in daily_data[date]:
+                    daily_data[date][metric] = metric_val
+                else:
+                    logger.error("Hit duplicate: ", date, ", ", metric)
+                
+        for date_value in daily_data:
+            #turn data into rows for the dataframe. 
+            #this script is cateres to 9 metric points, if that changes errors may ensue
+            row = pd.DataFrame([{
+                'date': date_value.strftime('%Y-%m-%d'),
+                'client': account['client_shortname'],
+                'location': location_name,
+                'location_id': f'{account_uri}/{location_uri}',
+                config_metrics[0].lower(): daily_data[date_value][config_metrics[0]],
+                config_metrics[1].lower(): daily_data[date_value][config_metrics[1]],
+                config_metrics[2].lower(): daily_data[date_value][config_metrics[2]],
+                config_metrics[3].lower(): daily_data[date_value][config_metrics[3]],
+                config_metrics[4].lower(): daily_data[date_value][config_metrics[4]],
+                config_metrics[5].lower(): daily_data[date_value][config_metrics[5]], 
+                config_metrics[6].lower(): daily_data[date_value][config_metrics[6]],
+                config_metrics[7].lower(): daily_data[date_value][config_metrics[7]],
+                config_metrics[8].lower(): daily_data[date_value][config_metrics[8]]
+            }])
+            
+            df = pd.concat([df, row], sort=False)
 
         # sort the dataframe by date
         df.sort_values('date')
-
+       
         # collapse rows on the groupers columns, which will remove all NaNs.
         # reference: https://stackoverflow.com/a/36746793/5431461
         groupers = ['date', 'client', 'location', 'location_id']
         groupees = [e.lower() for e in config_metrics]
         df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1])
-
-        # an artifact of the NaNs is that dtypes are float64.
-        # These can be downcast to integers, as there is no need for a decimal.
-        df = df.astype('int64')
-
+ 
         # prepare csv buffer
         csv_buffer = StringIO()
         df.to_csv(csv_buffer, index=True, header=True, sep='|')
@@ -539,8 +524,8 @@ for account in validated_accounts:
 
         outfile = (f"gmb_"
                    f"{location_name.replace(' ', '-')}_"
-                   f"{start_date}_"
-                   f"{end_date}"
+                   f"{start_date.strftime('%Y-%m-%d')}_"
+                   f"{end_date.strftime('%Y-%m-%d')}"
                    f".csv")
 
         object_key = object_key_path + outfile
@@ -582,7 +567,6 @@ for account in validated_accounts:
                     outfile = badfile
                     report_stats['failed_rs_list'].append(outfile)
                     report_stats['failed_rs'] += 1
-                    badfiles += 1
                 else:
                     logger.info("".join((
                         "Loaded {0} successfully."
@@ -602,7 +586,6 @@ for account in validated_accounts:
         except boto3.exceptions.ClientError:
             logger.exception("S3 transfer to %s failed", outfile)
             report_stats['failed_s3_list'].append(outfile)
-            badfiles += 1
             clean_exit(1,f'S3 transfer of {object_key} to {outfile} failed.')
         else:
             if outfile == goodfile:
@@ -612,5 +595,7 @@ for account in validated_accounts:
                 report_stats['bad_list'].append(outfile)
                 report_stats['bad'] += 1
 
+
 report(report_stats)
 clean_exit(0,'Ran without errors.')
+

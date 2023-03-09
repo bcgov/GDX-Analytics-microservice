@@ -3,20 +3,17 @@
   "source": "client",
   "destination": "processed",
   "directory": "google_mybusiness",
-  "dbtable": "google.locations",
+  "dbtable": "google.mybusiness",
   "metrics": [
-    "VIEWS_SEARCH",
-    "VIEWS_MAPS",
-    "QUERIES_INDIRECT",
-    "QUERIES_DIRECT",
-    "PHOTOS_VIEWS_MERCHANT",
-    "PHOTOS_VIEWS_CUSTOMERS",
-    "PHOTOS_COUNT_MERCHANT",
-    "PHOTOS_COUNT_CUSTOMERS",
-    "LOCAL_POST_VIEWS_SEARCH",
-    "ACTIONS_WEBSITE",
-    "ACTIONS_PHONE",
-    "ACTIONS_DRIVING_DIRECTIONS"
+    "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
+    "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
+    "BUSINESS_IMPRESSIONS_MOBILE_MAPS",
+    "BUSINESS_IMPRESSIONS_MOBILE_SEARCH",
+    "BUSINESS_CONVERSATIONS",
+    "BUSINESS_DIRECTION_REQUESTS",
+    "CALL_CLICKS",
+    "WEBSITE_CLICKS",
+    "BUSINESS_BOOKINGS"
   ],
   "locations": [
     {
