@@ -2,7 +2,7 @@
 
 This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform. There are three microservices: 
 - [Google Search Console API](#google-search-console-api-loader-microservice)
-- [Google My Business API](#google-my-business-api-loader-microservice)
+- [Google Business Profile Performance API](#google-my-business-api-loader-microservice)
 - [Google My Business Driving Directions API](#google-my-business-driving-directions-api-loader-microservice)
 
 Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
@@ -72,9 +72,9 @@ The JSON configuration is loaded as an environmental variable defined as `GOOGLE
 
 ### Google My Business API Loader microservice
 
-The `google_mybusiness.py` script pulling the Google My Business API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
+The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
 
-Google makes location insights data available for a time range spanning 18 months ago to 2 days ago (as tests have determined to be a reliable "*to date*"). From the Google My Business API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/rest/v4/BasicMetricsRequest):
+Google makes location insights data available for a time range spanning 18 months ago to 2 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
 > The maximum range is 18 months from the request date. In some cases, the data may still be missing for days close to the request date. Missing data will be specified in the metricValues in the response.
 
 The script iterates each location for the date range specified on the date range specified by config keys `start_date` and `end_date`. If no range is set (those key values are left as blank strings), then the script attempts to query for the full range of data availability.
@@ -118,13 +118,13 @@ The JSON configuration is required, following a `-c` or `--conf` flag when runni
 
 #### Script
 
-The `google_directions.py` script automates the loading of Google MyBusiness Driving Directions insights reports into S3 (as a `.csv` file), which it then loads to Redshift. Create the logs directory before running if it does not already exist. The script requires a `JSON` config file as specifid in the "_Configuration_" section below. It also must be passed command line locations for Google Credentials files; a usage example is in the header comment in the script itself.
+The `google_directions.py` script automates the loading of Google Business Profile Performance API insights reports into S3 (as a `.csv` file), which it then loads to Redshift. Create the logs directory before running if it does not already exist. The script requires a `JSON` config file as specified in the "_Configuration_" section below. It also must be passed command line locations for Google Credentials files; a usage example is in the header comment in the script itself.
 
 Log files are appended at the debug level into file called `google_directions.log` under a `logs/` folder which must be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
 
 #### Table
 
-The `google.gmb_directions` schema is defined by the google_directions.py ddl  file.
+The `google.mybusiness` schema is defined by the google.mybusiness.sql file.
 
 #### Configuration
 
@@ -145,7 +145,7 @@ The Google Search API loader microservice requires the following environment var
 
 ##### Configuration File
 
-The configuration for this microservice is in the `google_directions.json` file.
+The configuration for this microservice is in the `config_mybusiness.json` file.
 
 The JSON configuration fields are as described below:
 
