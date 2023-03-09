@@ -3,7 +3,7 @@
   "source": "client",
   "destination": "processed",
   "directory": "veenu_test",
-  "doc": "gdxdsd4256_info_10.csv",
+  "doc": "gdxdsd4256_test_10.csv",
   "dbtable": "test.gdxdsd4256",
   "column_count": 7,
   "sql_query": "../ddl/test4256.sql",
@@ -17,14 +17,12 @@
     "Path"
   ],
   "add_columns": {
-    "varchar": "test_value",
-    "datetime": "2018-01-01 00:00:00",
-    "integer": 3,
-    "date_added": null,
-    "date_removed": null
+    "date_added": "2022-09-15",
+    "date_removed": null,
+    "data_status": "old"
 },
   "dtype_dic_strings": [],
   "delim": ",",
   "truncate": false,
-  "test_4256": true
+  "test_4256": false
 }
