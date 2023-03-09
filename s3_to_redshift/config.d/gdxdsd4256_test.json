@@ -6,6 +6,7 @@
   "doc": "gdxdsd4256_info_10.csv",
   "dbtable": "test.gdxdsd4256",
   "column_count": 7,
+  "sql_query": "../ddl/test4256.sql",
   "columns": [
     "Site",
     "Asset Tag",
