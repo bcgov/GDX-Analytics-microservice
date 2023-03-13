@@ -433,8 +433,6 @@ for account in validated_accounts:
         #defining dict to store incoming data and processed into dict objects
         daily_data = {}
 
-        """
-        
         for metric in config_metrics:
             #defining the API call using necessary parameters
             logger.info("Processing metric: %s", metric)
@@ -595,4 +593,4 @@ for account in validated_accounts:
 
 report(report_stats)
 clean_exit(0,'Ran without errors.')
-"""
+
