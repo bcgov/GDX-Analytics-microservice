@@ -420,7 +420,8 @@ for account in validated_accounts:
 
         end_time = end_date + 'T01:00:00Z'
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-        # if start and end times are same, then there's no new data
+        # if start and end times are same or if start time is > end time,
+        # then there's no new data
         if start_time >= end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
