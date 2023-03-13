@@ -191,24 +191,20 @@ gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
 # My Business Business Information API v1 Provides: Accounts Locations List
 # 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
 gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
-# My Business API v4.9 provides: Accounts Locations reportInsights
-DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-gmbv49so = build('mybusiness','v4',http=http,
-                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
-
 # https://businessprofileperformance.googleapis.com/$discovery/rest?version=v1
 gmbv1 = build('businessprofileperformance', 'v1', http=http, static_discovery=False)
 
 # Check for a last loaded date in Redshift
 # Load the Redshift connection
-def last_loaded(dbtable, location_id):
+def last_loaded(dbtable, account, location_id):
     last_loaded_date = None
     con = psycopg2.connect(conn_string)
     cursor = con.cursor()
+    loc_id = str(account) + "/" + str(location_id)
     # query the latest date for any search data on this site loaded to redshift
     query = ("SELECT MAX(Date) "
              "FROM {0} "
-             "WHERE location_id = '{1}'").format(dbtable, location_id)
+             "WHERE location_id = '{1}'").format(dbtable, loc_id)
     cursor.execute(query)
     # get the last loaded date
     last_loaded_date = (cursor.fetchone())[0]
@@ -393,7 +389,7 @@ for account in validated_accounts:
                 ).isoformat()
 
         # query RedShift to see if there is a date already loaded
-        last_loaded_date = last_loaded(config_dbtable, loc['name'])
+        last_loaded_date = last_loaded(config_dbtable, account_uri, location_uri)
         if last_loaded_date is None:
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
@@ -424,9 +420,9 @@ for account in validated_accounts:
 
         end_time = end_date + 'T01:00:00Z'
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-
-        # if start and end times are same, then there's no new data
-        if start_time == end_time:
+        # if start and end times are same or if start time is > end time,
+        # then there's no new data
+        if start_time >= end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
@@ -437,7 +433,7 @@ for account in validated_accounts:
 
         #defining dict to store incoming data and processed into dict objects
         daily_data = {}
-        
+
         for metric in config_metrics:
             #defining the API call using necessary parameters
             logger.info("Processing metric: %s", metric)
@@ -454,11 +450,11 @@ for account in validated_accounts:
             try:
                 #executing the call
                 dailyMetric = daily_m.execute()
-            except error:
-                logger.exception(
-                    "Error trying to collect ", metric, " for location: ", loc['title'] , " with error:"
-                )
-                logger.exception(error)
+            except googleapiclient.errors.HttpError as error:
+                err_str = "Error trying to collect " + str(metric)
+                err_str += " for location: " + str(location_name)
+                err_str += " with error: " + str(error)
+                logger.exception(err_str)
                 report_stats['failed_process_list'].append(location_name)
                 continue
             
