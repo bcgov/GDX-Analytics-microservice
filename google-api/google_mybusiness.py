@@ -421,7 +421,7 @@ for account in validated_accounts:
         end_time = end_date + 'T01:00:00Z'
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         # if start and end times are same, then there's no new data
-        if start_time == end_time:
+        if start_time >= end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
@@ -449,11 +449,11 @@ for account in validated_accounts:
             try:
                 #executing the call
                 dailyMetric = daily_m.execute()
-            except error:
-                logger.exception(
-                    "Error trying to collect ", metric, " for location: ", loc['title'] , " with error:"
-                )
-                logger.exception(error)
+            except googleapiclient.errors.HttpError as error:
+                err_str = "Error trying to collect " + str(metric)
+                err_str += " for location: " + str(location_name)
+                err_str += " with error: " + str(error)
+                logger.exception(err_str)
                 report_stats['failed_process_list'].append(location_name)
                 continue
             
