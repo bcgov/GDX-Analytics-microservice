@@ -191,11 +191,6 @@ gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
 # My Business Business Information API v1 Provides: Accounts Locations List
 # 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
 gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
-# My Business API v4.9 provides: Accounts Locations reportInsights
-DISCOVERY_URI_v4_9_gmb = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-gmbv49so = build('mybusiness','v4',http=http,
-                 discoveryServiceUrl=DISCOVERY_URI_v4_9_gmb)
-
 # https://businessprofileperformance.googleapis.com/$discovery/rest?version=v1
 gmbv1 = build('businessprofileperformance', 'v1', http=http, static_discovery=False)
 
