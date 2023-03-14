@@ -5,6 +5,7 @@
   "directory": "veenu_test",
   "doc": "gdxdsd4256_test_logic2.csv",
   "dbtable": "test.gdxdsd4256",
+  "sql_query": "../ddl/test4256.sql",
   "column_count": 7,
   "columns": [
     "Site",
