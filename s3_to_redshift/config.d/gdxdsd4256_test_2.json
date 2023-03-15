@@ -6,7 +6,7 @@
   "doc": "gdxdsd4256_test_logic2.csv",
   "dbtable": "test.gdxdsd4256",
   "column_count": 7,
-  "sql_query": "../ddl/test4256.sql",
+  "sql_query": "ddl/test4256.sql",
   "columns": [
     "Site",
     "Asset Tag",
