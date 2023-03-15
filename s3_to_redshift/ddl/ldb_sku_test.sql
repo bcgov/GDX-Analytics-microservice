@@ -3,8 +3,8 @@ UPDATE test.ldb_sku
   SET date_removed = CURRENT_DATE 
   WHERE
     date_removed IS NULL 
-    AND Site NOT IN (
-        SELECT Site FROM test.ldb_sku WHERE date_added IS NULL
+    AND sku NOT IN (
+        SELECT sku FROM test.ldb_sku WHERE date_added IS NULL
     );
 
 
@@ -56,8 +56,8 @@ UPDATE test.ldb_sku SET
     date_added = CURRENT_DATE,
     data_status = 'old'
 WHERE
-  Site NOT IN (
-  SELECT Site FROM test.ldb_sku WHERE data_status = 'old'
+  sku NOT IN (
+  SELECT sku FROM test.ldb_sku WHERE data_status = 'old'
   );
 
 
