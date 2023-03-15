@@ -11,10 +11,10 @@ UPDATE test.gdxdsd4256
 WITH copy AS (select * from test.gdxdsd4256 where data_status = 'new')
 UPDATE test.gdxdsd4256 SET 
     site = copy.site,
-    asset tag = copy.asset tag,
-    printer queue = copy.printer queue,
-    idir id = copy.idir id,
-    item type = copy.item type,
+    asset_tag = copy.asset_tag,
+    printer_queue = copy.printer_queue,
+    idir_id = copy.idir_id,
+    item_type = copy.item_type,
     path = copy.path,
     notes = copy.notes,
     date_removed = NULL
