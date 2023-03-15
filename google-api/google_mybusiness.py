@@ -404,18 +404,18 @@ for account in validated_accounts:
         start_time = start_date + 'T01:00:00Z'
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
 
-        # the most recently available data from the Google API is 2 days before
+        # the most recently available data from the Google API is 3 days before
         # the query time. More details in the API reference at:
         # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
-            datetime.datetime.today().date() - timedelta(days=2)).isoformat()
+            datetime.datetime.today().date() - timedelta(days=3)).isoformat()
         # if an end_date is defined in the config file, use that date
         end_date = account['end_date']
         if end_date == '':
             end_date = date_api_upper_limit
         if end_date > date_api_upper_limit:
             logger.warning(
-                "The end_date for location %s is more recent than 2 days ago.",
+                "The end_date for location %s is more recent than 3 days ago.",
                 location_name)
 
         end_time = end_date + 'T01:00:00Z'
