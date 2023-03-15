@@ -13,7 +13,7 @@ The `google_search.py` script automates the loading of Google Search data into S
 
 The Google Search Console API documentation is here: https://developers.google.com/webmaster-tools/search-console-api-original. The latest data available from the Google Search API is from two days ago (relative to "_now_"). The Search Console API provides programmatic access to most of the functionality of Google Search Console.
 
-The Google Search Console is here: https://search.google.com/search-console. This console helps to visually identify which Properties you have verified owner access to and allows manual querying of slightly more recent data than the API provides programmatic access to (you can see data from 1 day ago, instead of from 2 days ago).
+The Google Search Console is here: https://search.google.com/search-console. This console helps to visually identify which Properties you have verified owner access to and allows manual querying of slightly more recent data than the API provides programmatic access to (you can see data from 1 day ago, instead of from 3 days ago).
 
 To illustrate: on a Friday, the Search Console web interface would show search data on your property from a maximum range of search data from 18 months ago up until Thursday. However, the Search Console API would only be able to collect a maximum range of search data from 18 months ago up until Wednesday.
 
@@ -74,7 +74,7 @@ The JSON configuration is loaded as an environmental variable defined as `GOOGLE
 
 The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
 
-Google makes location insights data available for a time range spanning 18 months ago to 2 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
+Google makes location insights data available for a time range spanning 18 months ago to 3 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
 > The maximum range is 18 months from the request date. In some cases, the data may still be missing for days close to the request date. Missing data will be specified in the metricValues in the response.
 
 The script iterates each location for the date range specified on the date range specified by config keys `start_date` and `end_date`. If no range is set (those key values are left as blank strings), then the script attempts to query for the full range of data availability.
@@ -111,7 +111,7 @@ The JSON configuration is required, following a `-c` or `--conf` flag when runni
   - `"names_replacement"`: a list to replace matched values from the locations under this account as suggested by: `['find','replace']`. For example, in the case of Service BC, all locations are prefixed with "Service BC Centre". We replace this with nothing in order to get _just_ the unique names (the locations' community names).
   - `"id"`: the location group, used for validation when querying the API.
   - `"start_date"`: the query start date as `"YYYY-MM-DD"`, leave as `""` to get the oldest data possible (defaults to the longest the API accepts, 18 months ago)
-  - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 2 days ago)
+  - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 3 days ago)
 
 
 ### Google My Business Driving Directions API Loader Microservice
