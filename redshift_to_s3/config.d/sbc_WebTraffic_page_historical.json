@@ -1,8 +1,8 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
-  "source": "client",
+  "storage": "client",
+  "archive": "processed",
   "directory": "sbc_WebTraffic/historical",
-  "destination": "processed",
   "object_prefix": "sbc_WebTraffic_page",
   "dml": "sbc_WebTraffic_page_historical.sql",
   "header": true,
