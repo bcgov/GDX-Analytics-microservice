@@ -3,8 +3,8 @@
 # Script Name   : google_mybusiness.py
 #
 #
-# Description   : A script to access the Google Locations/My Business
-#               : api, download analytcs info and dump to a CSV in S3
+# Description   : A script to access the Google My Business api,
+#               : download analytcs info and dump to a CSV in S3
 #               : The resulting file is loaded to Redshift and then
 #               : available to Looker through the project google_api.
 #
@@ -13,7 +13,7 @@
 #               :
 #               : You will need API credensials set up. If you don't have
 #               : a project yet, follow these instructions. Otherwise,
-#               : place your credentials.json file in the location defined
+#               : place your credentials_mybusiness.json file in the location defined
 #               : below.
 #               :
 #               : ------------------
@@ -26,9 +26,10 @@
 #               : Create a new project at
 #               : https://console.developers.google.com/projectcreate
 #               :
-#               : Click 'Create Credentials' selecting:
-#               :   Click on the small text to select that you want to create
-#               :   a 'client id'. You will have to configure a consent screen.
+#               : Under 'APIs & Services' Click 'Credentials':
+#               :   Click on 'Create Credentials' at the top of the screen
+#               :   to select that you want to create an 'OAuth client id'. 
+#               :   You will have to configure a consent screen.
 #               :   You must provide an Application name, and
 #               :   under 'Scopes for Google APIs' add the scopes:
 #               :   '../auth/business.manage'.
@@ -40,12 +41,12 @@
 #               :   directory as 'credentials_mybusiness.json'
 #               :
 #               :   When you first run it, it will ask you do do an OAUTH
-#               :   validation, which will create a file 'mybusiness.dat',
-#               :   saving that auhtorization.
+#               :   validation, which will create a file
+#               :   'credentials_mybusiness.dat', saving that auhtorization.
 #               :
 # Usage         : e.g.:
 #               : $ python google_mybusiness.py -o credentials_mybusiness.json\
-#               :  -a mybusiness.dat -c google_mybusiness.json
+#               :  -a credentials_mybusiness.dat -c config_mybusiness.json
 #               :
 #               : the flags specified in the usage example above are:
 #               : -o <OAuth Credentials JSON file>
@@ -68,6 +69,7 @@ from pytz import timezone
 import dateutil.relativedelta
 from datetime import timedelta
 from tzlocal import get_localzone
+from time import sleep
 
 import googleapiclient.errors
 from googleapiclient.discovery import build
@@ -111,8 +113,8 @@ parser.add_argument('-d', '--debug', help='Run in debug mode.',
                     action='store_true')
 flags = parser.parse_args()
 
-CLIENT_SECRET = flags.cred
-AUTHORIZATION = flags.auth
+CLIENT_SECRET = flags.cred  # credentials_mybusiness.json
+AUTHORIZATION = flags.auth  # credentials_mybusiness.dat
 CONFIG = flags.conf
 
 
@@ -144,24 +146,22 @@ conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
                f"user='{user}' password={password}")
 
 
-# Setup OAuth 2.0 flow for the Google My Business API
-API_NAME = 'mybusiness'
-API_VERSION = 'v4'
-DISCOVERY_URI = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p9.json'
-
-
 # Google API Access requires a browser-based authentication step to create
-# the stored authorization .dat file. Forcign noauth_local_webserver to True
+# the stored authorization .dat file. Forcing noauth_local_webserver to True
 # allows for authentication from an environment without a browser, such as EC2.
 flags.noauth_local_webserver = True
 
-
-# Initialize the OAuth2 authorization flow.
-# The string urn:ietf:wg:oauth:2.0:oob is for non-web-based applications.
-# The prompt='consent' Retrieves the refresh token.
+'''
+Initialize the OAuth2 authorization flow.
+where CLIENT_SECRET is the OAuth Credentials JSON file script argument
+       scope is  google APIs authorization web address
+       redirect_uri specifies a loopback protocol 4201 selected as a random open port 
+         -more information on loopback protocol: 
+       https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration
+'''
 flow_scope = 'https://www.googleapis.com/auth/business.manage'
 flow = flow_from_clientsecrets(CLIENT_SECRET, scope=flow_scope,
-                               redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+                               redirect_uri='http://127.0.0.1:4201',
                                prompt='consent')
 
 
@@ -184,22 +184,27 @@ if credentials is None or credentials.invalid:
 # Apply credential headers to all requests made by an httplib2.Http instance
 http = credentials.authorize(httplib2.Http())
 
-# Build the service object
-service = build(
-    API_NAME, API_VERSION, http=http, discoveryServiceUrl=DISCOVERY_URI)
-# site_list_response = service.sites().list().execute()
-
+# Build the Service Objects for the Google My Business APIs
+# My Business Account Management API v1 provides: Accounts List
+# https://mybusinessaccountmanagement.googleapis.com/$discovery/rest?version=v1
+gmbAMso = build('mybusinessaccountmanagement', 'v1', http=http)
+# My Business Business Information API v1 Provides: Accounts Locations List
+# 'https://mybusinessbusinessinformation.googleapis.com/$discovery/rest?version=v1'
+gmbBIso = build('mybusinessbusinessinformation', 'v1', http=http)
+# https://businessprofileperformance.googleapis.com/$discovery/rest?version=v1
+gmbv1 = build('businessprofileperformance', 'v1', http=http, static_discovery=False)
 
 # Check for a last loaded date in Redshift
 # Load the Redshift connection
-def last_loaded(dbtable, location_id):
+def last_loaded(dbtable, account, location_id):
     last_loaded_date = None
     con = psycopg2.connect(conn_string)
     cursor = con.cursor()
+    loc_id = str(account) + "/" + str(location_id)
     # query the latest date for any search data on this site loaded to redshift
     query = ("SELECT MAX(Date) "
              "FROM {0} "
-             "WHERE location_id = '{1}'").format(dbtable, location_id)
+             "WHERE location_id = '{1}'").format(dbtable, loc_id)
     cursor.execute(query)
     # get the last loaded date
     last_loaded_date = (cursor.fetchone())[0]
@@ -208,6 +213,38 @@ def last_loaded(dbtable, location_id):
     con.commit()
     con.close()
     return last_loaded_date
+
+def get_locations(gmbBIso, account_uri):
+    """
+    Used to request list of locations for current account.
+    Will attempt 10 times to query Google API before
+    reporting an error and exiting.
+    """
+    wait_time = 0.25
+    error_count = 0
+    while error_count < 11:
+        try:
+            locations = \
+                gmbBIso.accounts().locations().list(
+                parent=account_uri,pageSize=100,readMask='name,title').execute()
+        except googleapiclient.errors.HttpError:
+            if error_count == 10:
+                logger.exception(
+                    "Request hit 503 error. Exiting after 10th attempt."
+                )
+                clean_exit(1, "Request to API hit 503 error")
+            error_count += 1
+            sleep(wait_time)
+            wait_time = wait_time *2
+            logger.warning(
+                "Retrying connection to Google Analytics with %s wait time", wait_time
+            )
+        else:
+            error_count = 11
+
+    logger.info("Retrieved list of locations.")
+    return locations
+
 
 # Will run at end of script to print out accumulated report_stats
 def report(data):
@@ -232,13 +269,15 @@ def report(data):
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Files loads to S3 /good: {data["good"]}')
-    print(f'Files loads to S3 /bad: {data["bad"]}\n')
+    print(f'Files loads to S3 /bad: {data["bad"]}')
+    print(f'Sites failed due to hitting an error: {len(data["failed_process_list"])}\n')
 
     # Print all fully processed locations in good
     print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
         for i, item in enumerate(data['good_list'], 1):
-            print(f"\n{i}: {item}")
+            #removing newline character per GDXDSD-5197
+            print(f"{i}: {item}")
 
     # Print all fully processed locations in bad
     if data['bad_list']:
@@ -255,9 +294,14 @@ def report(data):
     # Print unsuccessful API calls 
     if  data['not_retrieved_list']:
         print(f'List of sites that were not processed due to early exit:')
-        for i, site in enumerate(data['not_retrieved_list']), 1:
+        for i, site in enumerate(data['not_retrieved_list'], 1):
             print(f'\n{i}: {site}')
 
+    #print any  failed sites
+    if data['failed_process_list']:
+        print(f'List of sites that were skipped due to hitting an error:')
+        for i, site in enumerate(data['failed_process_list'], 1):
+            print(f'\n{i}: {site}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -277,15 +321,16 @@ report_stats = {
     'good_rs_list':[],
     'failed_rs_list':[],
     'good_list':[],  # Made it all the way through
-    'bad_list':[]
+    'bad_list':[],
+    #this will be used to capture any and all sites that are skipped over in the loop 
+    'failed_process_list':[]
 }
 
 # Location Check
 
-# Get the list of accounts that the Google account being used to access
-# the My Business API has rights to read location insights from
+# Create a list of accounts using My Business Account Management API
 # (ignoring the first one, since it is the 'self' reference account).
-accounts = service.accounts().list().execute()['accounts'][1:]
+accounts = gmbAMso.accounts().list().execute()['accounts'][1:]
 
 # check that all locations defined in the configuration file are available
 # to the authencitad account being used to access the MyBusiness API, and
@@ -310,23 +355,21 @@ for loc in config_locations:
         continue
 
 # iterate over ever location of every account
-badfiles = 0
 for account in validated_accounts:
-
-    dbtable = config_dbtable
     # Create a dataframe with dates as rows and columns according to the table
     df = pd.DataFrame()
     account_uri = account['uri']
-    locations = (
-        service.accounts().locations().list(parent=account_uri).execute())
+    # Create a list of locations in this account
+    locations = get_locations(gmbBIso, account_uri)
+    
     # we will handle each location separately
     for loc in locations['locations']:
 
-        logger.info("Begin processing on location: %s", loc['locationName'])
+        logger.info("Begin processing on location: %s", loc['title'])
 
         # encode as ASCII for dataframe
         location_uri = loc['name']
-        location_name = loc['locationName']
+        location_name = loc['title']
 
         # Report out locations names and count
         report_stats['locations_list'].append(location_name)
@@ -346,7 +389,7 @@ for account in validated_accounts:
                 ).isoformat()
 
         # query RedShift to see if there is a date already loaded
-        last_loaded_date = last_loaded(config_dbtable, loc['name'])
+        last_loaded_date = last_loaded(config_dbtable, account_uri, location_uri)
         if last_loaded_date is None:
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
@@ -359,25 +402,27 @@ for account in validated_accounts:
             start_date = start_date.isoformat()
 
         start_time = start_date + 'T01:00:00Z'
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
 
-        # the most recently available data from the Google API is 2 days before
+        # the most recently available data from the Google API is 3 days before
         # the query time. More details in the API reference at:
-        # https://developers.google.com/my-business/reference/rest/v4/accounts.locations/reportInsights
+        # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
-            datetime.datetime.today().date() - timedelta(days=2)).isoformat()
+            datetime.datetime.today().date() - timedelta(days=3)).isoformat()
         # if an end_date is defined in the config file, use that date
         end_date = account['end_date']
         if end_date == '':
             end_date = date_api_upper_limit
         if end_date > date_api_upper_limit:
             logger.warning(
-                "The end_date for location %s is more recent than 2 days ago.",
+                "The end_date for location %s is more recent than 3 days ago.",
                 location_name)
 
         end_time = end_date + 'T01:00:00Z'
-
-        # if start and end times are same, then there's no new data
-        if start_time == end_time:
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        # if start and end times are same or if start time is > end time,
+        # then there's no new data
+        if start_time >= end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
@@ -386,96 +431,84 @@ for account in validated_accounts:
 
         logger.info("Querying range from %s to %s", start_date, end_date)
 
-        # the API call must construct each metric request in a list of dicts
-        metricRequests = []
+        #defining dict to store incoming data and processed into dict objects
+        daily_data = {}
+
         for metric in config_metrics:
-            metricRequests.append(
-                {
-                    'metric': metric,
-                    'options': 'AGGREGATED_DAILY'
-                    }
-                )
+            #defining the API call using necessary parameters
+            logger.info("Processing metric: %s", metric)
+            daily_m = gmbv1.locations().getDailyMetricsTimeSeries(
+                name=location_uri,
+                dailyMetric=metric,
+                dailyRange_endDate_day=end_date.day,
+                dailyRange_endDate_month=end_date.month,
+                dailyRange_endDate_year=end_date.year,
+                dailyRange_startDate_day=start_date.day,
+                dailyRange_startDate_month=start_date.month,
+                dailyRange_startDate_year=start_date.year
+            )
+            try:
+                #executing the call
+                dailyMetric = daily_m.execute()
+            except googleapiclient.errors.HttpError as error:
+                err_str = "Error trying to collect " + str(metric)
+                err_str += " for location: " + str(location_name)
+                err_str += " with error: " + str(error)
+                logger.exception(err_str)
+                report_stats['failed_process_list'].append(location_name)
+                continue
+            
+            #pulling out the necessary data
+            daily_metrics = dailyMetric['timeSeries']['datedValues']
 
-        bodyvar = {
-            'locationNames': [f'{location_uri}'],
-            'basicRequest': {
-                # https://developers.google.com/my-business/reference/rest/v4/Metric
-                'metricRequests': metricRequests,
-                # https://developers.google.com/my-business/reference/rest/v4/BasicMetricsRequest
-                # The maximum range is 18 months from the request date.
-                'timeRange': {
-                    'startTime': f'{start_time}',
-                    'endTime': f'{end_time}'
-                    }
-                }
-            }
+            for date_value in daily_metrics:
+                year = date_value['date']['year']
+                month = date_value['date']['month']
+                day = date_value['date']['day']
+                date = datetime.datetime(year, month, day).date()
+                
+                if 'value' in date_value:
+                    metric_val = int(date_value['value'])
+                else:
+                    metric_val = 0
 
-        logger.info("Request body:\n%s", json.dumps(bodyvar, indent=2))
-
-        # retrieves the request for this location.
-        try:
-            reportInsights = \
-                service.accounts().locations().\
-                reportInsights(body=bodyvar, name=account_uri).execute()
-        except googleapiclient.errors.HttpError:
-            logger.exception("Request contains an invalid argument. Skipping.")
-            report_stats['not_retrieved_list'].append(location_name)
-            report_stats['not_retrieved'] += 1
-            badfiles += 1
-            continue
-        else:
-            # If retreived, report it
-            logger.info(f"{location_name} Retrieved.")
-            report_stats['retrieved_list'].append(location_name)
-            report_stats['retrieved'] += 1
-
-        # Write API response for every location to debug log    
-        logger.info("Response body\n%s", reportInsights)
-
-        # We constrain API calls to one location at a time, so
-        # there is only one element in the locationMetrics list:
-        try:
-            metrics = reportInsights['locationMetrics'][0]['metricValues']
-        except KeyError:
-            logger.exception(
-                    'Error. Could not find location %s', loc['locationName'])
-            continue
-
-        for metric in metrics:
-            metric_name = metric['metric'].lower()
-
-            logger.info("processing metric: %s", metric_name)
-
-            # iterate on the dimensional values for this metric.
-
-            dimVals = metric['dimensionalValues']
-            for results in dimVals:
-                # just get the YYYY-MM-DD day; dropping the T07:00:00Z
-                day = results['timeDimension']['timeRange']['startTime'][:10]
-                client = account['client_shortname']
-                value = results['value'] if 'value' in results else 0
-                row = pd.DataFrame([{'date': day,
-                                     'client': client,
-                                     'location': location_name,
-                                     'location_id': location_uri,
-                                     metric_name: int(value)}])
-                # Since we are growing both rows and columns, we must concat
-                # the dataframe with the new row. This will create NaN values.
-                df = pd.concat([df, row], sort=False)
+                if date not in daily_data:
+                    daily_data[date] = {metric: metric_val}
+                elif metric not in daily_data[date]:
+                    daily_data[date][metric] = metric_val
+                else:
+                    logger.error("Hit duplicate: ", date, ", ", metric)
+                
+        for date_value in daily_data:
+            #turn data into rows for the dataframe. 
+            #this script is cateres to 9 metric points, if that changes errors may ensue
+            row = pd.DataFrame([{
+                'date': date_value.strftime('%Y-%m-%d'),
+                'client': account['client_shortname'],
+                'location': location_name,
+                'location_id': f'{account_uri}/{location_uri}',
+                config_metrics[0].lower(): daily_data[date_value][config_metrics[0]],
+                config_metrics[1].lower(): daily_data[date_value][config_metrics[1]],
+                config_metrics[2].lower(): daily_data[date_value][config_metrics[2]],
+                config_metrics[3].lower(): daily_data[date_value][config_metrics[3]],
+                config_metrics[4].lower(): daily_data[date_value][config_metrics[4]],
+                config_metrics[5].lower(): daily_data[date_value][config_metrics[5]], 
+                config_metrics[6].lower(): daily_data[date_value][config_metrics[6]],
+                config_metrics[7].lower(): daily_data[date_value][config_metrics[7]],
+                config_metrics[8].lower(): daily_data[date_value][config_metrics[8]]
+            }])
+            
+            df = pd.concat([df, row], sort=False)
 
         # sort the dataframe by date
         df.sort_values('date')
-
+       
         # collapse rows on the groupers columns, which will remove all NaNs.
         # reference: https://stackoverflow.com/a/36746793/5431461
         groupers = ['date', 'client', 'location', 'location_id']
         groupees = [e.lower() for e in config_metrics]
         df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1])
-
-        # an artifact of the NaNs is that dtypes are float64.
-        # These can be downcast to integers, as there is no need for a decimal.
-        df = df.astype('int64')
-
+ 
         # prepare csv buffer
         csv_buffer = StringIO()
         df.to_csv(csv_buffer, index=True, header=True, sep='|')
@@ -487,8 +520,8 @@ for account in validated_accounts:
 
         outfile = (f"gmb_"
                    f"{location_name.replace(' ', '-')}_"
-                   f"{start_date}_"
-                   f"{end_date}"
+                   f"{start_date.strftime('%Y-%m-%d')}_"
+                   f"{end_date.strftime('%Y-%m-%d')}"
                    f".csv")
 
         object_key = object_key_path + outfile
@@ -530,7 +563,6 @@ for account in validated_accounts:
                     outfile = badfile
                     report_stats['failed_rs_list'].append(outfile)
                     report_stats['failed_rs'] += 1
-                    badfiles += 1
                 else:
                     logger.info("".join((
                         "Loaded {0} successfully."
@@ -539,7 +571,7 @@ for account in validated_accounts:
                     outfile = goodfile
                     report_stats['good_rs_list'].append(outfile)
                     report_stats['loaded_to_rs'] += 1
-                    report_stats
+                    report_stats['processed'] += 1
                     
         # copy the object to the S3 outfile (processed/good/ or processed/bad/)
         try:
@@ -550,7 +582,6 @@ for account in validated_accounts:
         except boto3.exceptions.ClientError:
             logger.exception("S3 transfer to %s failed", outfile)
             report_stats['failed_s3_list'].append(outfile)
-            badfiles += 1
             clean_exit(1,f'S3 transfer of {object_key} to {outfile} failed.')
         else:
             if outfile == goodfile:
@@ -560,5 +591,7 @@ for account in validated_accounts:
                 report_stats['bad_list'].append(outfile)
                 report_stats['bad'] += 1
 
+
 report(report_stats)
 clean_exit(0,'Ran without errors.')
+

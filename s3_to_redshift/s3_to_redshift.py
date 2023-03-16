@@ -29,6 +29,8 @@ from tzlocal import get_localzone
 from pytz import timezone
 import boto3  # s3 access
 from botocore.exceptions import ClientError
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd  # data processing
 import pandas.errors
 from ua_parser import user_agent_parser
@@ -101,6 +103,14 @@ else:
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
 file_limit = False if truncate or 'file_limit' not in data else data['file_limit']
 
+if 'strip_quotes' in data:
+    strip_quotes = data['strip_quotes']
+else:
+    strip_quotes = False
+if 'encoding' in data:
+    encoding = data['encoding']
+else:
+    encoding = 'utf-8'
 
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
@@ -183,6 +193,7 @@ def report(data):
     print(f'Objects output to \'processed/good\': {data["good"]}')
     print(f'Objects output to \'processed/bad\': {data["bad"]}')
     print(f'Objects loaded to Redshift: {data["loaded"]}')
+    print(f'Empty Objects: {data["empty"]}\n')
     if data['good_list']:
         print(
         "\nList of objects successfully fully ingested from S3, processed, "
@@ -196,6 +207,10 @@ def report(data):
     if data['incomplete_list']:
         print('\nList of objects that were not processed due to early exit:')
         for i, meta in enumerate(data['incomplete_list'], 1):
+            print(f"{i}: {meta.key}")
+    if data['empty_list']:
+        print('\nList of empty objects:')
+        for i, meta in enumerate(data['empty_list'], 1):
             print(f"{i}: {meta.key}")
 
 
@@ -219,11 +234,11 @@ for object_summary in sorted_objects:
         logger.info('reached file limit of %s', file_limit)
         break
     key = object_summary.key
-    # skip to next object if already processed
-    if is_processed(object_summary):
-        continue
-    # only review those matching our configued 'doc' regex pattern
-    if re.search(doc + '$', key):
+    # Ignore files in the "Archive" folder
+    if re.search(doc + '$', key) and not (re.search('\/archive',key)):
+        # skip to next object if already processed
+        if is_processed(object_summary):
+            continue
         # under truncate = True, we will keep list length to 1
         # only adding the most recently modified file to objects_to_process
         if truncate:
@@ -252,8 +267,10 @@ report_stats = {
     'good': 0,
     'bad': 0,
     'loaded': 0,
+    'empty': 0,
     'good_list':[],
     'bad_list':[],
+    'empty_list': [],
     'incomplete_list':[]
 }
 
@@ -272,81 +289,35 @@ for object_summary in objects_to_process:
 
     # Create an object to hold the data while parsing
     csv_string = ''
+    
+    # The file is an empty upload. Key to badfile and stop processing further.
+    if (obj['ContentLength'] == 0):
+        logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
+                     object_summary.key)
+        outfile = badfile
+        try:
+            client.copy_object(Bucket=f"{bucket}",
+                               CopySource=f"{bucket}/{object_summary.key}",
+                               Key=outfile)
+        except ClientError:
+            logger.exception("S3 transfer failed")
+        report_stats['failed'] += 1
+        report_stats['empty'] += 1
+        report_stats['bad'] += 1
+        report_stats['bad_list'].append(object_summary)
+        report_stats['empty_list'].append(object_summary)
+        report_stats['incomplete_list'].remove(object_summary)
 
-    # Perform apache access log parsing according to config, if defined
-    if 'access_log_parse' in data:
-        linefeed = ''
-        parsed_list = []
-        if data['access_log_parse']['string_repl']:
-            inline_pattern = data['access_log_parse']['string_repl']['pattern']
-            inline_replace = data['access_log_parse']['string_repl']['replace']
-        body_stringified = body.read()
-        # perform regex replacements by line
-        for line in body_stringified.splitlines():
-            if data['access_log_parse']['string_repl']:
-                line = line.replace(inline_pattern, inline_replace)
-            for exp in data['access_log_parse']['regexs']:
-                parsed_line, num_subs = re.subn(
-                    exp['pattern'], exp['replace'], line)
-                if num_subs:
-                    user_agent = re.match(exp['pattern'], line).group(9)
-                    referrer_url = re.match(exp['pattern'], line).group(8)
-                    parsed_ua = user_agent_parser.Parse(user_agent)
-                    parsed_referrer_url = Referer(referrer_url,
-                                                  data['access_log_parse']
-                                                  ['referrer_parse']
-                                                  ['curr_url'])
+        report(report_stats)
+        clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
+                   'no further processing.')
 
-                    # Parse OS family and version
-                    ua_string = '|' + parsed_ua['os']['family']
-                    if parsed_ua['os']['major'] is not None:
-                        ua_string += '|' + parsed_ua['os']['major']
-                        if parsed_ua['os']['minor'] is not None:
-                            ua_string += '.' + parsed_ua['os']['minor']
-                        if parsed_ua['os']['patch'] is not None:
-                            ua_string += '.' + parsed_ua['os']['patch']
-                    else:
-                        ua_string += '|'
-
-                    # Parse Browser family and version
-                    ua_string += '|' + parsed_ua['user_agent']['family']
-                    if parsed_ua['user_agent']['major'] is not None:
-                        ua_string += '|' + parsed_ua['user_agent']['major']
-                    else:
-                        ua_string += '|' + 'NULL'
-                    if parsed_ua['user_agent']['minor'] is not None:
-                        ua_string += '.' + parsed_ua['user_agent']['minor']
-                    if parsed_ua['user_agent']['patch'] is not None:
-                        ua_string += '.' + parsed_ua['user_agent']['patch']
-
-                    # Parse referrer urlhost and medium
-                    referrer_string = ''
-                    if parsed_referrer_url.referer is not None:
-                        referrer_string += '|' + parsed_referrer_url.referer
-                    else:
-                        referrer_string += '|'
-                    if parsed_referrer_url.medium is not None:
-                        referrer_string += '|' + parsed_referrer_url.medium
-                    else:
-                        referrer_string += '|'
-
-                    # use linefeed if defined in config, or default "/r/n"
-                    if data['access_log_parse']['linefeed']:
-                        linefeed = data['access_log_parse']['linefeed']
-                    else:
-                        linefeed = '\r\n'
-                    parsed_line += ua_string + referrer_string
-                    parsed_list.append(parsed_line)
-        csv_string = linefeed.join(parsed_list)
-        logger.info("%s parsed successfully", object_summary.key)
-
-    # This is not an apache access log
-    if 'access_log_parse' not in data:
-        csv_string = body.read()
+    # Read the S3 object body (bytes)
+    csv_string = body.read()
 
     # Check that the file decodes as UTF-8. If it fails move to bad and end
     try:
-        csv_string = csv_string.decode('utf-8')
+        csv_string = csv_string.decode(encoding)
     except UnicodeDecodeError as _e:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
@@ -355,8 +326,8 @@ for object_summary in objects_to_process:
         e_object = _e.object.splitlines()
         logger.exception(
             ''.join((
-                "Decoding UTF-8 failed for file {0}\n"
-                .format(object_summary.key),
+                "Decoding {0} failed for file {1}\n"
+                .format(encoding, object_summary.key),
                 "The input file stopped parsing after line {0}:\n{1}\n"
                 .format(len(e_object), e_object[-1]),
                 "Keying to badfile and stopping.\n")))
@@ -374,8 +345,11 @@ for object_summary in objects_to_process:
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
-    # Check for an empty file. If it's empty, accept it as bad and skip
-    # to the next object to process
+    # If strip_quotes is set, remove all double quotes (") from the string
+    if strip_quotes:
+        csv_string = csv_string.replace('"', "")
+        
+    # Check for an empty file. If it's empty, accept it as bad
     try:
         if no_header:
             df = pd.read_csv(
@@ -396,7 +370,9 @@ for object_summary in objects_to_process:
         logger.exception('exception reading %s', object_summary.key)
         report_stats['failed'] += 1
         report_stats['bad'] += 1
-        report_stats['bad_list'].append(object_summary)
+        report_stats['empty'] += 1       
+        report_stats['empty_list'].append(object_summary)
+        report_stats['bad_list'].append(object_summary)  
         report_stats['incomplete_list'].remove(object_summary)
         if str(_e) == "No columns to parse from file":
             logger.warning('%s is empty, keying to badfile and stopping.',
@@ -435,11 +411,43 @@ for object_summary in objects_to_process:
 
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
+    
+    # Check for empty file that has zero data rows
+    if len(df.index) == 0:
+        logger.info('%s contains zero data rows, keying to badfile and no further processing.',
+                     object_summary.key)
+        outfile = badfile
+
+        try:
+            client.copy_object(Bucket=f"{bucket}",
+                               CopySource=f"{bucket}/{object_summary.key}",
+                               Key=outfile)
+        except ClientError:
+            logger.exception("S3 transfer failed")
+        report_stats['failed'] += 1
+        report_stats['empty'] += 1
+        report_stats['bad'] += 1
+        report_stats['bad_list'].append(object_summary)
+        report_stats['empty_list'].append(object_summary)
+        report_stats['incomplete_list'].remove(object_summary)
+       
+        report(report_stats)
+        clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
+                   'no further processing.')
 
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try:
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary) 
+                report(report_stats)
+                clean_exit(1, f'File {object_summary.key} not configured correctly, '
+                          'column number mismatch - no further processing.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
@@ -485,6 +493,10 @@ for object_summary in objects_to_process:
                     1,f'Bad file {object_summary.key} in objects to process, '
                     f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
+
+    # escape valid pipes in object cols
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].str.replace('|','\|')
 
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
@@ -706,6 +718,7 @@ COMMIT;
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    report_stats['processed'] += 1
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)

@@ -5,7 +5,7 @@
     "directory": "cmslite_gdx",
     "doc": "Translated Content Matrix.*",
     "dbtable": "cmslite.covid_language_matrix",
-    "column_count": 14,
+    "column_count": 16,
     "columns": [
       "title",
       "english",
@@ -17,10 +17,12 @@
       "farsi",
       "tagalog",
       "korean",
-      "arabicc",
+      "arabic",
       "vietnamese",
       "japanese",
-      "hindi"
+      "hindi",
+      "ukrainian",
+      "russian"
     ],
     "delim": ",",
     "truncate": true

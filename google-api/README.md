@@ -1,6 +1,11 @@
 # Google API microservices
 
-This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform.
+This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform. There are three microservices: 
+- [Google Search Console API](#google-search-console-api-loader-microservice)
+- [Google Business Profile Performance API](#google-my-business-api-loader-microservice)
+- [Google My Business Driving Directions API](#google-my-business-driving-directions-api-loader-microservice)
+
+Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
 
 ### Google Search Console API Loader Microservice
 
@@ -8,7 +13,7 @@ The `google_search.py` script automates the loading of Google Search data into S
 
 The Google Search Console API documentation is here: https://developers.google.com/webmaster-tools/search-console-api-original. The latest data available from the Google Search API is from two days ago (relative to "_now_"). The Search Console API provides programmatic access to most of the functionality of Google Search Console.
 
-The Google Search Console is here: https://search.google.com/search-console. This console helps to visually identify which Properties you have verified owner access to and allows manual querying of slightly more recent data than the API provides programmatic access to (you can see data from 1 day ago, instead of from 2 days ago).
+The Google Search Console is here: https://search.google.com/search-console. This console helps to visually identify which Properties you have verified owner access to and allows manual querying of slightly more recent data than the API provides programmatic access to (you can see data from 1 day ago, instead of from 3 days ago).
 
 To illustrate: on a Friday, the Search Console web interface would show search data on your property from a maximum range of search data from 18 months ago up until Thursday. However, the Search Console API would only be able to collect a maximum range of search data from 18 months ago up until Wednesday.
 
@@ -29,14 +34,6 @@ When run, the script collects property data in batches of 30 days at a time befo
 Log files are appended at the debug level into file called `google_search.log` under a `logs/` folder which must be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
 
 #### Configuration
-
-##### Credentials
-
-'credentials.dat' and 'credentials.json' are required to query data through the API.
-
-'credentials.dat' will be generated the first time this script runs after authenticating (you will be instructed on how to authenticate when this runs).
-
-'credentials.json' must be generated according to the instructions at https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/authorizing#APIKey. You must first have a project created at https://console.cloud.google.com/ and associate that project to use the "Google Search Console API".
 
 ##### Environment Variables
 
@@ -75,9 +72,9 @@ The JSON configuration is loaded as an environmental variable defined as `GOOGLE
 
 ### Google My Business API Loader microservice
 
-The `google_mybusiness.py` script pulling the Google My Business API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
+The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
 
-Google makes location insights data available for a time range spanning 18 months ago to 2 days ago (as tests have determined to be a reliable "*to date*"). From the Google My Business API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/rest/v4/BasicMetricsRequest):
+Google makes location insights data available for a time range spanning 18 months ago to 3 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
 > The maximum range is 18 months from the request date. In some cases, the data may still be missing for days close to the request date. Missing data will be specified in the metricValues in the response.
 
 The script iterates each location for the date range specified on the date range specified by config keys `start_date` and `end_date`. If no range is set (those key values are left as blank strings), then the script attempts to query for the full range of data availability.
@@ -114,20 +111,20 @@ The JSON configuration is required, following a `-c` or `--conf` flag when runni
   - `"names_replacement"`: a list to replace matched values from the locations under this account as suggested by: `['find','replace']`. For example, in the case of Service BC, all locations are prefixed with "Service BC Centre". We replace this with nothing in order to get _just_ the unique names (the locations' community names).
   - `"id"`: the location group, used for validation when querying the API.
   - `"start_date"`: the query start date as `"YYYY-MM-DD"`, leave as `""` to get the oldest data possible (defaults to the longest the API accepts, 18 months ago)
-  - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 2 days ago)
+  - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 3 days ago)
 
 
-### Google My Business Driving Directions Loader Microservice
+### Google My Business Driving Directions API Loader Microservice
 
 #### Script
 
-The `google_directions.py` script automates the loading of Google MyBusiness Driving Directions insights reports into S3 (as a `.csv` file), which it then loads to Redshift. Create the logs directory before running if it does not already exist. The script requires a `JSON` config file as specifid in the "_Configuration_" section below. It also must be passed command line locations for Google Credentials files; a usage example is in the header comment in the script itself.
+The `google_directions.py` script automates the loading of Google Business Profile Performance API insights reports into S3 (as a `.csv` file), which it then loads to Redshift. Create the logs directory before running if it does not already exist. The script requires a `JSON` config file as specified in the "_Configuration_" section below. It also must be passed command line locations for Google Credentials files; a usage example is in the header comment in the script itself.
 
 Log files are appended at the debug level into file called `google_directions.log` under a `logs/` folder which must be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
 
 #### Table
 
-The `google.gmb_directions` schema is defined by the [`google.gmb_directions.sql`](./`google.gmb_directions.sql) ddl  file.
+The `google.mybusiness` schema is defined by the google.mybusiness.sql file.
 
 #### Configuration
 
@@ -148,7 +145,7 @@ The Google Search API loader microservice requires the following environment var
 
 ##### Configuration File
 
-The configuration for this microservice is in the `google_directions.json` file.
+The configuration for this microservice is in the `config_mybusiness.json` file.
 
 The JSON configuration fields are as described below:
 
@@ -165,6 +162,68 @@ The JSON configuration fields are as described below:
 |-|-|-|
 | `clientShortname` | string | An internal shortname for a client's location group. An environment variable must be set as: `<clientShortname>_accountid=<accountid>` in order to map the Location Group Account ID to this client shortname and pull the API data. The `clientShortname` is also used to set the object path on S3 as: `S3://<bucket>/client/google_mybusiness_<clientShortname>` |
 | `aggregate_days[]` | string | A 1 to 3 item list that can include only unique values of `"SEVEN"`, `"THIRTY"` or `"NINETY"` |
+
+### Credentials and Authentication
+All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration files (eg. `'credentials_search.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. 
+
+Go to your Google Console at https://console.cloud.google.com/. 
+
+If you do not have a project, create a new project with these steps:
+
+- Navigate to https://console.developers.google.com/projectcreate
+- Give your project a name and location, and select 'CREATE'. This will open a new page showing your Console with your new project in a Project info info-box.
+
+Follow these steps to setup credentials and authentication:
+
+1. In the left-hand column, select the option "APIs & Services" and then "Credentials".
+  You should see a "Remember to configure the OAuth consent screen with information about your application" alert.
+    - Note! If you ever navigate away from the wizard described in the steps below, click on the hamburger/Navigation menu beside the Google Cloud and use the Recent tool to return to your previous location.
+
+1. Select the CONFIGURE CONSENT SCREEN button on the right to activate the set-up wizard. 
+    1. OAuth consent screen - The information you enter here will be shown on a consent screen to a user. The only information necessary is the App Name, user support email, and developer contact email.
+        1. Select "External" and "CREATE".
+        3. (Required) Add an App name
+        4. (Required) Add a User support email
+        5. (Required) Add Developer contact information
+        6. Select "SAVE AND CONTINUE"
+    2. Scopes - The set-up wizard will go to Scopes next. Scopes express the permissions that you request users to authorise for your app and allow your project to access specific types of private user data from their Google Account. You will add 3 scopes linked to 2 APIs in this step.
+        1. Before adding scopes, make sure the 2 APIs are enabled:
+             1. Right-click on "Enabled APIs and services", and open in a new tab.
+             2. In the "Search for resources, docs, products and more" enter "My Business Account Management API" and select Search. Select and ENABLE.
+             3. Now search for "Google Search Console API". Select and ENABLE.
+             4. You can close this tab.
+        2. On your wizard tab, in the Scopes section, select ADD OR REMOVE SCOPES and an 'Update elected scopes' dialogue will open on the right. 
+        3. Search and enable scopes using these steps:
+           1. Search for "auth/business.manage". Select with the checkbox. Select UPDATE at the bottom.
+           2. Then search for "/auth/webmasters". Select with the checkbox. Select UPDATE at the bottom.
+           3. Then search for "auth/webmasters.readonly". Select with the checkbox. Select UPDATE at the bottom.
+        4. Select SAVE AND CONTINUE at the bottom of Scopes.
+    3. Test Users - Next in the wizard, you will add test users, users that can use your app when publishing status is set to testing.
+        1. Add a test user by entering an email address. Email addresses must be associated with an active Google Account, Google Workspace account or Cloud Identity account.
+        2. Select "SAVE AND CONTINUE"
+    4. Summary - You will then be taken to a summary screen showing all the parameters you have set. 
+    - If anything is set incorrectly you can select "EDIT" and redo the options.
+    - If everything is correct select "BACK TO DASHBOARD" at the bottom of the screen.
+  
+2. Follow the steps below to generate a client ID:
+    1. In the Credentials tab on the left-side, select "+ CREATE CREDENTIALS" in the top options bar, and choose "OAuth client ID" from the drop down.
+    2. Specify what type of application you are creating credentials for.
+    3. Select Application type = "Desktop app" 
+    4. Change the name of the client ID so that it is recognizable from other IDs you may create.
+    5. Select "CREATE"
+  - This will produce a Client ID and Client Secret. It is recommended that you download the json file as 'credentials_<<application_name>>.json where <<application_name>> is replaced with the Google Miccroservice you are trying to run. Save this file to your current working directory.
+  - When you first run the program with this file it will ask you to do an OAuth validation, which will create a dat credential file for authorization.
+  - Note that OAuth access is restricted to the test users listed on your OAuth consent screen
+ 
+1. Set up the authentication in each script
+- In each script, the `flow_from_clientsecrets` process initializes the OAuth2 authorization flow. It takes the following arguments:
+- `CLIENT_SECRET`: the OAuth Credentials JSON file script argument (eg. `'credentials.dat'`)
+- `scope` is Google APIs authorization web address (eg. `'https://www.googleapis.com/auth/webmasters.readonly'`)
+- `redirect_uri` specifies a loopback address. As per [Google's documentation](https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration), this can be any open port. The three scipts have been coded to use:
+  - [`google_search.py`](./google_search.py) on port 4200
+  - [`google_mybusiness.py`](./google_mybusiness.py) on port 4201
+  - [`google_directions.py`](./google_directions.py) on port 4202      
+
 
 ## Project Status
 
@@ -186,7 +245,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

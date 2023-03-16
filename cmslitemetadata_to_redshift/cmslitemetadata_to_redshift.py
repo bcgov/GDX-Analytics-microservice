@@ -236,15 +236,15 @@ def main():
             print(
             "\nList of objects successfully fully ingested from S3, processed, "
             "loaded to S3 ('good'), and copied to Redshift:")
-            for i, meta in enumerate(data['good_list']):
+            for i, meta in enumerate(data['good_list'], 1):
                 print(f"{i}: {meta.key}")
         if data['bad_list']:
             print('\nList of objects that failed to process:')
-            for i, meta in enumerate(data['bad_list']):
+            for i, meta in enumerate(data['bad_list'], 1):
                 print(f"{i}: {meta.key}")
         if data['incomplete_list']:
             print('\nList of objects that were not processed due to early exit:')
-            for i, meta in enumerate(data['incomplete_list']):
+            for i, meta in enumerate(data['incomplete_list'], 1):
                 print(f"{i}: {meta.key}")
         if data['tables_loaded']:
             print('\nList of tables that were successfully loaded into Redshift:')
@@ -569,6 +569,7 @@ def main():
             report(report_stats)
             clean_exit(1,f'{object_summary.key} was processed as bad.')
 
+        report_stats['processed']  += 1
         report_stats['good'] += 1
         report_stats['good_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
@@ -581,22 +582,24 @@ def main():
     SET search_path TO {dbschema};
     DROP TABLE IF EXISTS {dbschema}.themes;
     CREATE TABLE IF NOT EXISTS {dbschema}.themes (
-      "node_id"	       VARCHAR(255),
-      "title"		   VARCHAR(2047),
-      "hr_url"	       VARCHAR(2047),
-      "parent_node_id" VARCHAR(255),
-      "parent_title"   VARCHAR(2047),
-      "theme_id"	   VARCHAR(255),
-      "subtheme_id"	   VARCHAR(255),
-      "topic_id"	   VARCHAR(255),
-      "subtopic_id"	   VARCHAR(255),
-      "subsubtopic_id" VARCHAR(255),
-      "theme"		   VARCHAR(2047),
-      "subtheme"	   VARCHAR(2047),
-      "topic"		   VARCHAR(2047),
-      "subtopic"	   VARCHAR(2047),
-      "subsubtopic"	   VARCHAR(2047)
-    );
+      "node_id"        VARCHAR(255)  ENCODE RAW,
+      "title"          VARCHAR(2047) ENCODE LZO,
+      "hr_url"         VARCHAR(2047) ENCODE LZO,
+      "parent_node_id" VARCHAR(255)  ENCODE LZO,
+      "parent_title"   VARCHAR(2047) ENCODE LZO,
+      "theme_id"       VARCHAR(255)  ENCODE LZO,
+      "subtheme_id"    VARCHAR(255)  ENCODE LZO,
+      "topic_id"       VARCHAR(255)  ENCODE LZO,
+      "subtopic_id"    VARCHAR(255)  ENCODE LZO,
+      "subsubtopic_id" VARCHAR(255)  ENCODE LZO,
+      "theme"          VARCHAR(2047) ENCODE LZO,
+      "subtheme"       VARCHAR(2047) ENCODE LZO,
+      "topic"          VARCHAR(2047) ENCODE LZO,
+      "subtopic"       VARCHAR(2047) ENCODE LZO,
+      "subsubtopic"    VARCHAR(2047) ENCODE LZO
+    )
+    DISTSTYLE AUTO
+    SORTKEY ( node_id );
     ALTER TABLE {dbschema}.themes OWNER TO microservice;
     GRANT SELECT ON {dbschema}.themes TO looker;
 
@@ -812,22 +815,22 @@ UPDATE {dbschema}.metadata
 
     DROP TABLE IF EXISTS {dbschema}.asset_themes;
     CREATE TABLE IF NOT EXISTS {dbschema}.asset_themes (
-      "node_id"	       VARCHAR(255),
-      "title"		   VARCHAR(2047),
-      "hr_url"	       VARCHAR(2047),
-      "parent_node_id" VARCHAR(255),
-      "parent_title"   VARCHAR(2047),
-      "asset_theme_id"	   VARCHAR(255),
-      "asset_subtheme_id"	   VARCHAR(255),
-      "asset_topic_id"	   VARCHAR(255),
-      "asset_subtopic_id"	   VARCHAR(255),
-      "asset_subsubtopic_id" VARCHAR(255),
-      "asset_theme"		   VARCHAR(2047),
-      "asset_subtheme"	   VARCHAR(2047),
-      "asset_topic"		   VARCHAR(2047),
-      "asset_subtopic"	   VARCHAR(2047),
-      "asset_subsubtopic"	   VARCHAR(2047),
-      "sitekey"           VARCHAR(20)
+      "node_id"	       VARCHAR(255) ENCODE ZSTD,
+      "title"		   VARCHAR(2047) ENCODE ZSTD,
+      "hr_url"	       VARCHAR(2047) ENCODE ZSTD,
+      "parent_node_id" VARCHAR(255) ENCODE ZSTD,
+      "parent_title"   VARCHAR(2047) ENCODE ZSTD,
+      "asset_theme_id"	   VARCHAR(255) ENCODE ZSTD,
+      "asset_subtheme_id"	   VARCHAR(255) ENCODE ZSTD,
+      "asset_topic_id"	   VARCHAR(255) ENCODE ZSTD,
+      "asset_subtopic_id"	   VARCHAR(255) ENCODE ZSTD,
+      "asset_subsubtopic_id" VARCHAR(255) ENCODE ZSTD,
+      "asset_theme"		   VARCHAR(2047) ENCODE ZSTD,
+      "asset_subtheme"	   VARCHAR(2047) ENCODE ZSTD,
+      "asset_topic"		   VARCHAR(2047) ENCODE ZSTD,
+      "asset_subtopic"	   VARCHAR(2047) ENCODE ZSTD,
+      "asset_subsubtopic"	   VARCHAR(2047) ENCODE ZSTD,
+      "sitekey"           VARCHAR(20) ENCODE ZSTD
     );
     ALTER TABLE {dbschema}.asset_themes OWNER TO microservice;
     GRANT SELECT ON {dbschema}.asset_themes TO looker;
@@ -997,6 +1000,8 @@ SELECT node_id,
 FROM biglist
 WHERE index = 1;
 
+ANALYZE {dbschema}.asset_themes;
+
     """.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
@@ -1028,9 +1033,10 @@ WHERE index = 1;
         else:
             outfile = badfile
         spdb.close_connection()
-
-    logger.info("finished %s", object_summary.key)
+        logger.info("finished %s", object_summary.key)
+    
     report(report_stats)
+
     clean_exit(0,'Succesfully finished cmslitemetadata_to_redshift.')
 
 

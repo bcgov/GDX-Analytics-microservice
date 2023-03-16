@@ -2,7 +2,7 @@
 # Script Name   : google_mybusiness_servicebc_derived.py
 #
 # Description   : Creates google_mybusiness_servicebc_derived, which is a
-#               : persistent derived table (PDT) joining google.locations
+#               : persistent derived table (DT) joining google.locations
 #               : with servicebc.office_info, and servicebc.datedimension
 #
 # Requirements  : You must set the following environment variable
@@ -72,16 +72,16 @@ with psycopg2.connect(conn_string) as conn:
         except psycopg2.Error:
             logger.exception((
                 'Error: failed to execute the transaction '
-                'to prepare the google_mybusiness_servicebc_derived PDT'))
+                'to prepare the google_mybusiness_servicebc_derived DT'))
             print(
                 'Error: failed to execute the transaction '
-                'to prepare the google_mybusiness_servicebc_derived PDT')
+                'to prepare the google_mybusiness_servicebc_derived DT')
             sys.exit(1)
         else:
             logger.info((
                 'Success: executed the transaction '
-                'to prepare the google_mybusiness_servicebc_derived PDT'))
+                'to prepare the google_mybusiness_servicebc_derived DT'))
             print(
                 'Success: executed the transaction '
-                'to prepare the google_mybusiness_servicebc_derived PDT')
+                'to prepare the google_mybusiness_servicebc_derived DT')
             sys.exit(0)
