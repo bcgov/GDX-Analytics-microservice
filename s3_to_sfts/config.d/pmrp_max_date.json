@@ -1,0 +1,13 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "source_client": "pmrp_gdx",
+  "source_directory": "pmrp_max_date",
+  "archive": "processed",
+  "archive_client": "google-mybusiness-sfts_sbc",
+  "archive_directory": "pmrp_max_date",
+  "object_prefix": "pmrp",
+  "header": false,
+  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN",
+  "extension": ""
+}

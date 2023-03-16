@@ -1,0 +1,13 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "source_client": "pmrp_qdata",
+  "source_directory": "range/Jun_2022_change",
+  "archive": "processed",
+  "archive_client": "qdata-sfts_sbc",
+  "archive_directory": "range/Jun_2022_change",
+  "object_prefix": "pmrp_qdata",
+  "header": true,
+  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/Q_data",
+  "extension": ".csv"
+}

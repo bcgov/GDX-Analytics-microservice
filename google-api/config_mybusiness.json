@@ -1,0 +1,27 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "google_mybusiness",
+  "dbtable": "google.mybusiness",
+  "metrics": [
+    "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
+    "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
+    "BUSINESS_IMPRESSIONS_MOBILE_MAPS",
+    "BUSINESS_IMPRESSIONS_MOBILE_SEARCH",
+    "BUSINESS_CONVERSATIONS",
+    "BUSINESS_DIRECTION_REQUESTS",
+    "CALL_CLICKS",
+    "WEBSITE_CLICKS",
+    "BUSINESS_BOOKINGS"
+  ],
+  "locations": [
+    {
+      "client_shortname": "servicebc",
+      "name": "Service BC Locations",
+      "id": 5448030039,
+      "start_date": "",
+      "end_date": ""
+    }
+  ]
+}
