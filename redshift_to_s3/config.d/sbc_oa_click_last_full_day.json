@@ -1,8 +1,8 @@
 {
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
-  "source": "client",
+  "storage": "client",
+  "archive": "processed",
   "directory": "doug_test/GDXDSD-4539/click/daily",
-  "destination": "processed",
   "object_prefix": "sbc_online_appointments_click",
   "dml": "sbc_oa_click_last_full_day.sql",
   "header": true,
