@@ -85,6 +85,13 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"dateformat"` a list of dictionaries containing keys: `field` and `format`
   - `"field"`: a column name containing datetime format data.
   - `"format"`: strftime to parse time. See [strftime documentation](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) for more information on choices.
+- `"add_columns"`: an optional list containing the names and values for any additional column that is not present in the csv file provided. You will first have to create those additional columns in the table using DDL statements. It is currently being used for LDB(liquor Distribution Branch) client in s3_to_redshift.py with config.d/ldb_sku.json where additional columns are added to dataframe using pandas.
+**This feature can also be use for updating table data without truncating it:**
+  * Create a column using SQL statement called "data_status" with value "old" in the table you want to update. 
+  * Use add_column feature to add "data_status" with value "new" to the json file of the client.
+  * Create an UPDATE logic statement which use this additional column "data_status" to differentiate between old data and new data. The logic will specific to the client but will look similar to this "ddl/lbd_sku_query.sql" file.
+- `"sql_query"`: an optional argumemnt to provide the location of sql queries if need to be used in the python scipt.
+- `"ldb_sku"`: a boolean used in ldb_sku.json to later use in the s3_to_redshift.py when processing files for LDB(liquor Distribution Branch) client
   
   
 Asset downloads config files require an additional four fields:
