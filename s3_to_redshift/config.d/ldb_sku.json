@@ -5,6 +5,7 @@
     "directory": "ldb_sku",
     "doc": "ldb_sku_.*.csv",
     "dbtable": "microservice.ldb_sku_csv",
+    "sql_query": "ddl/ldb_sku_query.sql",
     "column_count": 38,
     "columns": [
       "SKU",
@@ -46,6 +47,11 @@
       "Status Code",
       "Inventory Code"
     ],
+    "add_columns": {
+      "date_added": null,
+      "date_removed": null,
+      "data_status": "new"
+  },
     "dtype_dic_ints": [
       "SKU",
       "Bottles per Pack",
@@ -72,6 +78,6 @@
       "Restriction Code"
     ],
     "delim": ",",
-    "truncate": true,
+    "truncate": false,
     "ldb_sku": true
   }

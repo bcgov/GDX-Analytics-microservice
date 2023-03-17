@@ -1,15 +1,15 @@
 BEGIN;
-UPDATE test.ldb_sku
+UPDATE microservice.ldb_sku
   SET date_removed = CURRENT_DATE 
   WHERE
     date_removed IS NULL 
     AND sku NOT IN (
-        SELECT sku FROM test.ldb_sku WHERE date_added IS NULL
+        SELECT sku FROM microservice.ldb_sku WHERE date_added IS NULL
     );
 
 
-WITH copy AS (select * from test.ldb_sku where data_status = 'new')
-UPDATE test.ldb_sku SET 
+WITH copy AS (select * from microservice.ldb_sku where data_status = 'new')
+UPDATE microservice.ldb_sku SET 
     product_name = copy.product_name,
     image = copy.image,
     body = copy.body,
@@ -52,16 +52,16 @@ FROM copy
 WHERE ldb_sku.sku = copy.sku;
 
 
-UPDATE test.ldb_sku SET 
+UPDATE microservice.ldb_sku SET 
     date_added = CURRENT_DATE,
     data_status = 'old'
 WHERE
   sku NOT IN (
-  SELECT sku FROM test.ldb_sku WHERE data_status = 'old'
+  SELECT sku FROM microservice.ldb_sku WHERE data_status = 'old'
   );
 
 
-DELETE FROM test.ldb_sku 
+DELETE FROM microservice.ldb_sku 
   WHERE
     data_status = 'new';
 

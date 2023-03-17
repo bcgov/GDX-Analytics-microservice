@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS microservice.ldb_sku_csv
+CREATE TABLE IF NOT EXISTS microservice.ldb_sku
 ( 
 "sku" INTEGER ENCODE ZSTD NOT NULL,
 "product_name" VARCHAR(200) ENCODE ZSTD,
@@ -37,8 +37,11 @@ CREATE TABLE IF NOT EXISTS microservice.ldb_sku_csv
 "grape_variety" VARCHAR(27) ENCODE ZSTD,
 "restriction_code" VARCHAR(4) ENCODE ZSTD,
 "status_code" SMALLINT ENCODE ZSTD,
-"inventory_code" SMALLINT ENCODE ZSTD
+"inventory_code" SMALLINT ENCODE ZSTD,
+"date_added" DATE ENCODE ZSTD,
+"date_removed" DATE ENCODE ZSTD,
+"data_status" VARCHAR(4) ENCODE ZSTD
 );
 
-GRANT SELECT ON microservice.ldb_sku_csv TO looker;
-GRANT SELECT ON microservice.ldb_sku_csv TO datamodeling;
+GRANT SELECT ON microservice.ldb_sku TO looker;
+GRANT SELECT ON microservice.ldb_sku TO datamodeling;
