@@ -44,7 +44,28 @@
       "result_maker_id"
     ],
     "delim": "|" ,
-    "truncate": false
-
+    "truncate": false,
+    "dtype_dic_ints": [
+      "query_id",
+      "connection_id",
+      "result_maker_id",
+      "rebuild_pdts",
+      "apply_formatting",
+      "apply_vis",
+      "force_production",
+      "generate_links",
+      "cache",
+      "cache_only",
+      "server_table_calcs",
+      "sql_query_id",
+      "path_prefix_id",
+      "node_id",
+      "look_id",
+      "user_id",
+      "id"
+    ],
+    "dtype_dic_floats": [
+        "runtime"
+    ]
   }
   
