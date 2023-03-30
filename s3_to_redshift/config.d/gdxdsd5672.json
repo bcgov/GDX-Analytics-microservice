@@ -55,7 +55,17 @@
       "force_production",
       "generate_links",
       "cache",
-      "cache_only"
+      "cache_only",
+      "server_table_calcs",
+      "sql_query_id",
+      "path_prefix_id",
+      "node_id",
+      "look_id",
+      "user_id",
+      "id"
+    ],
+    "dtype_dic_floats": [
+        "runtime"
     ]
   }
   
