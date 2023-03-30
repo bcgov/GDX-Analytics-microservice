@@ -56,7 +56,6 @@
       "generate_links",
       "cache",
       "cache_only",
-      "server_table_calcs",
       "sql_query_id",
       "path_prefix_id",
       "node_id",
