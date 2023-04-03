@@ -90,6 +90,9 @@ if 'dtype_dic_bools' in data:
 if 'dtype_dic_ints' in data:
     for fieldname in data['dtype_dic_ints']:
         dtype_dic[fieldname] = pd.Int64Dtype()
+if 'dtype_dic_floats' in data:
+    for fieldname in data['dtype_dic_floats']:
+        dtype_dic[fieldname] = float
 if 'no_header' in data:
     no_header = data['no_header']
 else:
