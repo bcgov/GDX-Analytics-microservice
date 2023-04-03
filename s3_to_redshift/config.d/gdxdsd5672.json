@@ -34,6 +34,7 @@
       "render_key",
       "rebuild_pdts",
       "server_table_calcs",
+      "dashboard_id",
       "result_format",
       "apply_formatting",
       "dashboard_session",
