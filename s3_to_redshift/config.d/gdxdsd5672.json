@@ -34,7 +34,6 @@
       "render_key",
       "rebuild_pdts",
       "server_table_calcs",
-      "dashboard_id",
       "result_format",
       "apply_formatting",
       "dashboard_session",
@@ -65,7 +64,10 @@
       "id"
     ],
     "dtype_dic_floats": [
-        "runtime"
+      "runtime"
+    ],
+    "dtype_dic_strings": [
+      "dashboard_id"
     ]
   }
   
