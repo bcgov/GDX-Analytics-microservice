@@ -79,6 +79,7 @@ The JSON configuration is required as a second argument when running the `s3_to_
 - `"dtype_dic_strings"`: A list where keys are the names of columns in the input data whose data will be formatted as strings.
 - `"dtype_dic_bools"`: A list where keys are the names of columns in the input data whose data will be formatted as boolean
 - `"dtype_dic_ints"`: A list where keys are the names of columns in the input data whose data will be formatted as nullable integer values.
+- `"dtype_dic_floats"`: A list where keys are the names of columns in the input data whose data will be formatted as float values.
 - `"delim"`: specify the character that deliminates data in the input `csv`.
 - `"file_limit"`: an optional positive integer to limit the number of files which will be processed. A value for `file_limit` is ignored if `"truncate"`: `true`.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data. When `true` only the most recently modified file in S3 will be processed.
