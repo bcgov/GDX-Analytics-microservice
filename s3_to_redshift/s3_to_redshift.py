@@ -511,8 +511,6 @@ for object_summary in objects_to_process:
     for col in df.select_dtypes(include=['object']).columns:
         df[col] = df[col].str.replace('|','\|')
 
-    print(df.dtypes)
-
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
     csv_buffer = StringIO()
