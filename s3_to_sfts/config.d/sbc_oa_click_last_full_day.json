@@ -1,0 +1,13 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "source_client": "onlineappointments_sbc",
+  "source_directory": "click/daily/v1-Apr_2023",
+  "archive": "processed",
+  "archive_client": "onlineappointments-sfts_sbc",
+  "archive_directory": "click/daily/v1-Apr_2023",
+  "object_prefix": "sbc_online_appointments_click",
+  "header": true,
+  "sfts_path": ""SBC/Shared/Secured/SS_BI/SS_GDX_IN/WebTraffic_data/daily",
+  "extension": ".csv"
+}
