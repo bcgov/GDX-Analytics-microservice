@@ -2,10 +2,9 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "doug_test/GDXDSD-4539/final_step_of_session/daily",
+  "directory": "onlineappointments_sbc/final_step_of_session/daily",
   "object_prefix": "sbc_online_appointments_final_step_of_session",
   "dml": "sbc_oa_final_step_of_session_last_full_day.sql",
   "header": true,
-  "sfts_path": "CITZ_AP_GDX/Shared/microservice/doug_test/GDXDSD-4539/final_step_of_session/daily",
   "extension": ".csv"
 }
