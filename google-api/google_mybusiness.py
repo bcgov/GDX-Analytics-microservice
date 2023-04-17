@@ -291,8 +291,8 @@ def report(data):
     print(f'Sites failed due to hitting an error: {len(data["failed_process_list"])}\n')
 
     # Print all fully processed locations in good
-    print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
+        print(f'Objects loaded RedShift and to S3 /good:')
         for i, item in enumerate(data['good_list'], 1):
             #removing newline character per GDXDSD-5197
             print(f"{i}: {item}")
