@@ -245,6 +245,16 @@ def get_locations(gmbBIso, account_uri):
     logger.info("Retrieved list of locations.")
     return locations
 
+def check_retrieved_list(retrieved_dict):
+    """runs through the retrieved dict and reports the number of fails"""
+    failed_numb = 0
+    if len(retrieved_dict) == 0:
+        failed_numb = -1 
+    for ele in retrieved_dict:
+        if retrieved_dict[ele] != len(config_metrics):
+            failed_numb += 1
+
+    return failed_numb
 
 # Will run at end of script to print out accumulated report_stats
 def report(data):
@@ -252,6 +262,14 @@ def report(data):
     if data['no_new_data'] == data['locations']:
         logger.info("No API response contained new data")
         return
+    
+    failed_retrieved_numb = check_retrieved_list(data['retrieved_list'])
+    if failed_retrieved_numb == -1 :
+        retrieved_numb = 0
+        failed_retrieved_numb = data['locations']
+    else:
+        retrieved_numb = data['locations'] - failed_retrieved_numb
+    
     print(f'Report: {__file__}\n')
     print(f'Config: {CONFIG}')
     # Get times from system and convert to Americas/Vancouver for printing
@@ -264,8 +282,8 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nLocations to process: {data["locations"]}')
-    print(f'Successful API calls: {data["retrieved"]}')
-    print(f'Failed API calls: {data["not_retrieved"]}')
+    print(f'Successful API calls: {retrieved_numb}')
+    print(f'Failed API calls: {failed_retrieved_numb}')
     print(f'Successful loads to RedShift: {data["loaded_to_rs"]}')
     print(f'Failed loads to RedShift: {data["failed_rs"]}')
     print(f'Files loads to S3 /good: {data["good"]}')
@@ -273,8 +291,8 @@ def report(data):
     print(f'Sites failed due to hitting an error: {len(data["failed_process_list"])}\n')
 
     # Print all fully processed locations in good
-    print(f'Objects loaded RedShift and to S3 /good:')
     if data['good_list']:
+        print(f'Objects loaded RedShift and to S3 /good:')
         for i, item in enumerate(data['good_list'], 1):
             #removing newline character per GDXDSD-5197
             print(f"{i}: {item}")
@@ -301,7 +319,7 @@ def report(data):
     if data['failed_process_list']:
         print(f'List of sites that were skipped due to hitting an error:')
         for i, site in enumerate(data['failed_process_list'], 1):
-            print(f'\n{i}: {site}')
+            print(f'{i}: {site}')
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -315,7 +333,7 @@ report_stats = {
     'loaded_to_rs': 0,
     'failed_rs':0,
     'locations_list':[],
-    'retrieved_list':[],
+    'retrieved_list':{},
     'not_retrieved_list':[],
     'failed_s3_list':[],
     'good_rs_list':[],
@@ -451,16 +469,26 @@ for account in validated_accounts:
                 #executing the call
                 dailyMetric = daily_m.execute()
             except googleapiclient.errors.HttpError as error:
+                #if it fails log and report it
                 err_str = "Error trying to collect " + str(metric)
                 err_str += " for location: " + str(location_name)
                 err_str += " with error: " + str(error)
                 logger.exception(err_str)
-                report_stats['failed_process_list'].append(location_name)
+                if location_name not in report_stats['failed_process_list']:
+                    report_stats['failed_process_list'].append(location_name)
+                    report_stats['not_retrieved'] += 1
                 continue
+            else:
+                #if the call succeeds report it
+                report_stats['retrieved'] += 1
+            
+                if str(location_name) not in report_stats['retrieved_list']:
+                    report_stats['retrieved_list'][str(location_name)] = 1
+                else:
+                    report_stats['retrieved_list'][str(location_name)] += 1
             
             #pulling out the necessary data
             daily_metrics = dailyMetric['timeSeries']['datedValues']
-
             for date_value in daily_metrics:
                 year = date_value['date']['year']
                 month = date_value['date']['month']
@@ -478,7 +506,7 @@ for account in validated_accounts:
                     daily_data[date][metric] = metric_val
                 else:
                     logger.error("Hit duplicate: ", date, ", ", metric)
-                
+        
         for date_value in daily_data:
             #turn data into rows for the dataframe. 
             #this script is cateres to 9 metric points, if that changes errors may ensue
@@ -500,6 +528,10 @@ for account in validated_accounts:
             
             df = pd.concat([df, row], sort=False)
 
+        if df.empty:
+            #if there was nothing to process we want to go to the next location
+            continue
+        
         # sort the dataframe by date
         df.sort_values('date')
        
