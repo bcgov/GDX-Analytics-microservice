@@ -137,7 +137,7 @@ def report(data):
     '''reports out cumulative script events'''
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}')
-    if not data['objects_to_sfts'] or data['objects_not_processed']:
+    if not data['objects_to_sfts'] or data['s3_not_processed_list']:
         print(f'*** ATTN: A failure occured ***')
     # Get script end time
     yvr_dt_end = (yvr_tz
@@ -182,10 +182,7 @@ def report(data):
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'objects':0,
-    'objects_processed':0,
-    'objects_not_processed':0,
     'objects_to_sfts':False,
-    'objects_list':[],
     's3_processed_list':[], 
     's3_not_processed_list':[],
     'sfts_processed_list':[],
@@ -216,7 +213,6 @@ for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
         objects_to_process.append(object_summary)
         logger.info('added %a for processing', filename)
         report_stats['objects'] += 1
-        report_stats['objects_list'].append(object_summary)
 
 
 if not objects_to_process:
@@ -275,10 +271,7 @@ except subprocess.CalledProcessError:
 else:
     report_stats['objects_to_sfts'] = True
     for obj in objects_to_process:
-        report_stats['sfts_processed_list'].append(obj.key.replace(
-            f'{source}/{source_client}/{source_directory}', 
-            f'{sfts_path}',
-            1))
+        report_stats['sfts_processed_list'].append(obj.key)
 
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
@@ -301,11 +294,9 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
-        report_stats['s3_not_processed_list'].append(obj.key)
-        report_stats['objects_not_processed'] += 1
+        report_stats['s3_not_processed_list'].append(outfile)
     else:
         logger.info('copied %s to %s', obj.key, outfile)
-        report_stats['objects_processed'] += 1
         report_stats['s3_processed_list'].append(outfile)
 
 
