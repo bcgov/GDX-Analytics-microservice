@@ -578,7 +578,8 @@ def main():
         report_stats['incomplete_list'].remove(object_summary)
 
     # now we run the single-time load on the cmslite.themes
-    query = open('ddl/{}'.format(ddl_file), 'r').read()
+    with open('ddl/{}'.format(ddl_file), 'r') as file:
+        query = file.read()
     query.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
