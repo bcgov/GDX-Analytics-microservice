@@ -149,20 +149,20 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nItems to process: {data["objects"]}')
-    print(f'Objects successfully processed to s3: {data["objects_processed"]}')
-    print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
-    print(f'Objects successfully processed to sfts: {len(data["s3_good_list"])}')
+    print(f'Objects successfully processed to s3: {len(data["s3_processed_list"])}')
+    print(f'Objects unsuccessfully processed to s3: {len(data["s3_not_processed_list"])}')
+    print(f'FIX: Objects successfully processed to sfts: {len(data["s3_processed_list"])}')
 
-    # Print all objects loaded into s3/good
-    if data['s3_good_list']:
-        print(f'\nObjects loaded to S3 /good:')  
-        for i, item in enumerate(data['s3_good_list'], 1):
+    # Print all objects coppied to s3 archived
+    if data['s3_processed_list']:
+        print(f'\nObjects coppied to S3 archives:')  
+        for i, item in enumerate(data['s3_processed_list'], 1):
             print(f"\n{i}: {item}")
 
-    # Print all objects loaded into s3/bad
-    if data['s3_bad_list']:
-        print(f'\nObjects loaded to S3 /bad:')
-        for i, item in enumerate(data['s3_bad_list'], 1):
+    # Print all objects not coppied to s3 archives 
+    if data['s3_not_processed_list']:
+        print(f'\nObjects not coppied to S3 archives:')
+        for i, item in enumerate(data['s3_not_processed_list'], 1):
             print(f"\n{i}: {item}")
 
 
@@ -173,8 +173,8 @@ report_stats = {
     'objects_not_processed':0,
     'objects_to_sfts':False,
     'objects_list':[],
-    's3_good_list':[], 
-    's3_bad_list':[],
+    's3_processed_list':[], 
+    's3_not_processed_list':[],
     'sfts_good_list':[],
     'sfts_bad_list':[]
 }
@@ -279,12 +279,12 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
-        report_stats['s3_bad_list'].append(outfile)
+        report_stats['s3_not_processed_list'].append(outfile)
         report_stats['objects_not_processed'] += 1
     else:
         logger.info('copied %s to %s', obj.key, outfile)
         report_stats['objects_processed'] += 1
-        report_stats['s3_good_list'].append(outfile)
+        report_stats['s3_processed_list'].append(outfile)
 
 
 # Remove the temporary local files used to transfer
