@@ -580,7 +580,7 @@ def main():
     # now we run the single-time load on the cmslite.themes
     with open('ddl/{}'.format(ddl_file), 'r') as file:
         query = file.read()
-    query.format(dbschema=dbschema)
+    query = query.format(dbschema=dbschema)
 
     if(len(objects_to_process) > 0):
         # Execute the query using local lib redshift module and log the outcome
