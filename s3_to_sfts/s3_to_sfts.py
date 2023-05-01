@@ -156,27 +156,27 @@ def report(data):
 
     # Print all objects processed to sfts 
     if data['sfts_processed_list']:
-        print(f'\nObjects processed to sfts:')  
+        print(f'\nObjects processed to sfts:\n')  
         for i, item in enumerate(data['sfts_processed_list'], 1):
-            print(f"\n{i}: {item}")
+            print(f"{i}: {item}")
 
     # Print all objects not processed to sfts 
     if data['sfts_not_processed_list']:
-        print(f'\nObjects not processed to sfts:')
+        print(f'\nObjects not processed to sfts:\n')
         for i, item in enumerate(data['sfts_not_processed_list'], 1):
-            print(f"\n{i}: {item}")
+            print(f"{i}: {item}")
     
     # Print all objects coppied to s3 archived
     if data['s3_processed_list']:
-        print(f'\nObjects coppied to S3 archives:')  
+        print(f'\nObjects coppied to S3 archives:\n')  
         for i, item in enumerate(data['s3_processed_list'], 1):
-            print(f"\n{i}: {item}")
+            print(f"{i}: {item}")
 
     # Print all objects not coppied to s3 archives 
     if data['s3_not_processed_list']:
-        print(f'\nObjects not coppied to S3 archives:')
+        print(f'\nObjects not coppied to S3 archives:\n')
         for i, item in enumerate(data['s3_not_processed_list'], 1):
-            print(f"\n{i}: {item}")
+            print(f"{i}: {item}")
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
@@ -271,7 +271,10 @@ except subprocess.CalledProcessError:
 else:
     report_stats['objects_to_sfts'] = True
     for obj in objects_to_process:
-        report_stats['sfts_processed_list'].append(obj.key)
+        report_stats['sfts_processed_list'].append(obj.key.replace(
+            f'{source}/{source_client}/{source_directory}', 
+            f'{sfts_path}', 
+            1))
 
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
@@ -294,7 +297,7 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
-        report_stats['s3_not_processed_list'].append(outfile)
+        report_stats['s3_not_processed_list'].append(obj.key)
     else:
         logger.info('copied %s to %s', obj.key, outfile)
         report_stats['s3_processed_list'].append(outfile)
