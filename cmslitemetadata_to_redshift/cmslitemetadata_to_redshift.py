@@ -93,7 +93,7 @@ def main():
     nested_delim = data['nested_delim']
     columns = data['columns']
     if 'sql_query' not in data:
-        clean_exit(1, "bad configuration")
+        clean_exit(1, "bad configuration, set ddl location in json config file")
     ddl_file = data['sql_query']
     dtype_dic = {}
     if 'dtype_dic_strings' in data:
