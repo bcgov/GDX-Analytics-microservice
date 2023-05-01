@@ -92,7 +92,9 @@ def main():
     dbtables_metadata = data['dbtables_metadata']
     nested_delim = data['nested_delim']
     columns = data['columns']
-    ddl_file = data['ddl']
+    if 'sql_query' not in data:
+        clean_exit(1, "bad configuration")
+    ddl_file = data['sql_query']
     dtype_dic = {}
     if 'dtype_dic_strings' in data:
         for fieldname in data['dtype_dic_strings']:
