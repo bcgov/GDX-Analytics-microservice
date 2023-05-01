@@ -71,6 +71,7 @@ The JSON configuration is required as a second argument when running the `cmslit
 - `"delim"`: specify the character that delimits data in the input `csv`.
 - `"nested_delim"`: specify the character that delimits nested collections of data in the `columns_lookup` list.
 - `"truncate"`: boolean (`true` or `false`) that determines if the Redshift table will be truncated before inserting data, or instead if the table will be extended with the inserted data.
+- `"sql_query"`: an argument to provide the location of sql queries if need to be used in the python script.
 
 The structure of the config file should resemble the following:
 
