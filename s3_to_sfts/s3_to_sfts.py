@@ -271,10 +271,7 @@ except subprocess.CalledProcessError:
 else:
     report_stats['objects_to_sfts'] = True
     for obj in objects_to_process:
-        report_stats['sfts_processed_list'].append(obj.key.replace(
-            f'{source}/{source_client}/{source_directory}', 
-            f'{sfts_path}', 
-            1))
+        report_stats['sfts_processed_list'].append(obj.key)
 
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
@@ -300,7 +297,7 @@ for obj in objects_to_process:
         report_stats['s3_not_processed_list'].append(obj.key)
     else:
         logger.info('copied %s to %s', obj.key, outfile)
-        report_stats['s3_processed_list'].append(outfile)
+        report_stats['s3_processed_list'].append(obj.key)
 
 
 # Remove the temporary local files used to transfer
