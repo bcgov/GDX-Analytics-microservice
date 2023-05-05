@@ -38,6 +38,12 @@ password = os.environ['pgpass']
 conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
                f"user='{user}' password={password}")
 
+# Check if config file was passed as an argument
+if len(sys.argv) < 2:
+    print('Usage: python google_mybusiness_servicebc_derived.py -c config.json')
+    print('Missing config file, exiting.')
+    sys.exit(1)
+
 parser = argparse.ArgumentParser(
     description='GDX Analytics utility for Google My Business Service BC.')
 parser.add_argument('-c', '--conf', help='Microservice config file',)
