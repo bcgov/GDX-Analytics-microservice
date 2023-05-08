@@ -1,0 +1,5 @@
+{
+  "schema": "google",
+  "dbtable": "google_mybusiness_servicebc_derived",
+  "dml": "servicebc.mybusiness.sql"
+}

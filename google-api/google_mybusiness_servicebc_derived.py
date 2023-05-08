@@ -12,12 +12,17 @@
 #               : export pgpass=<<database_password>>
 #
 #
-# Usage         : python google_mybusiness_servicebc_derived.py
+# Usage         : python google_mybusiness_servicebc_derived.py -c config.json
+#
+#               : the flags specified in the usage example above are:
+#               : -c <Microservice configuration file>
 #
 import os
 import sys
 import logging
 import psycopg2
+import json
+import argparse
 import lib.logs as log
 
 # Set up logging
@@ -33,37 +38,34 @@ password = os.environ['pgpass']
 conn_string = (f"dbname='{dbname}' host='{host}' port='{port}' "
                f"user='{user}' password={password}")
 
-query = '''
-BEGIN;
-SET SEARCH_PATH TO google;
-DROP TABLE IF EXISTS google_mybusiness_servicebc_derived;
-CREATE TABLE google_mybusiness_servicebc_derived AS
-SELECT
-  gl.*,
-  oi.site AS office_site,
-  oi.officesize AS office_size,
-  oi.area AS area_number,
-  oi.id AS office_id,
-  oi.current_area as current_area,
-  dd.isweekend::BOOLEAN,
-  dd.isholiday::BOOLEAN,
-  dd.lastdayofpsapayperiod::date,
-  dd.fiscalyear,
-  dd.fiscalmonth,
-  dd.fiscalquarter,
-  dd.sbcquarter,
-  dd.day,
-  dd.weekday,
-  dd.weekdayname
-FROM google.locations AS gl
-JOIN servicebc.datedimension AS dd
-ON gl.date::date = dd.datekey::date
-LEFT JOIN servicebc.office_info AS oi
-ON gl.location_id = oi.google_location_id AND end_date IS NULL;
-ALTER TABLE google_mybusiness_servicebc_derived OWNER TO microservice;
-GRANT SELECT ON google_mybusiness_servicebc_derived TO looker;
-COMMIT;
-'''
+# Check if config file was passed as an argument
+if len(sys.argv) < 2:
+    print('Usage: python google_mybusiness_servicebc_derived.py -c config.json')
+    print('Missing config file, exiting.')
+    sys.exit(1)
+
+parser = argparse.ArgumentParser(
+    description='GDX Analytics utility for Google My Business Service BC.')
+parser.add_argument('-c', '--conf', help='Microservice config file',)
+
+flags = parser.parse_args()
+
+CONFIG = flags.conf
+
+with open(CONFIG) as f:
+    config = json.load(f)
+
+config_schema = config["schema"]
+config_dbtable = config["dbtable"]
+config_dml = config["dml"]
+
+with open('dml/{}'.format(config_dml), 'r') as f:
+    query = f.read()
+
+query = query.format(
+    schema=config_schema,
+    dbtable=config_dbtable)
+
 
 with psycopg2.connect(conn_string) as conn:
     with conn.cursor() as curs:
@@ -85,3 +87,4 @@ with psycopg2.connect(conn_string) as conn:
                 'Success: executed the transaction '
                 'to prepare the google_mybusiness_servicebc_derived DT')
             sys.exit(0)
+
