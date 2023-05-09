@@ -150,31 +150,37 @@ def report(data):
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nItems to process: {data["objects"]}')
     print(f'Objects successfully processed to sfts: {len(data["sfts_processed_list"])}')
-    print(f'Objects unsuccessfully processed to sfts: {len(data["sfts_not_processed_list"])}')
+    print(f'Objects that failed to process to sfts: {len(data["sfts_not_processed_list"])}')
     print(f'Objects successfully processed to s3: {len(data["s3_processed_list"])}')
-    print(f'Objects unsuccessfully processed to s3: {len(data["s3_not_processed_list"])}')
+    print(f'Objects that failed to process to s3: {len(data["s3_not_processed_list"])}')
 
     # Print all objects processed to sfts 
     if data['sfts_processed_list']:
-        print(f'\nObjects processed to sfts:\n')  
+        print(f'\nList of objects processed to sfts:\n')  
         for i, item in enumerate(data['sfts_processed_list'], 1):
             print(f"{i}: {item}")
 
     # Print all objects not processed to sfts 
     if data['sfts_not_processed_list']:
-        print(f'\nObjects not processed to sfts:\n')
+        print(f'\nList of objects that failed to process to sfts:\n')
         for i, item in enumerate(data['sfts_not_processed_list'], 1):
             print(f"{i}: {item}")
-    
+   
+    s3_process_type = ''
+    if data['s3_processed_good']:
+        s3_process_type = 'good'
+    else:
+        s3_process_type = 'bad'
+ 
     # Print all objects coppied to s3 archived
     if data['s3_processed_list']:
-        print(f'\nObjects coppied to S3 archives:\n')  
+        print(f'\nList of objects copied to S3 {s3_process_type} archives:\n')  
         for i, item in enumerate(data['s3_processed_list'], 1):
             print(f"{i}: {item}")
 
     # Print all objects not coppied to s3 archives 
     if data['s3_not_processed_list']:
-        print(f'\nObjects not coppied to S3 archives:\n')
+        print(f'\nList of objects that failed to copy to S3 {s3_process_type} archives:\n')
         for i, item in enumerate(data['s3_not_processed_list'], 1):
             print(f"{i}: {item}")
 
@@ -183,6 +189,7 @@ def report(data):
 report_stats = {
     'objects':0,
     'objects_to_sfts':False,
+    's3_processed_good':False,
     's3_processed_list':[], 
     's3_not_processed_list':[],
     'sfts_processed_list':[],
@@ -285,6 +292,7 @@ for obj in objects_to_process:
     # currently it's all based on whether or not the XFER call returned 0 or 1
     if xfer_proc:
         outfile = f"{archive}/good/{archive_key}"
+        report_stats['s3_processed_good'] = True
     else:
         outfile = f"{archive}/bad/{archive_key}"
     try:
