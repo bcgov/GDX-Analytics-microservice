@@ -137,7 +137,7 @@ def report(data):
     '''reports out cumulative script events'''
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}')
-    if not data['objects_to_sfts'] or data['objects_not_processed']:
+    if not data['objects_to_sfts'] or data['s3_not_processed_list']:
         print(f'*** ATTN: A failure occured ***')
     # Get script end time
     yvr_dt_end = (yvr_tz
@@ -149,34 +149,51 @@ def report(data):
         f'ended at: {yvr_dt_end.strftime("%Y-%m-%d %H:%M:%S%z (%Z)")}, '
         f'elapsing: {yvr_dt_end - yvr_dt_start}.')
     print(f'\nItems to process: {data["objects"]}')
-    print(f'Objects successfully processed to s3: {data["objects_processed"]}')
-    print(f'Objects unsuccessfully processed to s3: {data["objects_not_processed"]}')
-    print(f'Objects successfully processed to sfts: {len(data["s3_good_list"])}')
+    print(f'Objects successfully processed to sfts: {len(data["sfts_processed_list"])}')
+    print(f'Objects that failed to process to sfts: {len(data["sfts_not_processed_list"])}')
+    print(f'Objects successfully processed to s3: {len(data["s3_processed_list"])}')
+    print(f'Objects that failed to process to s3: {len(data["s3_not_processed_list"])}')
 
-    # Print all objects loaded into s3/good
-    if data['s3_good_list']:
-        print(f'\nObjects loaded to S3 /good:')  
-        for i, item in enumerate(data['s3_good_list'], 1):
-            print(f"\n{i}: {item}")
+    # Print all objects processed to sfts 
+    if data['sfts_processed_list']:
+        print(f'\nList of objects processed to sfts:\n')  
+        for i, item in enumerate(data['sfts_processed_list'], 1):
+            print(f"{i}: {item}")
 
-    # Print all objects loaded into s3/bad
-    if data['s3_bad_list']:
-        print(f'\nObjects loaded to S3 /bad:')
-        for i, item in enumerate(data['s3_bad_list'], 1):
-            print(f"\n{i}: {item}")
+    # Print all objects not processed to sfts 
+    if data['sfts_not_processed_list']:
+        print(f'\nList of objects that failed to process to sfts:\n')
+        for i, item in enumerate(data['sfts_not_processed_list'], 1):
+            print(f"{i}: {item}")
+   
+    s3_process_type = ''
+    if data['s3_processed_good']:
+        s3_process_type = 'good'
+    else:
+        s3_process_type = 'bad'
+ 
+    # Print all objects coppied to s3 archived
+    if data['s3_processed_list']:
+        print(f'\nList of objects copied to S3 {s3_process_type} archives:\n')  
+        for i, item in enumerate(data['s3_processed_list'], 1):
+            print(f"{i}: {item}")
+
+    # Print all objects not coppied to s3 archives 
+    if data['s3_not_processed_list']:
+        print(f'\nList of objects that failed to copy to S3 {s3_process_type} archives:\n')
+        for i, item in enumerate(data['s3_not_processed_list'], 1):
+            print(f"{i}: {item}")
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'objects':0,
-    'objects_processed':0,
-    'objects_not_processed':0,
     'objects_to_sfts':False,
-    'objects_list':[],
-    's3_good_list':[], 
-    's3_bad_list':[],
-    'sfts_good_list':[],
-    'sfts_bad_list':[]
+    's3_processed_good':False,
+    's3_processed_list':[], 
+    's3_not_processed_list':[],
+    'sfts_processed_list':[],
+    'sfts_not_processed_list':[]
 }
 
 # This bucket scan will find unprocessed objects matching on the object prefix
@@ -203,7 +220,6 @@ for object_summary in res_bucket.objects.filter(Prefix=source_prefix):
         objects_to_process.append(object_summary)
         logger.info('added %a for processing', filename)
         report_stats['objects'] += 1
-        report_stats['objects_list'].append(object_summary)
 
 
 if not objects_to_process:
@@ -216,12 +232,14 @@ for obj in objects_to_process:
     download_object(obj.key)
 
 # Copy to SFTS
-# write a file to use with the -s flag for the xfer.sh service
+# write a file to use with the -s flag for the xfer.sh service;
 sfts_conf = './tmp/sfst_conf'
 sf = open(sfts_conf, 'w')
 sf_full_path = os.path.realpath(sf.name)
+
 # switch to the writable directory
 sf.write('cd {}\n'.format(sfts_path))
+
 # write all file names downloaded in "A" in the objects_to_process list
 for obj in objects_to_process:
     transfer_file = f"./tmp/{obj.key.replace(source_prefix, '')}{extension}"
@@ -255,8 +273,12 @@ try:
 except subprocess.CalledProcessError:
     logger.exception('Non-zero exit code calling XFer:')
     xfer_proc = False
+    for obj in objects_to_process:
+        report_stats['sfts_not_processed_list'].append(obj.key)
 else:
     report_stats['objects_to_sfts'] = True
+    for obj in objects_to_process:
+        report_stats['sfts_processed_list'].append(obj.key)
 
 # copy the processed files to their outfile archive path
 for obj in objects_to_process:
@@ -270,6 +292,7 @@ for obj in objects_to_process:
     # currently it's all based on whether or not the XFER call returned 0 or 1
     if xfer_proc:
         outfile = f"{archive}/good/{archive_key}"
+        report_stats['s3_processed_good'] = True
     else:
         outfile = f"{archive}/bad/{archive_key}"
     try:
@@ -279,12 +302,10 @@ for obj in objects_to_process:
             Key=outfile)
     except ClientError:
         logger.exception('Exception copying object %s', obj.key)
-        report_stats['s3_bad_list'].append(outfile)
-        report_stats['objects_not_processed'] += 1
+        report_stats['s3_not_processed_list'].append(obj.key)
     else:
         logger.info('copied %s to %s', obj.key, outfile)
-        report_stats['objects_processed'] += 1
-        report_stats['s3_good_list'].append(outfile)
+        report_stats['s3_processed_list'].append(obj.key)
 
 
 # Remove the temporary local files used to transfer
