@@ -469,7 +469,6 @@ with psycopg2.connect(conn_string) as conn:
             objects = get_unprocessed_objects()
             for object in objects:
                 key = object.key
-                filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
 
                 # final paths that include the filenames
                 copy_from_prefix = f"{key}" # the same as the initial object prefix
@@ -485,7 +484,6 @@ with psycopg2.connect(conn_string) as conn:
                 else:
                     logger.info('File extension not set in %s', config_file)
                 try:
-                    # final storage path that includes the filename and optional extension
                     logger.info('Copying to s3 /client ...')
                     client.copy_object(
                         Bucket=bucket,
