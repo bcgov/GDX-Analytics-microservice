@@ -1,0 +1,50 @@
+{
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+    "source": "client",
+    "destination": "processed",
+    "directory": "ocio_ict",
+    "doc": "WLS.*",
+    "dbtable": "test.ict_wls",
+    "column_count": 21,
+    "columns": [
+      "MonthId",
+      "MonthStartDt",
+      "CCYYMM",
+      "YearNum",
+      "BillgSystemCd",
+      "BillgAcctCd",
+      "BillgAcctNm",
+      "RCID",
+      "RCID_CUST_NM",
+      "CBU_CID",
+      "CBUCID_CUST_NM",
+      "LCDCustCd",
+      "LCDCategory",
+      "LOB",
+      "CreateDt",
+      "Total",
+      "ChargeType",
+      "ChargeSubType",
+      "LCD_flg",
+      "BilledAmt",
+      "ReasonDesc"
+    ],
+    "delim": "," ,
+    "truncate": true,
+    "replace": [
+       {
+         "field": "BilledAmt",
+         "old": ",",
+         "new": ""
+       }
+     ],
+    "dtype_dic_ints": [
+      "CBU_CID",
+      "MonthId",
+      "BillgAcctCd",
+      "RCID"
+    ],
+    "dtype_dic_strings": [
+    ]
+  }
+  
