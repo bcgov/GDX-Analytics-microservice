@@ -10,6 +10,11 @@
       "name": "https://www2.gov.bc.ca/"
     },
     {
+      "name": "https://search.onlinelearningbc.com/",
+      "start_date_default": "2022-02-04"
+
+    },
+    {
       "name": "https://efficiencybc.ca/",
       "start_date_default": "2019-03-02"
     },
