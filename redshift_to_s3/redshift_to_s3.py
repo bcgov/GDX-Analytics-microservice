@@ -79,6 +79,8 @@ sql_parse_key = \
 
 delimiter = False if 'delimiter' not in config else config['delimiter']
 
+addquotes = True if 'addquotes' not in config else config['addquotes']
+
 if 'date_list' in config:
     dates = config['date_list']
 
@@ -378,6 +380,13 @@ if delimiter:
 else:
     delimiter_string = ""
 
+# If there is no addquotes specified in the config file
+# leave it blank, else build the addquotes string for the UNLOAD query
+if addquotes:
+    addquotes_string = "ADDQUOTES"
+else:
+    addquotes_string = ""
+
 # The UNLOAD query to support S3 loading direct from a Redshift query
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
 # This UNLOAD inserts into the S3 BATCH path
@@ -387,6 +396,7 @@ TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
 {delimiter_string}
+{addquotes_string}
 PARALLEL OFF
 {header}
 '''.format(
@@ -397,6 +407,7 @@ PARALLEL OFF
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
     delimiter_string=delimiter_string,
+    addquotes_string=addquotes_string,
     header='HEADER' if header else '')
 
 query = log_query.format(
