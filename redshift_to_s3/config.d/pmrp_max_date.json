@@ -8,5 +8,6 @@
   "header": false,
   "sql_parse_key": "pmrp_date_range",
   "start_date": "unset",
-  "end_date": "max"
+  "end_date": "max",
+  "addquotes": false
 }

@@ -7,5 +7,6 @@
   "dml": "sdpr_last_full_day_incremental.sql",
   "header": true,
   "extension": ".csv",
-  "delimiter": ","
+  "delimiter": ",",
+  "addquotes": false
 }
