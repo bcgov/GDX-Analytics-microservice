@@ -77,6 +77,8 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
+escape = True if 'escape' not in config else config['escape']
+
 delimiter = False if 'delimiter' not in config else config['delimiter']
 
 addquotes = True if 'addquotes' not in config else config['addquotes']
@@ -373,6 +375,13 @@ if sql_parse_key:
     # pass the keyword_dict to the request query formatter
     request_query = request_query.format(**keyword_dict)
 
+# If there is no escape specified in the config file
+# leave it blank, else build the escape string for the UNLOAD query
+if escape:
+    escape_string = "ESCAPE"
+else:
+    escape_string = ""
+
 # If there is no delimiter specified in the config file
 # build the delimiter string for the UNLOAD query, else leave it blank
 if delimiter:
@@ -395,6 +404,7 @@ UNLOAD ('{request_query}')
 TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
+{escape_string}
 {delimiter_string}
 {addquotes_string}
 PARALLEL OFF
@@ -406,6 +416,7 @@ PARALLEL OFF
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
+    escape_string=escape_string,
     delimiter_string=delimiter_string,
     addquotes_string=addquotes_string,
     header='HEADER' if header else '')
