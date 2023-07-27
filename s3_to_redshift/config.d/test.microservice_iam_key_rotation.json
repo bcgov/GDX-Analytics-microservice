@@ -1,0 +1,14 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "test_microservice-iam-key",
+  "doc": "GDXDSD-.*.csv",
+  "dbtable": "test.microservice_iam_key_rotation",
+  "column_count": 1,
+  "columns": [
+	"date_of_test"
+  ],
+  "delim": "," ,
+  "truncate": true
+}
