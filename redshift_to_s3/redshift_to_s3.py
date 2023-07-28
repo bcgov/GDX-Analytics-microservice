@@ -77,10 +77,14 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
-escape = True if 'escape' not in config else config['escape']
+# if escape option is missing from the config, set as disabled
+escape = False if 'escape' not in config else config['escape']
 
+# if delimiter option is missing from the config, set as disabled
 delimiter = False if 'delimiter' not in config else config['delimiter']
 
+# if addquotes option is missing from the config, set as enabled
+# even with this option enabled Excel will break when in a value a " appears before a delimiter character
 addquotes = True if 'addquotes' not in config else config['addquotes']
 
 if 'date_list' in config:
@@ -375,22 +379,22 @@ if sql_parse_key:
     # pass the keyword_dict to the request query formatter
     request_query = request_query.format(**keyword_dict)
 
-# If there is no escape specified in the config file
-# leave it blank, else build the escape string for the UNLOAD query
+# If escape was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
 if escape:
     escape_string = "ESCAPE"
 else:
     escape_string = ""
 
-# If there is no delimiter specified in the config file
-# build the delimiter string for the UNLOAD query, else leave it blank
+# If delimiter was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
 if delimiter:
     delimiter_string = "delimiter '{delimiter}'".format(delimiter=delimiter)
 else:
     delimiter_string = ""
 
-# If there is no addquotes specified in the config file
-# leave it blank, else build the addquotes string for the UNLOAD query
+# If addquotes was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
 if addquotes:
     addquotes_string = "ADDQUOTES"
 else:
