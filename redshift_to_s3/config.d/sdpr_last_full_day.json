@@ -5,5 +5,6 @@
   "directory": "theq_sdpr/daily",
   "object_prefix": "sdpr",
   "dml": "sdpr_last_full_day.sql",
-  "header": true
+  "header": true,
+  "addquotes": false
 }

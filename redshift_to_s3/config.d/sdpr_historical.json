@@ -5,5 +5,6 @@
   "directory": "theq_sdpr/historical",
   "object_prefix": "sdpr",
   "dml": "sdpr_historical.sql",
-  "header": true
+  "header": true,
+  "addquotes": false
 }
