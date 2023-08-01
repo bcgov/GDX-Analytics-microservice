@@ -77,7 +77,15 @@ header = config['header']
 sql_parse_key = \
     False if 'sql_parse_key' not in config else config['sql_parse_key']
 
+# if escape option is missing from the config, set as disabled
+escape = False if 'escape' not in config else config['escape']
+
+# if delimiter option is missing from the config, set as disabled
 delimiter = False if 'delimiter' not in config else config['delimiter']
+
+# if addquotes option is missing from the config, set as enabled
+# even with this option enabled Excel will break when in a value a " appears before a delimiter character
+addquotes = True if 'addquotes' not in config else config['addquotes']
 
 if 'date_list' in config:
     dates = config['date_list']
@@ -371,12 +379,26 @@ if sql_parse_key:
     # pass the keyword_dict to the request query formatter
     request_query = request_query.format(**keyword_dict)
 
-# If there is no delimiter specified in the config file
-# build the delimiter string for the UNLOAD query, else leave it blank
+# If escape was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
+if escape:
+    escape_string = "ESCAPE"
+else:
+    escape_string = ""
+
+# If delimiter was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
 if delimiter:
     delimiter_string = "delimiter '{delimiter}'".format(delimiter=delimiter)
 else:
     delimiter_string = ""
+
+# If addquotes was enabled, create string needed to be added to UNLOAD command 
+# else adds a blank string
+if addquotes:
+    addquotes_string = "ADDQUOTES"
+else:
+    addquotes_string = ""
 
 # The UNLOAD query to support S3 loading direct from a Redshift query
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
@@ -386,7 +408,9 @@ UNLOAD ('{request_query}')
 TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
+{escape_string}
 {delimiter_string}
+{addquotes_string}
 PARALLEL OFF
 {header}
 '''.format(
@@ -396,7 +420,9 @@ PARALLEL OFF
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
     aws_secret_access_key='{aws_secret_access_key}',
+    escape_string=escape_string,
     delimiter_string=delimiter_string,
+    addquotes_string=addquotes_string,
     header='HEADER' if header else '')
 
 query = log_query.format(

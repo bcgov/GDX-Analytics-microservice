@@ -7,5 +7,6 @@
   "dml": "sdpr_hourly.sql",
   "header": true,
   "extension": ".csv",
-  "delimiter": ","
+  "delimiter": ",",
+  "addquotes": false
 }
