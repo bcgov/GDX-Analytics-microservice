@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "doug_test/GDXDSD-5797/webdata_tran/assetstrannet_monthly/v02-Aug_2023_automated",
+  "directory": "webdata_tran/assetstrannet_monthly/v02-Aug_2023_automated",
   "object_prefix": "webdata_tran_assetstrannet_monthly",
   "dml": "webdata_tran_assetstrannet_monthly.sql",
   "header": true,
