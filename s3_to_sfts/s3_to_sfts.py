@@ -137,8 +137,11 @@ def report(data):
     '''reports out cumulative script events'''
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}')
-    if not data['objects_to_sfts'] or data['s3_not_processed_list']:
-        print(f'*** ATTN: A failure occured ***')
+    if data['s3_not_processed_list'] or data['sfts_not_processed_list']:
+        print(f'*** ATTN: The microservice ran unsuccessfully. ***\n')
+    else:
+        print(f'***The microservice ran successfully***\n') 
+    
     # Get script end time
     yvr_dt_end = (yvr_tz
         .normalize(datetime.datetime.now(local_tz)
