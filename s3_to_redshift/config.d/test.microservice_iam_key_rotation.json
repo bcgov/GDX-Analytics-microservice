@@ -7,7 +7,7 @@
   "dbtable": "test.microservice_iam_key_rotation",
   "column_count": 1,
   "columns": [
-	"date_of_test"
+	"verification_phrase"
   ],
   "delim": "," ,
   "truncate": true
