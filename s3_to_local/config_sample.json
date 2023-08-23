@@ -1,0 +1,9 @@
+{
+    "bucket_name": "sp-ca-bc-gov-131565110619-12-microservices",
+    "prefix": "client/webdata_healthgateway", 
+    "local_directory": "local/path/to/downloaded/files", 
+    "aws_access_key_id": "YOUR_AWS_ACCESS_KEY_ID", 
+    "aws_secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY", 
+    "aws_default_region": "ca-central-1", 
+    "destination_key": "processed/good/client/webdata_healthgateway/downloaded/"
+}
