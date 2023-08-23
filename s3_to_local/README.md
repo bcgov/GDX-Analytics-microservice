@@ -13,8 +13,8 @@ This script allows you to download files from an Amazon S3 bucket to a local dir
 1. Clone or download this repository to your local machine.
 
 2. Install required Python packages using pip or pip3:
-    pip install boto3 
-    pip3 install boto3
+- pip install boto3 
+- pip3 install boto3
 
 3. Create a `config.json` file in the same directory using the config_sample.json script provided and replace the placeholders with your actual values.
 
