@@ -46,4 +46,4 @@ python3 download_s3.py
   "aws_default_region": "The AWS region of your S3 bucket",
   "destination_key": "The destination key within the bucket where downloaded files will be moved"
 } 
-    ```
+```
