@@ -1,7 +1,7 @@
 Lifecycle:Stable - [![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)]
 The project is in a reliable state and major changes are unlikely to happen.
 
-# Script Version 1.0.0
+- Script Version 1.0.0
 
 # S3 File Downloader Script
 
