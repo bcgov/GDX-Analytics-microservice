@@ -1,3 +1,6 @@
+Lifecycle:Stable - [![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<Redirect-URL>)
+The project is in a reliable state and major changes are unlikely to happen.
+
 # S3 File Downloader Script
 
 This script allows you to download files from an Amazon S3 bucket to a local directory, while also moving the downloaded files to a new destination within the S3 bucket.
