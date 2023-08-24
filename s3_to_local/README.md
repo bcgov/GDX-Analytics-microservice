@@ -1,4 +1,4 @@
-Lifecycle:Stable - [![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<Redirect-URL>)
+Lifecycle:Stable - [![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)]
 The project is in a reliable state and major changes are unlikely to happen.
 
 # S3 File Downloader Script
