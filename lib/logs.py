@@ -4,6 +4,7 @@ import inspect
 import logging
 import copy
 import os
+import re
 
 # Define the default logging message formats.
 FILE_FORMAT = '%(levelname)s:%(name)s:%(asctime)s:%(message)s'
@@ -37,6 +38,16 @@ class CustomFileHandler(logging.FileHandler):
             fh_repack.msg = message
             super(CustomFileHandler, self).emit(fh_repack)
 
+class SFTSFormatter(logging.Formatter):
+    """ Formatter that removes the password from errors outputs from SFTS.
+    """
+    @staticmethod
+    def _filter(s):
+        return re.sub(r"-password:.*?-quiterror", r"-password:<<REDACTED>>', '-quiterror", s)
+
+    def format(self, record):
+        original = logging.Formatter.format(self, record)
+        return self._filter(original)
 
 def setup(dir='logs', minLevel=logging.INFO):
     """ Set up dual logging to console and to logfile.
@@ -64,6 +75,6 @@ def setup(dir='logs', minLevel=logging.INFO):
     # Set up logging to the logfile.
     file_handler = CustomFileHandler(file_path)
     file_handler.setLevel(minLevel)
-    file_formatter = logging.Formatter(FILE_FORMAT)
+    file_formatter = SFTSFormatter(FILE_FORMAT)
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
