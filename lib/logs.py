@@ -38,16 +38,23 @@ class CustomFileHandler(logging.FileHandler):
             fh_repack.msg = message
             super(CustomFileHandler, self).emit(fh_repack)
 
-class SFTSFormatter(logging.Formatter):
-    """ Formatter that removes the password from errors outputs from SFTS.
+class CustomFormatter(logging.Formatter):
+    """ Formatter that applies custom filters to the log outputs 
     """
     @staticmethod
-    def _filter(s):
-        return re.sub(r"-password:.*?-quiterror", r"-password:<<REDACTED>>', '-quiterror", s)
+    def _SFTSXferPasswordFilter(s):
+        """ Uses regex to search the log formatter for a password. The password 
+        is identifed as a 0 or more string of any characters that is found 
+        between '-password:' and '-quiterror'
+        """
+        return re.sub(r"-password:.*?-quiterror", r"-password:********', '-quiterror", s)
 
     def format(self, record):
+        """ Applies the custom filters to the formatter
+        """
         original = logging.Formatter.format(self, record)
-        return self._filter(original)
+        filtered = self._SFTSXferPasswordFilter(original)
+        return filtered 
 
 def setup(dir='logs', minLevel=logging.INFO):
     """ Set up dual logging to console and to logfile.
@@ -75,6 +82,6 @@ def setup(dir='logs', minLevel=logging.INFO):
     # Set up logging to the logfile.
     file_handler = CustomFileHandler(file_path)
     file_handler.setLevel(minLevel)
-    file_formatter = SFTSFormatter(FILE_FORMAT)
+    file_formatter = CustomFormatter(FILE_FORMAT)
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
