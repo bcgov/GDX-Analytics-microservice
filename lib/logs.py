@@ -42,7 +42,7 @@ class CustomFormatter(logging.Formatter):
     """ Formatter that applies custom filters to the log outputs 
     """
     @staticmethod
-    def _SFTSXferPasswordFilter(s):
+    def _PasswordFilter(s):
         """ Uses regex to search the log formatter for a password. The password 
         is identifed as a 0 or more string of any characters that is found 
         between '-password:' and '-quiterror'
@@ -53,7 +53,7 @@ class CustomFormatter(logging.Formatter):
         """ Applies the custom filters to the formatter
         """
         original = logging.Formatter.format(self, record)
-        filtered = self._SFTSXferPasswordFilter(original)
+        filtered = self._PasswordFilter(original)
         return filtered 
 
 def setup(dir='logs', minLevel=logging.INFO):
