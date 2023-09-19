@@ -43,9 +43,19 @@ class CustomFormatter(logging.Formatter):
     """
     @staticmethod
     def _PasswordFilter(s):
-        """ Uses regex to search the log formatter for a password. The password 
-        is identifed as a 0 or more string of any characters that is found 
-        between '-password:' and '-quiterror'
+        """ Uses regex to identify and redact passwords in the log outputs. 
+
+        This filter identifies and redacts a password that is written to the logs 
+        in the S3 to SFTS microservice upon error. Because the structure of this 
+        error is known, a password is identified as the text between two string 
+        literals, '-password:' and '-quiterror'. If no password is identified by 
+        the regex, no redaction is made. There is a small chance that the regex 
+        expression identifies text that is not actually part of the password if 
+        it appears between the -password:' and '-quiterror' string literals. In 
+        this case, all of that text will be redacted and lost in addition to the 
+        password. This is a known bug, but the chances of it occurring has been 
+        identified as low enough that the code in it's current state is approved 
+        for use in production.  
         """
         return re.sub(r"-password:.*?-quiterror", r"-password:********', '-quiterror", s)
 
