@@ -90,6 +90,9 @@ if 'dtype_dic_bools' in data:
 if 'dtype_dic_ints' in data:
     for fieldname in data['dtype_dic_ints']:
         dtype_dic[fieldname] = pd.Int64Dtype()
+if 'dtype_dic_floats' in data:
+    for fieldname in data['dtype_dic_floats']:
+        dtype_dic[fieldname] = float
 if 'no_header' in data:
     no_header = data['no_header']
 else:
@@ -100,7 +103,12 @@ if 'drop_columns' in data:
     drop_columns = data['drop_columns']
 else:
     drop_columns = {}
+if 'add_columns' in data:
+    add_columns = data['add_columns']
+else:
+    add_columns = {}
 ldb_sku = False if 'ldb_sku' not in data else data['ldb_sku']
+sql_query = False if 'sql_query' not in data else data['sql_query']
 file_limit = False if truncate or 'file_limit' not in data else data['file_limit']
 
 if 'strip_quotes' in data:
@@ -111,7 +119,6 @@ if 'encoding' in data:
     encoding = data['encoding']
 else:
     encoding = 'utf-8'
-
 
 # set up S3 connection
 client = boto3.client('s3')  # low-level functional API
@@ -235,12 +242,11 @@ for object_summary in sorted_objects:
         logger.info('reached file limit of %s', file_limit)
         break
     key = object_summary.key
-    # skip to next object if already processed
-    if is_processed(object_summary):
-        continue
-    # only review those matching our configued 'doc' regex pattern
-    #   Ignore files in an "Archive" folder
+    # Ignore files in the "Archive" folder
     if re.search(doc + '$', key) and not (re.search('\/archive',key)):
+        # skip to next object if already processed
+        if is_processed(object_summary):
+            continue
         # under truncate = True, we will keep list length to 1
         # only adding the most recently modified file to objects_to_process
         if truncate:
@@ -291,7 +297,7 @@ for object_summary in objects_to_process:
 
     # Create an object to hold the data while parsing
     csv_string = ''
-
+    
     # The file is an empty upload. Key to badfile and stop processing further.
     if (obj['ContentLength'] == 0):
         logger.info('%s is empty and zero bytes in size, keying to badfile and no further processing.',
@@ -317,7 +323,7 @@ for object_summary in objects_to_process:
     # Read the S3 object body (bytes)
     csv_string = body.read()
 
-    # Check that the file decodes. If it fails move to bad and end
+    # Check that the file decodes as UTF-8. If it fails move to bad and end
     try:
         csv_string = csv_string.decode(encoding)
     except UnicodeDecodeError as _e:
@@ -346,11 +352,11 @@ for object_summary in objects_to_process:
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
-                   
-    # If strip_quotes is set, remove all double quotes (") from the string
-    if 'strip_quotes':
-        csv_string = csv_string.replace('"', "")
 
+    # If strip_quotes is set, remove all double quotes (") from the string
+    if strip_quotes:
+        csv_string = csv_string.replace('"', "")
+        
     # Check for an empty file. If it's empty, accept it as bad
     try:
         if no_header:
@@ -413,13 +419,7 @@ for object_summary in objects_to_process:
 
     # map the dataframe column names to match the columns from the configuation
     df.columns = columns
-
-    # escape pipe symbol in limesurvey surveyls_title column
-    if doc == "limesurvey-analytics.*":
-        logger.info('Escaping pipe in limesurvey surveyls_title column')
-        df['surveyls_title'] = df['surveyls_title'].str.replace('|','\|')
-        logger.info('Finished excaping pipe in limesurvey surveyls_title column')
-
+    
     # Check for empty file that has zero data rows
     if len(df.index) == 0:
         logger.info('%s contains zero data rows, keying to badfile and no further processing.',
@@ -438,19 +438,33 @@ for object_summary in objects_to_process:
         report_stats['bad_list'].append(object_summary)
         report_stats['empty_list'].append(object_summary)
         report_stats['incomplete_list'].remove(object_summary)
-
+       
         report(report_stats)
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
-        
+
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
         for key, value in data['column_string_limit'].items():
-            df[key] = df[key].str.slice(0, value)
+            try:
+                df[key] = df[key].str.slice(0, value)
+            except AttributeError:
+                report_stats['failed'] += 1
+                report_stats['bad'] += 1
+                report_stats['bad_list'].append(object_summary)
+                report_stats['incomplete_list'].remove(object_summary) 
+                report(report_stats)
+                clean_exit(1, f'File {object_summary.key} not configured correctly, '
+                          'column number mismatch - no further processing.')
 
     if 'drop_columns' in data:  # Drop any columns marked for dropping
         df = df.drop(columns=drop_columns)
 
+    # Add columns from the config file into the dataframe
+    if 'add_columns' in data:
+        for key, value in data['add_columns'].items():
+            df[key] = value
+    
     # Run replace on some fields to clean the data up
     if 'replace' in data:
         for thisfield in data['replace']:
@@ -492,6 +506,10 @@ for object_summary in objects_to_process:
                     1,f'Bad file {object_summary.key} in objects to process, '
                     f'due to attempt to cast {thisfield} as an Integer type. '
                     'no further processing.')
+
+    # escape valid pipes in object cols
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].str.replace('|','\|')
 
     # Put the full data set into a buffer and write it
     # to a "|" delimited file in the batch directory
@@ -546,148 +564,24 @@ COMMIT;
     else:
         outfile = badfile
 
-    # Logic for specific case handling for LDB files
+    # if ldb_sku is set to true, then this code is run to populate the microservice.ldb_sku table
+
     if ldb_sku and outfile == goodfile:
-        # There are 2 tables: microservice.ldb_sku and microservice.ldb_sku_csv.
-        # microservice.ldb_sku_csv is loaded with new data from latest CSV processed (in the steps above).
-        # microservice.ldb_sku is the table for Looker read and has additional date_added and date_removed columns.
-        # The logic to load ldb_sku is based on it's differences from ldb_sku_csv.
-        #
-        # ldb_sku is updated according to ldb_sku_csv. In a transaction:
-        #  1 - SKU in ldb_sku and not in ldb_sku_csv: date_removed = today,
-        #  2 - SKU match: update content from ldb_sku_csv (accounts for changes in info),
-        #  3 - SKU in ldb_sku_csv and not in ldb_sku: append to ldb_sku and date_added = today.
-        #
-        # on failure: outfile = badfile, report(report_stats), and clean_exit(1).
-        # on success, end loop.
-
-        ldb_query = """
-
-BEGIN;
-
--- When a SKU is not in ldb_sku_csv, if it's in the prod table set a date_removed as today
--- End result: same number of rows in ldb_sku. Only changes 'date_removed' column if the csv didn't have that sku.
-
-UPDATE microservice.ldb_sku
-    SET date_removed = CURRENT_DATE
-WHERE
-    sku NOT IN ( SELECT sku FROM microservice.ldb_sku_csv ) AND
-    date_removed IS NULL;
-
--- when SKUs match between the two tables, update PROD to match new data from CSV
--- End result: no new rows, only updates the data fields on every matching SKU row, as copied from the csv.
---             if the sku found in the csv had previously been assigned a date_removed, that will revert to NULL.
---             the sku, and date_added fields are not affected, but every other field may be.
-
-UPDATE microservice.ldb_sku SET
-    product_name = ldb_sku_csv.product_name,
-    image = ldb_sku_csv.image,
-    body = ldb_sku_csv.body,
-    volume = ldb_sku_csv.volume,
-    bottles_per_pack = ldb_sku_csv.bottles_per_pack,
-    regular_price = ldb_sku_csv.regular_price,
-    lto_price = ldb_sku_csv.lto_price,
-    lto_start = ldb_sku_csv.lto_start,
-    lto_end = ldb_sku_csv.lto_end,
-    price_override = ldb_sku_csv.price_override,
-    store_count = ldb_sku_csv.store_count,
-    inventory = ldb_sku_csv.inventory,
-    availability_override = ldb_sku_csv.availability_override,
-    whitelist = ldb_sku_csv.whitelist,
-    blacklist = ldb_sku_csv.blacklist,
-    upc = ldb_sku_csv.upc,
-    all_upcs = ldb_sku_csv.all_upcs,
-    alcohol = ldb_sku_csv.alcohol,
-    kosher = ldb_sku_csv.kosher,
-    organic = ldb_sku_csv.organic,
-    sweetness = ldb_sku_csv.sweetness,
-    vqa = ldb_sku_csv.vqa,
-    craft_beer = ldb_sku_csv.craft_beer,
-    bcl_select = ldb_sku_csv.bcl_select,
-    new_flag = ldb_sku_csv.new_flag,
-    rating = ldb_sku_csv.rating,
-    votes = ldb_sku_csv.votes,
-    product_type = ldb_sku_csv.product_type,
-    category = ldb_sku_csv.category,
-    sub_category = ldb_sku_csv.sub_category,
-    country = ldb_sku_csv.country,
-    region = ldb_sku_csv.region,
-    sub_region = ldb_sku_csv.sub_region,
-    grape_variety = ldb_sku_csv.grape_variety,
-    restriction_code = ldb_sku_csv.restriction_code,
-    status_code = ldb_sku_csv.status_code,
-    inventory_code = ldb_sku_csv.inventory_code,
-    date_removed = NULL
-FROM microservice.ldb_sku_csv
-WHERE
-    ldb_sku.sku = ldb_sku_csv.sku;
-
--- When there is a new SKU add it into the prod table date_added = today
--- End result: new rows are inserted to the ldb_sku table if the csv had new SKUs.
-
-INSERT INTO microservice.ldb_sku (
-SELECT
-    ldb_sku_csv.sku,
-    ldb_sku_csv.product_name,
-    ldb_sku_csv.image,
-    ldb_sku_csv.body,
-    ldb_sku_csv.volume,
-    ldb_sku_csv.bottles_per_pack,
-    ldb_sku_csv.regular_price,
-    ldb_sku_csv.lto_price,
-    ldb_sku_csv.lto_start,
-    ldb_sku_csv.lto_end,
-    ldb_sku_csv.price_override,
-    ldb_sku_csv.store_count,
-    ldb_sku_csv.inventory,
-    ldb_sku_csv.availability_override,
-    ldb_sku_csv.whitelist,
-    ldb_sku_csv.blacklist,
-    ldb_sku_csv.upc,
-    ldb_sku_csv.all_upcs,
-    ldb_sku_csv.alcohol,
-    ldb_sku_csv.kosher,
-    ldb_sku_csv.organic,
-    ldb_sku_csv.sweetness,
-    ldb_sku_csv.vqa,
-    ldb_sku_csv.craft_beer,
-    ldb_sku_csv.bcl_select,
-    ldb_sku_csv.new_flag,
-    ldb_sku_csv.rating,
-    ldb_sku_csv.votes,
-    ldb_sku_csv.product_type,
-    ldb_sku_csv.category,
-    ldb_sku_csv.sub_category,
-    ldb_sku_csv.country,
-    ldb_sku_csv.region,
-    ldb_sku_csv.sub_region,
-    ldb_sku_csv.grape_variety,
-    ldb_sku_csv.restriction_code,
-    ldb_sku_csv.status_code,
-    ldb_sku_csv.inventory_code,
-    CURRENT_DATE AS date_added,
-    NULL AS date_removed
-    
-FROM microservice.ldb_sku_csv
-WHERE ldb_sku_csv.sku NOT IN (
-    SELECT sku FROM microservice.ldb_sku
-));
-
-COMMIT;
-"""
+        with open(sql_query) as f:
+            ldb_sku_query = f.read()
 
         with spdb.connection as conn:
             with conn.cursor() as curs:
                 try:
-                    curs.execute(ldb_query)
+                    curs.execute(ldb_sku_query.strip())
                 except Exception as err:
                     outfile = badfile
                     logger.error(
-                        "Loading LDB SKU to RedShift failed.")
+                        "Loading LDB data to RedShift failed.")
                     spdb.print_psycopg2_exception(err)
                 else:
                     logger.info(
-                        "Loaded LDB SKU to RedShift successfully")
+                        "Loaded LDB data to RedShift successfully")
                     outfile = goodfile
 
     spdb.close_connection()
@@ -713,6 +607,7 @@ COMMIT;
         clean_exit(1,f'Bad file {object_summary.key} in objects to process, '
                    'no further processing.')
 
+    report_stats['processed'] += 1
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)

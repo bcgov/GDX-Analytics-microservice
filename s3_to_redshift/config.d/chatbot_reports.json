@@ -5,15 +5,14 @@
   "directory": "chatbot_citz",
   "doc": "Pass2.*csv",
   "dbtable": "microservice.chatbot_reports",
-  "column_count": 13,
+  "column_count": 12,
   "columns": [
     "dashboard_id",
     "conf_score",
     "sentiment_score",
     "sentiment_magnitude",
     "conversation_length",
-    "conversation_duration",
-    "sessionorigin",
+    "duration_seconds",
     "session_id",
     "timestamp",
     "matched_intent",
@@ -35,5 +34,5 @@
       }
   ],
   "strip_quotes" : true,
-  "encoding" : "ISO-8859-1'"
+  "encoding" : "utf-16"
 }
