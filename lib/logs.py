@@ -4,6 +4,7 @@ import inspect
 import logging
 import copy
 import os
+import re
 
 # Define the default logging message formats.
 FILE_FORMAT = '%(levelname)s:%(name)s:%(asctime)s:%(message)s'
@@ -37,6 +38,33 @@ class CustomFileHandler(logging.FileHandler):
             fh_repack.msg = message
             super(CustomFileHandler, self).emit(fh_repack)
 
+class CustomFormatter(logging.Formatter):
+    """ Formatter that applies custom filters to the log outputs 
+    """
+    @staticmethod
+    def _PasswordFilter(s):
+        """ Uses regex to identify and redact passwords in the log outputs. 
+
+        This filter identifies and redacts a password that is written to the logs 
+        in the S3 to SFTS microservice upon error. Because the structure of this 
+        error is known, a password is identified as the text between two string 
+        literals, '-password:' and '-quiterror'. If no password is identified by 
+        the regex, no redaction is made. There is a small chance that the regex 
+        expression identifies text that is not actually part of the password if 
+        it appears between the -password:' and '-quiterror' string literals. In 
+        this case, all of that text will be redacted and lost in addition to the 
+        password. This is a known bug, but the chances of it occurring has been 
+        identified as low enough that the code in it's current state is approved 
+        for use in production.  
+        """
+        return re.sub(r"-password:.*?-quiterror", r"-password:********', '-quiterror", s)
+
+    def format(self, record):
+        """ Applies the custom filters to the formatter
+        """
+        original = logging.Formatter.format(self, record)
+        filtered = self._PasswordFilter(original)
+        return filtered 
 
 def setup(dir='logs', minLevel=logging.INFO):
     """ Set up dual logging to console and to logfile.
@@ -64,6 +92,6 @@ def setup(dir='logs', minLevel=logging.INFO):
     # Set up logging to the logfile.
     file_handler = CustomFileHandler(file_path)
     file_handler.setLevel(minLevel)
-    file_formatter = logging.Formatter(FILE_FORMAT)
+    file_formatter = CustomFormatter(FILE_FORMAT)
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
