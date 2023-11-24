@@ -130,6 +130,10 @@
     {
       "name": "https://communityclimatefunding.gov.bc.ca/",
       "start_date_default": "2022-11-24"
+    },
+    {
+      "name": "sc-domain:tranbc.ca",
+      "start_date_default": "2023-09-24"
     }
 
   ]
