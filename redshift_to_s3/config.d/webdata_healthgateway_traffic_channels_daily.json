@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "webdata_healthgateway/daily/traffic_channel_daily/v01",
+  "object_prefix": "webdata_healthgateway_traffic_channel_daily",
+  "dml": "webdata_healthgateway_traffic_channels_daily.sql",
+  "header": true,
+  "extension": ".txt"
+}

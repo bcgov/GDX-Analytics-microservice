@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "webdata_healthgateway/monthly/geographic_breakdown_monthly/v01",
+  "object_prefix": "webdata_healthgateway_geographic_breakdown_monthly",
+  "dml": "webdata_healthgateway_geographic_breakdown_monthly.sql",
+  "header": true,
+  "extension": ".txt"
+}
