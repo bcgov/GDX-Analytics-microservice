@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "webdata_healthgateway/daily/overall_page_views_daily/v01",
+  "directory": "webdata_healthgateway/new/daily/overall_page_views_daily/v01",
   "object_prefix": "webdata_healthgateway_overall_page_views_daily",
   "dml": "webdata_healthgateway_overall_page_views_daily.sql",
   "header": true,
