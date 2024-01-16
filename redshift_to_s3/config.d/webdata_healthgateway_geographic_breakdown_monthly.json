@@ -6,5 +6,6 @@
   "object_prefix": "webdata_healthgateway_geographic_breakdown_monthly",
   "dml": "webdata_healthgateway_geographic_breakdown_monthly.sql",
   "header": true,
-  "extension": ".txt"
+  "extension": ".csv",
+  "delimiter": ","
 }
