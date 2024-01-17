@@ -134,6 +134,10 @@
     {
       "name": "sc-domain:tranbc.ca",
       "start_date_default": "2023-09-24"
+    },
+    {
+      "name": "https://www.env.gov.bc.ca/",
+      "start_date_default": "2023-11-27"
     }
 
   ]
