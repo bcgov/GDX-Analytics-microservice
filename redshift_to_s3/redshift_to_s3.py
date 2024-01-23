@@ -438,8 +438,10 @@ def get_unprocessed_objects():
     for object_summary in res_bucket.objects.filter(Prefix=f'{batch_prefix}/'): # batch_prefix may need a trailing /
         key = object_summary.key
         filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
-        goodfile = f"{good_prefix}/{filename}"
-        badfile = f"{bad_prefix}/{filename}"
+        
+        # replaces the batch part of the key with good/bad
+        goodfile = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
+        badfile = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
 
         def is_processed():
             '''Check to see if the file has been processed already'''
