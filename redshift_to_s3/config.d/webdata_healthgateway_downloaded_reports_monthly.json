@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "webdata_healthgateway/new/monthly/downloaded_reports_monthly/v01",
+  "object_prefix": "webdata_healthgateway_downloaded_reports_monthly",
+  "dml": "webdata_healthgateway_downloaded_reports_monthly.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ","
+}
