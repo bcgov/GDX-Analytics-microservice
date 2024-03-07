@@ -275,7 +275,7 @@ def report(data):
         print(f'\nList of objects stored to S3 /client:')
         if data['stored_objects_list']:
             for i, item in enumerate(data['stored_objects_list'], 1):
-                print(f"{i}: {storage_prefix}/{item}")
+                print(f"{i}: {item}")
 
     # Print all objects not loaded into s3/client
     if data["unstored_objects"]:
@@ -283,7 +283,7 @@ def report(data):
         print(f'\nList of objects not stored to S3 /client:')
         if data['unstored_objects_list']:
             for i, item in enumerate(data['unstored_objects_list'], 1):
-                print(f"{i}: {storage_prefix}/{item}")
+                print(f"{i}: {item}")
 
     print(f'\n\nObjects to process: {data["unprocessed_objects"]}')
 
