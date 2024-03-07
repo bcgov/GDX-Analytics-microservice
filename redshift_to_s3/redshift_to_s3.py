@@ -293,7 +293,7 @@ def report(data):
         print(f'\nList of objects processed to S3 /good:')
         if data['good_objects_list']:
             for i, item in enumerate(data['good_objects_list'], 1):
-                print(f"{i}: {good_prefix}/{item}")
+                print(f"{i}: {item}")
 
     # Print all objects loaded into s3/bad
     if data["bad_objects"]:
@@ -301,7 +301,7 @@ def report(data):
         print(f'\nList of objects processed to S3 /bad:')
         if data['bad_objects_list']:
             for i, item in enumerate(data['bad_objects_list'], 1):
-                print(f"{i}: {bad_prefix}/{item}")
+                print(f"{i}: {item}")
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
@@ -533,7 +533,7 @@ with psycopg2.connect(conn_string) as conn:
                         Key=copy_bad_prefix)
                     logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
                     logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
-                    report_stats['bad_objects_list'].append(filename)
+                    report_stats['bad_objects_list'].append(copy_bad_prefix)
                     report_stats['bad_objects'] += 1
                     
                     report(report_stats)
@@ -552,7 +552,7 @@ with psycopg2.connect(conn_string) as conn:
                     logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
                     logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
                     report_stats['good_objects'] += 1
-                    report_stats['good_objects_list'].append(filename)
+                    report_stats['good_objects_list'].append(copy_good_prefix)
 
             report(report_stats)
             clean_exit(0,'Finished succesfully.')
