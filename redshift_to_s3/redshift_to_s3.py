@@ -524,7 +524,7 @@ with psycopg2.connect(conn_string) as conn:
                     logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
                     logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
                     report_stats['unstored_objects'] += 1
-                    report_stats['unstored_objects_list'].append(filename_with_extension)
+                    report_stats['unstored_objects_list'].append(copy_from_prefix)
                     
                     logger.info('Copying to s3 /bad ...')
                     client.copy_object(
@@ -542,7 +542,7 @@ with psycopg2.connect(conn_string) as conn:
                     logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
                     logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
                     report_stats['stored_objects'] += 1
-                    report_stats['stored_objects_list'].append(filename_with_extension)
+                    report_stats['stored_objects_list'].append(copy_to_prefix)
                     
                     logger.info('Copying to s3 /good ...')
                     client.copy_object(
