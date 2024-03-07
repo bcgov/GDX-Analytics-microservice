@@ -435,8 +435,8 @@ def get_unprocessed_objects():
     # objects_to_process will contain zero or more objects if truncate = False
     filename_regex = fr'^{object_prefix}'
     objects_to_process = []
-    for object_summary in res_bucket.objects.filter(Prefix=f'{batch_prefix}/'): # batch_prefix may need a trailing /
-        key = object_summary.key
+    for object_summary in res_bucket.objects.filter(Prefix=f'{batch_prefix}/'):
+        key = object_summary.key # aka the batch prefix of the object
         filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
         
         # replaces the batch part of the key with good/bad
@@ -495,24 +495,26 @@ with psycopg2.connect(conn_string) as conn:
             # optionally add the file extension and transfer to storage folders
             objects = get_unprocessed_objects()
             for object in objects:
-                key = object.key
+                key = object.key # aka the batch prefix of the object
                 filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
 
                 # final paths that include the filenames
-                copy_good_prefix = f"{good_prefix}/{filename}"
-                copy_bad_prefix = f"{bad_prefix}/{filename}"
-                copy_from_prefix = f"{batch_prefix}/{filename}"
+                copy_good_prefix = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
+                copy_bad_prefix = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
+                copy_from_prefix = key 
+                
                 if 'extension' in config:
                     # if an extension was set in the config, add it to the end of the file
                     extension = config['extension']
-                    filename_with_extension = f"{filename}{extension}"
+                    filename_with_extension = f"{key}{extension}"
                     logger.info('File extension set in %s as "%s"', config_file, extension)
                 else:
-                    filename_with_extension = filename
+                    filename_with_extension = key 
                     logger.info('File extension not set in %s', config_file)
                 try:
-                    # final storage path that includes the filename and optional extension
-                    copy_to_prefix = f"{storage_prefix}/{filename_with_extension}"
+                    # final storage path that includes the filename and optional extension, removes the batch part of the prefix and leaves the client
+                    copy_to_prefix = filename_with_extension.replace(f'{archive}/batch/', '', 1)
+                    
                     logger.info('Copying to s3 /client ...')
                     client.copy_object(
                         Bucket=bucket,
