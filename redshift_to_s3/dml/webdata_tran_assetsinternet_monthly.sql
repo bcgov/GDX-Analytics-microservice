@@ -1,5 +1,5 @@
--- based on the SQL Runner: https://analytics.gov.bc.ca/sql/wcpfsftvpfdx6d?toggle=dat,sql
 SELECT * FROM (
+-- based on the SQL runner: https://analytics.gov.bc.ca/sql/bqfsnm4tngjfd7
   SELECT 
     metadata.hr_url,
     metadata.node_id,
@@ -14,8 +14,8 @@ SELECT * FROM (
   FROM 
     cmslite.metadata 
     LEFT JOIN microservice.asset_downloads_derived  AS asset_downloads 
-      ON SPLIT_PART(SPLIT_PART(asset_downloads.asset_url,''?'', 1), ''#'', 1) = hr_url
-      AND (((( asset_downloads.date_timestamp  ) >= ((DATEADD(month,-1, DATE_TRUNC(''month'', DATE_TRUNC(''day'',GETDATE())) ))) 
+      ON SPLIT_PART(SPLIT_PART(asset_downloads.asset_url_nopar_case_insensitive,''?'', 1), ''#'', 1) = hr_url
+      AND (((( asset_downloads.date_timestamp  ) >= ((DATEADD(month,-1, DATE_TRUNC(''month'', DATE_TRUNC(''day'',GETDATE())) )))
       AND ( asset_downloads.date_timestamp  ) < ((DATEADD(month,1, DATEADD(month,-1, DATE_TRUNC(''month'', DATE_TRUNC(''day'',GETDATE())) ) )))))) 
        
   WHERE
