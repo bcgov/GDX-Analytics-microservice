@@ -15,10 +15,6 @@
 
     },
     {
-      "name": "https://efficiencybc.ca/",
-      "start_date_default": "2019-03-02"
-    },
-    {
       "name": "https://news.gov.bc.ca/",
       "start_date_default": "2017-12-09"
     },
