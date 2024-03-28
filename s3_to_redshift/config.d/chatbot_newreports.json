@@ -3,8 +3,8 @@
   "source": "client",
   "destination": "processed",
   "directory": "chatbot_citz",
-  "doc": "Pass2.*csv",
-  "dbtable": "microservice.chatbot_reports",
+  "doc": "prod/covid/New_Week.*csv",
+  "dbtable": "microservice.chatbot_newreports",
   "column_count": 12,
   "columns": [
     "dashboard_id",
@@ -12,7 +12,7 @@
     "sentiment_score",
     "sentiment_magnitude",
     "conversation_length",
-    "duration_seconds",
+    "conversation_duration",
     "session_id",
     "timestamp",
     "matched_intent",
@@ -34,5 +34,5 @@
       }
   ],
   "strip_quotes" : true,
-  "encoding" : "utf-16"
+  "encoding" : "ISO-8859-1'"
 }

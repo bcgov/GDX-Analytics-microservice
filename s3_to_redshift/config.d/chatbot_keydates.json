@@ -1,0 +1,25 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "chatbot_citz",
+  "doc": "prod/covid/keydates.*csv",
+  "dbtable": "microservice.chatbot_keydates",
+  "column_count": 2,
+  "columns": [
+    "date",
+    "text"
+  ],
+  "dtype_dic_ints": [
+  ],
+  "dtype_dic_strings": [
+  ],
+  "delim": "|",
+  "truncate": true,
+  "dateformat": [
+      {
+        "field": "date",
+        "format": "%Y-%m-%d"
+      }
+  ]
+}
