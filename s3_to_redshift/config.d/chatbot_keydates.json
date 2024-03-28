@@ -3,7 +3,7 @@
   "source": "client",
   "destination": "processed",
   "directory": "chatbot_citz",
-  "doc": "keydates.*csv",
+  "doc": "prod/covid/keydates.*csv",
   "dbtable": "microservice.chatbot_keydates",
   "column_count": 2,
   "columns": [
