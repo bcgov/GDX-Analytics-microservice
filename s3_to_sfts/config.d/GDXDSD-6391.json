@@ -1,0 +1,13 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "source_client": "oz_test/GDXDSD-6391/pmrp_qdata",
+  "source_directory": "daily/May_2024_change",
+  "archive": "processed",
+  "archive_client": "doug_test/GDXDSD-6391/qdata-sfts_sbc",
+  "archive_directory": "daily/May_2024_change",
+  "object_prefix": "pmrp_qdata",
+  "header": true,
+  "sfts_path": "CITZ_AP_GDX/Shared/microservice/oz_test/GDXDSD-6391/pmrp_qdata",
+  "extension": ".csv"
+}
