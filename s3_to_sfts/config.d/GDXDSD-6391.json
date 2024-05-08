@@ -4,7 +4,7 @@
   "source_client": "oz_test/GDXDSD-6391/pmrp_qdata",
   "source_directory": "daily/May_2024_change",
   "archive": "processed",
-  "archive_client": "doug_test/GDXDSD-6391/qdata-sfts_sbc",
+  "archive_client": "oz_test/GDXDSD-6391/qdata-sfts_sbc",
   "archive_directory": "daily/May_2024_change",
   "object_prefix": "pmrp_qdata",
   "header": true,
