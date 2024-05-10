@@ -266,7 +266,7 @@ try:
     output = subprocess.check_output(
         ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
          "xfer",
-         f"-user:",
+         f"-user:{123}",
          f"-password:{sfts_pass}",
          "-quiterror",
          f"-s:{sfts_conf}",
