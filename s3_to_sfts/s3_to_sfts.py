@@ -259,7 +259,7 @@ sf.close()
 # https://docs.ipswitch.com/MOVEit/Transfer2017Plus/FreelyXfer/MoveITXferManual.html
 # TODO: do uploads one at a time and treat them on S3 one-by-one
 try:
-    xfer_jar = f"{xfer_path}/xfer.jar_error"
+    xfer_jar = f"{xfer_path}/xfer.jar"
     jna_jar = f"{xfer_path}/jna.jar"
     logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
@@ -270,7 +270,8 @@ try:
          f"-password:{sfts_pass}",
          "-quiterror",
          f"-s:{sfts_conf}",
-         "filetransfer.gov.bc.ca"])
+         "filetransfer.gov.bc.ca",
+         "--invalid-argument"  # <-- Introduced an invalid argument])
     xfer_proc = True
     logger.info(output.decode("utf-8"))
 except subprocess.CalledProcessError:
