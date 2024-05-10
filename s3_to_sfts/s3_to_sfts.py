@@ -264,18 +264,7 @@ try:
     logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
     output = subprocess.check_output(
-        ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
-         "xfer",
-         f"-user:{sfts_user}",
-         f"-password:{sfts_pass}",
-         "-quiterror",
-         f"-s:{sfts_conf}",
-         "filetransfer.gov.bc.ca",
-         "&",
-         "sleep", "10" 
-         ],
-         timeout=15
-         )
+        ["non existent commmand"],)
     xfer_proc = True
     logger.info(output.decode("utf-8"))
 except subprocess.CalledProcessError:
