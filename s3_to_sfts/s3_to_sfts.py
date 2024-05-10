@@ -271,7 +271,8 @@ try:
          "-quiterror",
          f"-s:{sfts_conf}",
          "filetransfer.gov.bc.ca",
-         "--invalid-argument"  # <-- Introduced an invalid argument])
+         "--invalid-argument"  
+         ])
     xfer_proc = True
     logger.info(output.decode("utf-8"))
 except subprocess.CalledProcessError:
