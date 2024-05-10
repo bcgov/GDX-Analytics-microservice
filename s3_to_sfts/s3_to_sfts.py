@@ -266,12 +266,11 @@ try:
     output = subprocess.check_output(
         ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
          "xfer",
-         f"-user:{sfts_user}",
+         f"-user:",
          f"-password:{sfts_pass}",
          "-quiterror",
          f"-s:{sfts_conf}",
-         "filetransfer.gov.bc.ca",
-         "--invalid-argument"  
+         "filetransfer.gov.bc.ca"  
          ])
     xfer_proc = True
     logger.info(output.decode("utf-8"))
