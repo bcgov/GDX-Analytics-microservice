@@ -274,7 +274,7 @@ try:
          "&",
          "sleep", "10" 
          ],
-         timeout=5
+         timeout=15
          )
     xfer_proc = True
     logger.info(output.decode("utf-8"))
