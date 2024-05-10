@@ -264,9 +264,9 @@ try:
     logger.info(("trying to call subprocess:\nxfer.jar: "
            f"{xfer_jar}\njna.jar : {jna_jar}"))
     output = subprocess.check_output(
-        ["java", "-classpath", f"{xfer_jar}:{jna_jar}",
+        [["java", "-classpath", f"{xfer_jar}:{jna_jar}"],
          "xfer",
-         f"-user:{123}",
+         f"-user:{sfts_user}",
          f"-password:{sfts_pass}",
          "-quiterror",
          f"-s:{sfts_conf}",
