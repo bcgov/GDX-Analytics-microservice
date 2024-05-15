@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS test.gdxdsd_5888_user_group
+CREATE TABLE IF NOT EXISTS test.gdxdsd_6391_user_group
 ( 
   "id" VARCHAR(255) ENCODE ZSTD NOT NULL,
   "user_id" VARCHAR(255)  ENCODE ZSTD,
@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS test.gdxdsd_5888_user_group
   "is_group_mgr" BOOL ENCODE ZSTD
 );
 
-GRANT SELECT ON test.gdxdsd_5888_user_group TO "looker";
+GRANT SELECT ON test.gdxdsd_6391_user_group TO "looker";

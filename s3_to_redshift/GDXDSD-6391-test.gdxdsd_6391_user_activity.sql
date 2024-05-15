@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS test.gdxdsd_5888_user_activity
+CREATE TABLE IF NOT EXISTS test.gdxdsd_6391_user_activity
 ( 
   "user_id" VARCHAR(100) ENCODE ZSTD NOT NULL,
   "user_idir" VARCHAR(100) ENCODE ZSTD,
@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS test.gdxdsd_5888_user_activity
   "group_name"VARCHAR(255) ENCODE ZSTD
 );
 
-GRANT SELECT ON test.gdxdsd_5888_user_activity TO "looker";
+GRANT SELECT ON test.gdxdsd_6391_user_activity TO "looker";
