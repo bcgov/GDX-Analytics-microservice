@@ -386,7 +386,7 @@ def main():
           _df.columns = columns
           
           # INTRODUCE KEY ERROR
-          non_existent_key = data['nonexistent_key']
+          # non_existent_key = data['nonexistent_key']
 
           # Run rename to change column names
           if 'rename' in data:
@@ -535,6 +535,10 @@ def main():
                 f'DROP TABLE {table}_old;\n')
             query = query + start_query + copy_query + end_query
         query = query + 'COMMIT;\n'
+
+        #INTRODUCE KEYERROR
+        undefined_var = os.environ['UNDEFINED_ENV_VAR']
+
         logquery = (
             query.replace
             (os.environ['AWS_ACCESS_KEY_ID'], 'AWS_ACCESS_KEY_ID').replace
