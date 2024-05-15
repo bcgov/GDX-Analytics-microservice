@@ -537,16 +537,17 @@ def main():
         query = query + 'COMMIT;\n'
 
         #INTRODUCE KEYERROR
-        undefined_var = os.environ['UNDEFINED_ENV_VAR']
+        # undefined_var = os.environ['UNDEFINED_ENV_VAR']
 
+        # KEY ERROR CHANGE AWS_ACCESS_KEY_ID
         logquery = (
             query.replace
-            (os.environ['AWS_ACCESS_KEY_ID'], 'AWS_ACCESS_KEY_ID').replace
+            (os.environ['UNDEFINED_ENV_VAR'], 'AWS_ACCESS_KEY_ID').replace
             (os.environ['AWS_SECRET_ACCESS_KEY'], 'AWS_SECRET_ACCESS_KEY'))
 
         # Execute the transaction against Redshift using 
         # local lib redshift module.
-        # logger.info(logquery)
+        logger.info(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
