@@ -384,6 +384,9 @@ def main():
         
         try:
           _df.columns = columns
+          
+          # INTRODUCE KEY ERROR
+          non_existent_key = data['nonexistent_key']
 
           # Run rename to change column names
           if 'rename' in data:
@@ -539,7 +542,7 @@ def main():
 
         # Execute the transaction against Redshift using 
         # local lib redshift module.
-        logger.info(logquery)
+        # logger.info(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = goodfile
