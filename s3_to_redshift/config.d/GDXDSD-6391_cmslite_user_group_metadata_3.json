@@ -9,7 +9,7 @@
 	"delim": "|",
 	"files": {
 		"analytics_user_group": {
-			"dbtable": "user_group",
+			"dbtable": "gdxdsd_6391_user_group",
 			"column_count": 7,
 			"columns": [
 				"id",
@@ -22,7 +22,7 @@
 			  ]
 		},
 		"analytics_group": {
-			"dbtable": "cms_group",
+			"dbtable": "gdxdsd_6391_cms_group",
 			"column_count": 4,
 			"columns": [
 				"id",
@@ -32,7 +32,7 @@
 			  ]
 		},
 		"analytics_user_activity": {
-			"dbtable": "user_activity",
+			"dbtable": "gdxdsd_6391_user_activity",
 			"column_count": 5,
 			"columns": [
 				"user_id",
@@ -49,7 +49,7 @@
 			]
 		},
 		"analytics_user_status": {
-			"dbtable": "user_status",
+			"dbtable": "gdxdsd_6391_user_status",
 			"column_count": 7,
 			"columns": [
 				"id",
