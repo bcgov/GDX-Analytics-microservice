@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS test.gdxdsd_6391_user_activity
   "activity_type" VARCHAR(255) ENCODE ZSTD,
   "memo" VARCHAR(255) ENCODE ZSTD,
   "activity_date" TIMESTAMP ENCODE ZSTD,
-  "group_name"VARCHAR(255) ENCODE ZSTD
+  "group_name" VARCHAR(255) ENCODE ZSTD
 );
 
 GRANT SELECT ON test.gdxdsd_6391_user_activity TO "looker";

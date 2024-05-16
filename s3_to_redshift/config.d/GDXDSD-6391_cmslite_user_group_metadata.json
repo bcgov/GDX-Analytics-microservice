@@ -33,13 +33,14 @@
 		},
 		"analytics_user_activity": {
 			"dbtable": "gdxdsd_6391_user_activity",
-			"column_count": 5,
+			"column_count": 6,
 			"columns": [
 				"user_id",
 				"user_idir",
 				"activity_type",
 				"memo",
-				"activity_date"
+				"activity_date",
+				"group_name"
 			],
 			"dateformat": [
 				{
