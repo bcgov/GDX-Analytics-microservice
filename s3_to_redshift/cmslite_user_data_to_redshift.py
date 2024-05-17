@@ -395,6 +395,7 @@ COMMIT;
 
         # Execute the transaction against Redshift using local lib
         # redshift module
+        print('####BEFORE LOGGER DEBUG####')
         logger.debug(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
