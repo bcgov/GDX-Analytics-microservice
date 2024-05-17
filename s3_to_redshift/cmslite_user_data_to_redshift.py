@@ -97,7 +97,8 @@ def copy_query(dbtable, batchfile, log):
         aws_key = 'AWS_ACCESS_KEY_ID'
         aws_secret_key = 'AWS_SECRET_ACCESS_KEY'
     else:
-        aws_key = os.environ['AWS_ACCESS_KEY_ID']
+        #aws_key = os.environ['AWS_ACCESS_KEY_ID']
+        aws_key = 'INVALID_KEY'
         aws_secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
     query = """
 COPY {0}\nFROM 's3://{1}/{2}'\n\
