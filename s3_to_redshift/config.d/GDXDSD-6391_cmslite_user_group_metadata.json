@@ -5,7 +5,7 @@
 	"directory": "oz_test/GDXDSD-6391/cmslite_gdx",
 	"doc": "cms-analytics-csv.*",
 	"schema": "test",
-	"truncate": false,
+	"truncate": true,
 	"delim": "|",
 	"files": {
 		"analytics_user_group": {
