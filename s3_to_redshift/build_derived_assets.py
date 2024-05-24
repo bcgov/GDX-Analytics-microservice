@@ -118,7 +118,7 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            password=os.environ['pgpass'])
 
 
-with open('ddl/build_derived_assets.sql', 'r') as file:
+with open('ddl/GDXDSD-6391-test.gdxdsd_6391_asset_downloads.sql', 'r') as file:
     query = file.read()
 query = query.format(schema_name=schema_name,
            asset_host=asset_host,
