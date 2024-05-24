@@ -180,7 +180,8 @@ def is_processed(this_object_summary):
 def report(data):
     '''reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
-    if data["objects"] == 0:
+    #if data["objects"] == 0:
+    if data["TEST"] == 0:
         return
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}\n')
