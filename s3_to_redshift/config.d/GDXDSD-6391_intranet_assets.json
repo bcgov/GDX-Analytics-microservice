@@ -2,7 +2,7 @@
     "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
     "source": "client",
     "destination": "processed",
-    "directory": "OZ_test/GDXDSD-6391/cmslite_gdx",
+    "directory": "oz_test/GDXDSD-6391/cmslite_gdx",
     "doc": "intranet_apache.*",
     "dbtable": "test.gdxdsd_6391_asset_downloads",
     "column_count": 16,
