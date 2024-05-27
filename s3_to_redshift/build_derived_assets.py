@@ -109,13 +109,13 @@ else:
 
 truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
-# conn_string = """
-# dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
-# """.format(dbname='snowplow',
-#            host='redshift.analytics.gov.bc.ca',
-#            port='5439',
-#            user=os.environ['pguser'],
-#            password=os.environ['pgpass'])
+conn_string = """
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
+""".format(dbname='snowplow',
+           host='redshift.analytics.gov.bc.ca',
+           port='5439',
+           user=os.environ['pguser'],
+           password=os.environ['pgpass'])
 
 
 with open('GDXDSD-6391-build_derived_assets.sql', 'r') as file:
@@ -139,6 +139,7 @@ report_stats = {
 
 # Execute the transaction against Redshift using local lib redshift module
 table_name = dbtable
+table_name = ""
 spdb = RedShift.snowplow(table_name)
 if spdb.query(query):
     report_stats['loaded'] += 1
