@@ -84,7 +84,7 @@ if 'dbschema' in data:
     dbschema = data['dbschema']
 else:
     dbschema = 'microservice'
-dbtable = data['ERROR']
+dbtable = data['dbtable']
 table_name = dbtable[dbtable.rfind(".")+1:]
 column_count = data['column_count']
 columns = data['columns']
