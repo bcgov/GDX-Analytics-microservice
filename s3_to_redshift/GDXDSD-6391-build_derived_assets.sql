@@ -167,7 +167,7 @@ CASE
                 '//$','/'),
             '%20',' ')
         AS truncated_asset_url_nopar_case_insensitive
-         FROM {schema_name}.gdxdsd_5888_asset_downloads AS assets
+         FROM {schema_name}.gdxdsd_6391_asset_downloads AS assets
         -- Asset files not in the getmedia folder for TIBC and
         -- workbc must be filtered out
        WHERE '{asset_scheme_and_authority}' NOT IN (
