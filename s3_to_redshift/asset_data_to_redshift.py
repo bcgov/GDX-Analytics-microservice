@@ -84,7 +84,7 @@ if 'dbschema' in data:
     dbschema = data['dbschema']
 else:
     dbschema = 'microservice'
-dbtable = data['dbtable']
+dbtable = data['ERROR']
 table_name = dbtable[dbtable.rfind(".")+1:]
 column_count = data['column_count']
 columns = data['columns']
@@ -115,13 +115,13 @@ bucket_name = my_bucket.name
 
 
 # Database connection string
-conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
-""".format(dbname='snowplow',
-           host='redshift.analytics.gov.bc.ca',
-           port='5439',
-           user=os.environ['pguser'],
-           password=os.environ['pgpass'])
+# conn_string = """
+# dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
+# """.format(dbname='snowplow',
+#            host='redshift.analytics.gov.bc.ca',
+#            port='5439',
+#            user=os.environ['pguser'],
+#            password=os.environ['pgpass'])
 
 
 # Constructs the database copy query string
