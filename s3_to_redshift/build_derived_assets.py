@@ -139,8 +139,7 @@ report_stats = {
 
 # Execute the transaction against Redshift using local lib redshift module
 table_name = dbtable
-table_name = ""
-spdb = RedShift.snowplow(table_name)
+spdb = RedShift.snowplow(table_name_error)
 if spdb.query(query):
     report_stats['loaded'] += 1
     report_stats['good_list'].append(table_name)

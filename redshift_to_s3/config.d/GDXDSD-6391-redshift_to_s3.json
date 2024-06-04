@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "oz_test/GDXDSD-6391/pmrp_qdata/daily/Jun_2024_change",
+  "object_prefix": "pmrp_qdata",
+  "dml": "pmrp_qdata_daily.sql",
+  "header": true,
+  "addquotes": false
+}
