@@ -39,7 +39,8 @@ yvr_dt_start = (yvr_tz
 
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
+    #logger.debug('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -96,7 +97,7 @@ pgpass = os.environ['pgpass']
 
 # set up AWS Redshift connection
 conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' password_error={password}
 """.format(dbname='snowplow',
            host='redshift.analytics.gov.bc.ca',
            port='5439',
