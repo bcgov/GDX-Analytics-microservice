@@ -97,10 +97,10 @@ pgpass = os.environ['pgpass']
 
 # set up AWS Redshift connection
 conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password_error={password}
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 """.format(dbname='snowplow',
            host='redshift.analytics.gov.bc.ca',
-           port='5439',
+           port='54399',
            user=pguser,
            password=pgpass)
 
