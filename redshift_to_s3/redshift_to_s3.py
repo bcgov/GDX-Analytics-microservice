@@ -405,10 +405,10 @@ else:
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
 # This UNLOAD inserts into the S3 BATCH path
 log_query = '''
-UNLAOD ('{request_query}')
+UNLOAD ('{request_query}')
 TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
-aws_secret_access_key={aws_secret_access_key}'
+aws_secret_access_keyy={aws_secret_access_key}'
 {escape_string}
 {delimiter_string}
 {addquotes_string}
