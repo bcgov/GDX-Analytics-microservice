@@ -204,7 +204,7 @@ def unsent():
 
 def get_date(date_selector):
     '''return the SQL query for a date selector type'''
-    select = (f"SELECT to_char({date_selector}(date), 'YYYYMMDD') FORM "
+    select = (f"SELECT to_char({date_selector}(date), 'YYYYMMDD') FROM "
               "google.google_mybusiness_servicebc_derived")
     return return_query(select)
 
@@ -405,7 +405,7 @@ else:
 # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html
 # This UNLOAD inserts into the S3 BATCH path
 log_query = '''
-UNLOAD ('{request_query}')
+UNLAOD ('{request_query}')
 TO 's3://{bucket}/{batch_prefix}/{object_key}_part'
 credentials 'aws_access_key_id={aws_access_key_id};\
 aws_secret_access_key={aws_secret_access_key}'
