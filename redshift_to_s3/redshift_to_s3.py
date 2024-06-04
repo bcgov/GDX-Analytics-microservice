@@ -100,7 +100,7 @@ conn_string = """
 dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 """.format(dbname='snowplow',
            host='redshift.analytics.gov.bc.ca',
-           port='54399',
+           port='5439',
            user=pguser,
            password=pgpass)
 
@@ -420,7 +420,7 @@ PARALLEL OFF
     batch_prefix=batch_prefix,
     object_key=object_key,
     aws_access_key_id='{aws_access_key_id}',
-    aws_secret_access_key='{aws_secret_access_key}',
+    aws_secret_access_key='SECRET_ERROR',
     escape_string=escape_string,
     delimiter_string=delimiter_string,
     addquotes_string=addquotes_string,
