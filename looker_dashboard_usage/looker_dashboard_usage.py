@@ -78,7 +78,7 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 tables=[
   {'tablename':'dashboard','query': 
     '''SELECT dashboard.* 
-      FROM looker.wrong 
+      FROM looker.dashboard 
       WHERE id IN (
         SELECT dashboard_id 
         FROM looker.history 
@@ -101,7 +101,7 @@ resource = boto3.resource('s3')  # high-level object-oriented API
 
 # Redshift Database connection string
 rs_conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' passwords={password}
 """.format(dbname='snowplow',
            host='redshift.analytics.gov.bc.ca',
            port='5439',
