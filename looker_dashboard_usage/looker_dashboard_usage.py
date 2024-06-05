@@ -170,10 +170,10 @@ def report(data):
 # Mysql Database connection string
 def get_looker_db_connection():
   return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                            port='3306',
+                            port='33066',
                             database=looker_database,
                             user=looker_user,
-                            password='WRONG_PASS')
+                            password="looker_passwd")
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
