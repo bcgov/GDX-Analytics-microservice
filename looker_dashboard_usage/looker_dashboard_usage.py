@@ -101,12 +101,12 @@ resource = boto3.resource('s3')  # high-level object-oriented API
 
 # Redshift Database connection string
 rs_conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' passwords={password}
+dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
 """.format(dbname='snowplow',
            host='redshift.analytics.gov.bc.ca',
            port='5439',
            user=os.environ['pguser'],
-           password=os.environ['pgpass'])
+           passwords=os.environ['pgpass'])
 
 # START CHANGES - 2022/11/28 BEO GDXDSD-5398
 def structure_output_item(item_name):
