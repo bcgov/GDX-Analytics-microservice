@@ -76,7 +76,7 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 
 # tables and queries
 tables=[
-  {'tablename':'dashboard','query': 
+  {'tablename':'WRONG','query': 
     '''SELECT dashboard.* 
       FROM looker.dashboard 
       WHERE id IN (
@@ -170,7 +170,7 @@ def report(data):
 # Mysql Database connection string
 def get_looker_db_connection():
   return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                            port='33066',
+                            port='3306',
                             database=looker_database,
                             user=looker_user,
                             password="looker_passwd")
