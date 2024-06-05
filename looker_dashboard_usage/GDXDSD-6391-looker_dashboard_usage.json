@@ -1,0 +1,6 @@
+{
+    "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+    "source": "client",
+    "destination": "processed",
+    "directory": "oz_test/GDXDSD-6391/looker_dashboards"
+}
