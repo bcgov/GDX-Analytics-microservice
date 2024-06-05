@@ -76,7 +76,7 @@ prev_date=datetime.date.today() - datetime.timedelta(days=1)
 
 # tables and queries
 tables=[
-  {'tablename':'dashboard','query': 
+  {'tablename':'WRONG','query': 
     '''SELECT dashboard.* 
       FROM looker.dashboard 
       WHERE id IN (
