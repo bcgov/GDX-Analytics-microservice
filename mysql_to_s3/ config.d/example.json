@@ -1,0 +1,13 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "test_microservice-iam-key",
+  "object_prefix": "test_mysql-to-s3",
+  "dml": "example.sql",
+  "header": true,
+  "extension": ".txt", 
+  "escape": true,
+  "delimiter": "|",
+  "addquotes": true
+}
