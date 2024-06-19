@@ -7,7 +7,8 @@
   "dml": "example.sql",
   "header": true,
   "extension": ".txt", 
-  "escape": true,
-  "delimiter": "|",
-  "addquotes": true
+  "escapechar": "\\",
+  "sep": "|",
+  "quoting": "QUOTE_ALL",
+  "quotechar": "\""
 }

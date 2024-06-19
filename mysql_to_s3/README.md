@@ -84,9 +84,10 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run as an UNLOAD command.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
 - `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
-- `"escape"`: [OPTIONAL] setting this to true will escape linefeeds `\n`, carrage returns `\r`, the escape character `\`, quotation mark characters `'` or `"` (if both ESCAPE and ADDQUOTES are specified in the UNLOAD command), or the delimiter character `|` pipe (default) or the character specified in `"delimiter"`, with a backslash `\`, defaults to `False`
-- `"delimiter"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If the delimiter is not set, it will default to use the pipe character `|` as the delimiter.
-- `"addquotes"`: [OPTIONAL] setting this to true will surround all values in the file with double quotes `"`, setting this false will not surround the values in the file with double quotes, defaults to `True`
+- `"escapechar"`: [OPTIONAL] Character used to escape sep and quotechar when appropriate, defaults to `None`
+- `"sep"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If `sep` is not set, it will default to use the pipe character `|` as the delimiter.
+- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of QUOTE_MINIMAL (0), QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE (3). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `QUOTE_NONE`
+- `"quotechar"`: [OPTIONAL] character used to quote fields, defaults to `"`
 
 ### DML File
 

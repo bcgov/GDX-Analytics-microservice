@@ -80,19 +80,17 @@ bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"     # wh
 dml_file = config['dml']
 header = config['header']
 
-# 
-# TODO: need to add different escaping logic into here, update readme
-# if escape option is missing from the config, set as disabled
-escape = None if 'escape' not in config else config['escape']
+# if escape option is missing, default to off by setting to None
+escapechar = None if 'escapechar' not in config else config['escapechar']
 
-# if delimiter option is missing from the config, default to pipe |
-delimiter = '|' if 'delimiter' not in config else config['delimiter']
+# if sep option is missing from the config, default to pipe |
+sep = '|' if 'sep' not in config else config['sep']
 
-#
-# TODO: need to add different quoting logic into here, update readme
-# if addquotes option is missing from the config, set as enabled
-# even with this option enabled Excel will break when in a value a " appears before a delimiter character
-addquotes = True if 'addquotes' not in config else config['addquotes']
+# if quoting option is missing, default to QUOTE_NONE behaviour
+quoting = 'QUOTE_NONE' if 'quoting' not in config else config['quoting']
+
+# if quotechar option is missing, default to use double quotes "
+quotechar = '"' if 'quotechar' not in config else config['quotechar']
 
 # Get required environment variables
 mysqluser = os.environ['mysqluser']
@@ -296,12 +294,15 @@ with connection:
             logger.info('dml file used: {}'.format(dml_file))
             logger.info(request_query)
             
-            # use delimiter set in config if exists, otherwise default to pipe |
+            # use sep set in config if exists, otherwise default to pipe |
 
             # TODO: still need to add quoting and escape logic 
             df.to_csv(
                 path_or_buf=csv_buffer, 
-                sep=delimiter,
+                sep=sep,
+                escapechar=escapechar,
+                quoting=quoting,
+                quotechar=escapechar,
                 index=False)
             logger.info('writing results into buffer')
 
