@@ -146,8 +146,6 @@ def report(data):
     print(f'Config: {config_file}\n')
     print(f'DML: {dml_file}\n')
 
-    if 'start_date' and 'end_date' in config:
-        print(f'Requested Dates: {start_date} to {end_date}\n')
     # Get times from system and convert to Americas/Vancouver for printing
     yvr_dt_end = (yvr_tz
         .normalize(datetime.now(local_tz)
@@ -300,27 +298,72 @@ with connection:
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
-            print('do something')
-        #
-        # TODO: move unprocessed files, optionally add extension, and store into client and good/bad folders in s3
-        # 
-        # optionally add the file extension and transfer to storage folders
-        objects = get_unprocessed_objects()
+            #
+            # TODO: move unprocessed files, optionally add extension, and store into client and good/bad folders in s3
+            # 
+            # optionally add the file extension and transfer to storage folders
+            objects = get_unprocessed_objects()
 
-        for object in objects:
-            key = object.key # aka the batch prefix of the object
-            filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
+            for object in objects:
+                key = object.key # aka the batch prefix of the object
+                filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
 
-            # final paths that include the filenames
-            copy_good_prefix = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
-            copy_bad_prefix = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
-            copy_from_prefix = key 
+                # final paths that include the filenames
+                copy_good_prefix = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
+                copy_bad_prefix = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
+                copy_from_prefix = key 
+                    
+                if 'extension' in config:
+                    # if an extension was set in the config, add it to the end of the file
+                    extension = config['extension']
+                    filename_with_extension = f"{key}{extension}"
+                    logger.info('File extension set in %s as "%s"', config_file, extension)
+                else:
+                    filename_with_extension = key 
+                    logger.info('File extension not set in %s', config_file)
                 
-            if 'extension' in config:
-                # if an extension was set in the config, add it to the end of the file
-                extension = config['extension']
-                filename_with_extension = f"{key}{extension}"
-                logger.info('File extension set in %s as "%s"', config_file, extension)
-            else:
-                filename_with_extension = key 
-                logger.info('File extension not set in %s', config_file)
+                try:
+                    # final storage path that includes the filename and optional extension, removes the batch part of the prefix and leaves the client
+                    copy_to_prefix = filename_with_extension.replace(f'{archive}/batch/', '', 1)
+                    
+                    logger.info('Copying to s3 /client ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_to_prefix)
+                except ClientError:
+                    logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
+                    report_stats['unstored_objects'] += 1
+                    report_stats['unstored_objects_list'].append(copy_from_prefix)
+                    
+                    logger.info('Copying to s3 /bad ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_bad_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
+                    report_stats['bad_objects_list'].append(copy_bad_prefix)
+                    report_stats['bad_objects'] += 1
+                    
+                    report(report_stats)
+                    clean_exit(1,'Failed boto3 copy_object attempt.')
+                else:
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
+                    report_stats['stored_objects'] += 1
+                    report_stats['stored_objects_list'].append(copy_to_prefix)
+                    
+                    logger.info('Copying to s3 /good ...')
+                    client.copy_object(
+                        Bucket=bucket,
+                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                        Key=copy_good_prefix)
+                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                    logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
+                    report_stats['good_objects'] += 1
+                    report_stats['good_objects_list'].append(copy_good_prefix)
+
+        report(report_stats)
+        clean_exit(0,'Finished succesfully.')
