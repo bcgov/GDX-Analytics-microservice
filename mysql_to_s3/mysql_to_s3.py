@@ -110,6 +110,7 @@ try:
         database='looker') # TODO: may want to make this a variable set in the config
 except pymysql.Error:
     logger.error('Unable to connect to MySQL database')
+    clean_exit(1,'Failed pymysql connection attempt attempt.')
 
 # set up S3 connection
 try:
@@ -117,8 +118,10 @@ try:
     resource = boto3.resource('s3')  # high-level object-oriented API
     res_bucket = resource.Bucket(bucket)  # resource bucket object
     bucket_name = res_bucket.name
-except boto3.error:
+except ClientError:
     logger.error('Unable to establish connection to S3')
+    logger.error('Attempting to connect to the bucket: {}'.format(bucket))
+    clean_exit(1,'Failed boto3 connection attempt attempt.')
 
 # the _substantive_ query, one that users expect to see as output in S3.
 request_query = open('dml/{}'.format(dml_file), 'r').read()
@@ -306,7 +309,6 @@ with connection:
             object_key = object_key_builder(object_prefix)
             resource.Object(bucket, '{}/{}'.format(batch_prefix, object_key)).put(Body=csv_buffer.getvalue())
         except ClientError:
-            logger.exception("ClientError:")
             logger.error(('Upload of the results from %s execution to S3 failed.'
                           'Quitting with error code 1'), dml_file)
             report_stats['failed_unloads'] += 1
