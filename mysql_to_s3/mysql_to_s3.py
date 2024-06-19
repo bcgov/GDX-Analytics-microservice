@@ -101,18 +101,24 @@ mysqlpass = os.environ['mysqlpass']
 
 
 # MySQL connection to the 'looker' database
-connection = pymysql.connect(
-    host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-    port=3306,
-    user=mysqluser,
-    password=mysqlpass,
-    database='looker') # TODO: may want to make this a variable set in the config
+try:
+    connection = pymysql.connect(
+        host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+        port=3306,
+        user=mysqluser,
+        password=mysqlpass,
+        database='looker') # TODO: may want to make this a variable set in the config
+except pymysql.Error:
+    logger.error('Unable to connect to MySQL database')
 
 # set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
-res_bucket = resource.Bucket(bucket)  # resource bucket object
-bucket_name = res_bucket.name
+try:
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
+    res_bucket = resource.Bucket(bucket)  # resource bucket object
+    bucket_name = res_bucket.name
+except boto3.error:
+    logger.error('Unable to establish connection to S3')
 
 # the _substantive_ query, one that users expect to see as output in S3.
 request_query = open('dml/{}'.format(dml_file), 'r').read()
@@ -310,7 +316,7 @@ with connection:
         else:
             logger.info(
                 'Boto3 upload to S3 successful. Object prefix is %s/%s/%s',
-                bucket, storage_prefix, object_key)
+                bucket, batch_prefix, object_key)
             report_stats['successful_unloads'] += 1
             report_stats['successful_unloads_list'].append(object_key)
             #
