@@ -80,12 +80,16 @@ bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"     # wh
 dml_file = config['dml']
 header = config['header']
 
+# 
+# TODO: need to add different escaping logic into here, update readme
 # if escape option is missing from the config, set as disabled
-escape = False if 'escape' not in config else config['escape']
+escape = None if 'escape' not in config else config['escape']
 
-# if delimiter option is missing from the config, set as disabled
-delimiter = False if 'delimiter' not in config else config['delimiter']
+# if delimiter option is missing from the config, default to pipe |
+delimiter = '|' if 'delimiter' not in config else config['delimiter']
 
+#
+# TODO: need to add different quoting logic into here, update readme
 # if addquotes option is missing from the config, set as enabled
 # even with this option enabled Excel will break when in a value a " appears before a delimiter character
 addquotes = True if 'addquotes' not in config else config['addquotes']
@@ -282,8 +286,14 @@ with connection:
         try:
             logger.info('dml file used: {}'.format(dml_file))
             logger.info(request_query)
+            
+            # use delimiter set in config if exists, otherwise default to pipe |
 
-            df.to_csv(csv_buffer) # TODO: check to see what options can be set here
+            # TODO: still need to add quoting and escape logic 
+            df.to_csv(
+                path_or_buf=csv_buffer, 
+                sep=delimiter,
+                index=False)
             logger.info('writing results into buffer')
 
             # Put the file into S3 batch folder
