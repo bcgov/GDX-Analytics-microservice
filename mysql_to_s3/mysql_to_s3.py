@@ -298,6 +298,11 @@ with connection:
             report(report_stats)
             clean_exit(1,'Failed psycopg2 query attempt.')
         else:
+            logger.info(
+                'Boto3 upload to S3 successful. Object prefix is %s/%s/%s',
+                bucket, storage_prefix, object_key)
+            report_stats['successful_unloads'] += 1
+            report_stats['successful_unloads_list'].append(object_key)
             #
             # TODO: move unprocessed files, optionally add extension, and store into client and good/bad folders in s3
             # 
