@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "test_microservice-iam-key",
+  "directory": "doug_test/GDXDSD-5704",
   "object_prefix": "test_mysql-to-s3",
   "dml": "example.sql",
   "header": true,
