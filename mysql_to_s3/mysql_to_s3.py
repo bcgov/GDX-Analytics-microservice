@@ -284,7 +284,7 @@ with connection:
     try:
         csv_buffer = StringIO()
         logger.info('executing query and storing results in a dataframe')
-        df = pd.read_sql(request_query, connection)
+        df = pd.read_sql(request_query, connection) # TODO: look into using chunks to handle large queries
     except pymysql.OperationalError as e:
         logger.error("An error occurred. Error number {0}: {1}.".format(e.args[0],e.args[1]))
         logger.error('unable to execute query found in: {}'.format(dml_file))
@@ -294,16 +294,19 @@ with connection:
             logger.info('dml file used: {}'.format(dml_file))
             logger.info(request_query)
             
-            # use sep set in config if exists, otherwise default to pipe |
-
-            # TODO: still need to add quoting and escape logic 
+            #
+            # TODO: check datetime format
+            # TODO: look into using chunks to handle large data
+            #
+            # creating the format of the csv using settings in cofig
             df.to_csv(
-                path_or_buf=csv_buffer, 
-                sep=sep,
-                escapechar=escapechar,
-                quoting=quoting,
-                quotechar=quotechar,
-                index=False)
+                path_or_buf=csv_buffer,     # store csv data in the buffer
+                sep=sep,                    # delimiter used
+                header=header,              # should there be a header
+                escapechar=escapechar,      # escape character used
+                quoting=quoting,            # type of quoting used
+                quotechar=quotechar,        # quote character used
+                index=False)                # removing the row number
             logger.info('writing results into buffer')
 
             # Put the file into S3 batch folder
@@ -322,9 +325,7 @@ with connection:
                 bucket, batch_prefix, object_key)
             report_stats['successful_unloads'] += 1
             report_stats['successful_unloads_list'].append(object_key)
-            #
-            # TODO: move unprocessed files, optionally add extension, and store into client and good/bad folders in s3
-            # 
+            
             # optionally add the file extension and transfer to storage folders
             objects = get_unprocessed_objects()
 
