@@ -86,7 +86,7 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
 - `"escapechar"`: [OPTIONAL] Character used to escape sep and quotechar when appropriate, defaults to `None`
 - `"sep"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If `sep` is not set, it will default to use the pipe character `|` as the delimiter.
-- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of QUOTE_MINIMAL (0), QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE (3). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `QUOTE_NONE`
+- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of 0 (QUOTE_MINIMAL), 1 (QUOTE_ALL), 2 (QUOTE_NONNUMERIC) or 3 (QUOTE_NONE). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `0`
 - `"quotechar"`: [OPTIONAL] character used to quote fields, defaults to `"`
 
 ### DML File

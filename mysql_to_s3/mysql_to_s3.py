@@ -87,7 +87,7 @@ escapechar = None if 'escapechar' not in config else config['escapechar']
 sep = '|' if 'sep' not in config else config['sep']
 
 # if quoting option is missing, default to QUOTE_NONE behaviour
-quoting = 'QUOTE_NONE' if 'quoting' not in config else config['quoting']
+quoting = '0' if 'quoting' not in config else config['quoting']
 
 # if quotechar option is missing, default to use double quotes "
 quotechar = '"' if 'quotechar' not in config else config['quotechar']
@@ -302,7 +302,7 @@ with connection:
                 sep=sep,
                 escapechar=escapechar,
                 quoting=quoting,
-                quotechar=escapechar,
+                quotechar=quotechar,
                 index=False)
             logger.info('writing results into buffer')
 

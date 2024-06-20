@@ -9,6 +9,6 @@
   "extension": ".txt", 
   "escapechar": "\\",
   "sep": "|",
-  "quoting": "QUOTE_ALL",
+  "quoting": 1,
   "quotechar": "\""
 }
