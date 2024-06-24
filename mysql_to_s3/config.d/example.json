@@ -5,6 +5,7 @@
   "directory": "doug_test/GDXDSD-5704",
   "object_prefix": "test_mysql-to-s3",
   "dml": "example.sql",
+  "database": "looker",
   "header": true,
   "extension": ".txt", 
   "escapechar": "\\",

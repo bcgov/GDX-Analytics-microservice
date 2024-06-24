@@ -82,6 +82,7 @@ good_prefix = f"{archive}/good/{config['storage']}/{config['directory']}"   # wh
 bad_prefix = f"{archive}/bad/{config['storage']}/{config['directory']}"     # where the unloaded data is archived if the storage is unsuccessful
 
 dml_file = config['dml']
+database = config['database']
 header = config['header']
 
 # if escape option is missing, default to off by setting to None
@@ -109,7 +110,7 @@ try:
         port=3306,
         user=mysqluser,
         password=mysqlpass,
-        database='looker') # TODO: may want to make this a variable set in the config
+        database=database) # TODO: may want to make this a variable set in the config
 except pymysql.Error:
     logger.error('Unable to connect to MySQL database')
     clean_exit(1,'Failed pymysql connection attempt attempt.')

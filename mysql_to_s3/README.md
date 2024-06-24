@@ -19,7 +19,7 @@ The MySQL to S3 microservice requires:
 
  - a `json` configuration file passed as a second command line argument to run.
 
- - a `dml` SQL formatted query file to perform inside a nesting `UNLOAD` command.
+ - a `dml` SQL formatted query file to perform a `SELECT` command.
 
 The configuration file format is described in more detail below. Usage is like:
 
@@ -66,11 +66,13 @@ The structure of the config file should resemble the following:
   "directory": String,
   "object_prefix": String,
   "dml": String,
+  "database": String,
   "header": Boolean,
   "extension": String,
-  "escape": Boolean,
-  "delimiter": String,
-  "addquotes": Boolean
+  "escapechar": String,
+  "sep": String,
+  "quoting": Number,
+  "quotechar": String
 }
 ```
 
@@ -81,7 +83,8 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"archive"`: the first prefix of where processed objects are archived, as in `"s3://<bucket>/<archive>/<good|bad|batch>"`.
 - `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<storage>/<directory>/<object>"` or `"s3://<bucket>/<archive>/<good|bad|batch>/<storage>/<directory>/<object>"`
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
-- `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run as an UNLOAD command.
+- `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run.
+- `"database"`: The MySQL database that will be used for the query.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
 - `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
 - `"escapechar"`: [OPTIONAL] Character used to escape sep and quotechar when appropriate, defaults to `None`
@@ -93,16 +96,16 @@ The keys in the config file are defined as follows. All parameters are required 
 
 Store these in [dml/](./dml/).
 
-This is simply a MySQL `SELECT ... INTO OUTFILE` compatible query. The MySQL documentation for `SELECT ... INTO OUTFILE` specifies how the `'select-statement'` must appear.
+This is simply a MySQL `SELECT` compatible query. The MySQL documentation for `SELECT` specifies how the `'select-statement'` must appear.
 
 Note that there are some particular issues that are likely to cause problems:
 
-For more information see the MySQL documentation for `SELECT ... INTO`: https://dev.mysql.com/doc/refman/8.4/en/select-into.html
+For more information see the MySQL documentation for `SELECT`: https://dev.mysql.com/doc/refman/8.0/en/select.html
 
 ## Usage example
 This example supposes that a client desires an "Example" service to transfer content from MySQL to S3 as a pipe delimited file.
 
-The configuration file for this example service is created as: [`config.d/example.json`](./config.d/example.json); and the DML file that stores the SQL statement selecting the data they wish to copy from MySQL is created as: [`dml/pmrp_date_range.sql`](./dml/pmrp_date_range.sql).
+The configuration file for this example service is created as: [`config.d/example.json`](./config.d/example.json); and the DML file that stores the SQL statement selecting the data they wish to copy from MySQL is created as: [`dml/example.sql`](./dml/example.sql).
 
 The example service may be run once as follows:
 
