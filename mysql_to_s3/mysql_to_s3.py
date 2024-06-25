@@ -103,33 +103,6 @@ mysqlpass = os.environ['mysqlpass']
 
 
 
-# MySQL connection to the 'looker' database
-try:
-    connection = pymysql.connect(
-        host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-        port=3306,
-        user=mysqluser,
-        password=mysqlpass,
-        database=database)
-except pymysql.Error:
-    logger.error('Unable to connect to MySQL database')
-    clean_exit(1,'Failed pymysql connection attempt attempt.')
-
-# set up S3 connection
-try:
-    client = boto3.client('s3')  # low-level functional API
-    resource = boto3.resource('s3')  # high-level object-oriented API
-    res_bucket = resource.Bucket(bucket)  # resource bucket object
-    bucket_name = res_bucket.name
-except ClientError:
-    logger.error('Unable to establish connection to S3')
-    logger.error('Attempting to connect to the bucket: {}'.format(bucket))
-    clean_exit(1,'Failed boto3 connection attempt attempt.')
-
-# the _substantive_ query, one that users expect to see as output in S3.
-request_query = open('dml/{}'.format(dml_file), 'r').read()
-
-
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
     'redshift_queries': 0,
@@ -284,6 +257,33 @@ def get_unprocessed_objects():
             logger.info('added %a for processing', filename)
             report_stats['unprocessed_objects'] += 1
     return objects_to_process
+
+
+# MySQL connection to the 'looker' database
+try:
+    connection = pymysql.connect(
+        host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+        port=3306,
+        user=mysqluser,
+        password=mysqlpass,
+        database=database)
+except pymysql.Error:
+    logger.error('Unable to connect to MySQL database')
+    clean_exit(1,'Failed pymysql connection attempt attempt.')
+
+# set up S3 connection
+try:
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
+    res_bucket = resource.Bucket(bucket)  # resource bucket object
+    bucket_name = res_bucket.name
+except ClientError:
+    logger.error('Unable to establish connection to S3')
+    logger.error('Attempting to connect to the bucket: {}'.format(bucket))
+    clean_exit(1,'Failed boto3 connection attempt attempt.')
+
+# the _substantive_ query, one that users expect to see as output in S3.
+request_query = open('dml/{}'.format(dml_file), 'r').read()
 
 with connection:
     try:
