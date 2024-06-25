@@ -84,12 +84,12 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"directory"`: the last path prefix before the object itself: `"s3://<bucket>/<storage>/<directory>/<object>"` or `"s3://<bucket>/<archive>/<good|bad|batch>/<storage>/<directory>/<object>"`
 - `"object_prefix"`: The final prefix of the object; treat this as a prefix on the filename itself.
 - `"dml"`: The filename under the [`./dml`](./dml/) directory in this repository that contains the SQL statement to run.
-- `"database"`: The MySQL database that will be used for the query.
+- `"database"`: The MySQL database/schema that will be used for the query.
 - `"header"`: Setting this to true will write a first row of column header values; setting as false will omit that row.
-- `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
-- `"escapechar"`: [OPTIONAL] Character used to escape sep and quotechar when appropriate, defaults to `null`
-- `"sep"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If `sep` is not set, it will default to use the pipe character `|` as the delimiter.
-- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of `0` (QUOTE_MINIMAL), `1` (QUOTE_ALL), `2` (QUOTE_NONNUMERIC) or `3` (QUOTE_NONE). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `0`
+- `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. Needs to have a period included in the value specified. For example: `".csv"`. If no extension is set, no extension will be appended to the object. Defaults to no extension
+- `"escapechar"`: [OPTIONAL] Character used to escape `sep` and `quotechar` characters when appropriate, defaults to `null`
+- `"sep"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If `sep` is not set, defaults to the pipe character `|`
+- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of `0` (QUOTE_MINIMAL), `1` (QUOTE_ALL), `2` (QUOTE_NONNUMERIC) or `3` (QUOTE_NONE). Click [here](https://docs.python.org/3/library/csv.html#csv.QUOTE_ALL) for more details on what the options do. Defaults to `0`
 - `"quotechar"`: [OPTIONAL] character used to quote fields, defaults to `"`
 
 ### DML File
