@@ -46,7 +46,7 @@ The output object will be under the configured S3 bucket and path. The key for t
 The MySQL to S3 microservice requires the following environment variables be set to run correctly.
 
 - `mysqluser`: the user with query access to the MySQL database; and,
-- `mysqlpass`: the password for the `$mysqluser`.
+- `mysqlpass`: the password for the `mysqluser`.
 - `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from MySQL to S3; and,
 - `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from MySQL to S3.
 
@@ -89,14 +89,14 @@ The keys in the config file are defined as follows. All parameters are required 
 - `"extension"`: [OPTIONAL] specify a file extension that you would like to append to the object. If no extension is set, no extension will be appended to the object. Needs to have a period included in the value specified. For example: `".csv"`
 - `"escapechar"`: [OPTIONAL] Character used to escape sep and quotechar when appropriate, defaults to `null`
 - `"sep"`: [OPTIONAL] specify a single ASCII character that is used to separate fields in the output file, such as a pipe character `|`, a comma `,`, or a tab `\t`. If `sep` is not set, it will default to use the pipe character `|` as the delimiter.
-- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of 0 (QUOTE_MINIMAL), 1 (QUOTE_ALL), 2 (QUOTE_NONNUMERIC) or 3 (QUOTE_NONE). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `0`
+- `"quoting"`: [OPTIONAL] specify how quotes are used in the file. Use one of `0` (QUOTE_MINIMAL), `1` (QUOTE_ALL), `2` (QUOTE_NONNUMERIC) or `3` (QUOTE_NONE). Click [here](https://docs.python.org/3/library/csv.html) for more details on what the options do. Defaults to `0`
 - `"quotechar"`: [OPTIONAL] character used to quote fields, defaults to `"`
 
 ### DML File
 
 Store these in [dml/](./dml/).
 
-This is simply a MySQL `SELECT` compatible query. The MySQL documentation for `SELECT` specifies how the `'select-statement'` must appear.
+This is a MySQL `SELECT` compatible query. The MySQL documentation for `SELECT` specifies how the `'select-statement'` must appear.
 
 Note that there are some particular issues that are likely to cause problems:
 
@@ -113,9 +113,11 @@ The example service may be run once as follows:
 $ pipenv run python mysql_to_s3.py -c config.d/example.json
 ```
 
-This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/test_microservice-iam-key/mysql_to_s3/`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `test_mysql-to-s3_yyyymmddThhMMss.txt` (where the dates in the key name are computed values).
+This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/test_microservice-iam-key/mysql_to_s3/`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `test_mysql-to-s3_%Y%m%dT%H%M%S.txt` (where the dates in the key name are computed values).
 
 ## Project Status
+
+This project contains the minimal features to be used as a Proof of Concept for transfering data from a MySQL database to a S3 bucket.
 
 As new projects require loading modeled data into S3, new configuration files will be prepared to support the consumption of those data sources.
 
