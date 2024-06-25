@@ -105,9 +105,6 @@ mysqlpass = os.environ['mysqlpass']
 
 # Reporting variables. Accumulates as the the loop below is traversed
 report_stats = {
-    'redshift_queries': 0,
-    'failed_redshift_queries':0,
-    'good_redshift_queries':0,
     'successful_unloads':0,
     'successful_unloads_list': [],
     'failed_unloads':0,
@@ -126,7 +123,7 @@ report_stats = {
 # Will run at end of script to print out accumulated report_stats
 def report(data):
     '''reports out the data from the main program loop'''
-    if data['failed_redshift_queries'] or data['failed_unloads'] or data['unstored_objects'] or data['bad_objects']:
+    if data['failed_unloads'] or data['unstored_objects'] or data['bad_objects']:
         print(f'\n*** ATTN: The microservice ran unsuccessfully. Please investigate logs/{__file__} ***\n') 
     else:
         print(f'\n***The microservice ran successfully***\n')
@@ -259,7 +256,7 @@ def get_unprocessed_objects():
     return objects_to_process
 
 
-# MySQL connection to the 'looker' database
+# MySQL connection to the database
 try:
     connection = pymysql.connect(
         host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
@@ -289,7 +286,7 @@ with connection:
     try:
         csv_buffer = StringIO()
         logger.info('executing query and storing results in a dataframe')
-        df = pd.read_sql(request_query, connection) # TODO: look into using chunks to handle large queries
+        df = pd.read_sql(request_query, connection)
     except pymysql.OperationalError as e:
         logger.error("An error occurred. Error number {0}: {1}.".format(e.args[0],e.args[1]))
         logger.error('unable to execute query found in: {}'.format(dml_file))
@@ -299,9 +296,6 @@ with connection:
             logger.info('dml file used: {}'.format(dml_file))
             logger.info(request_query)
             
-            #
-            # TODO: look into using chunks to handle large data
-            #
             # creating the format of the csv using settings in cofig
             df.to_csv(
                 path_or_buf=csv_buffer,     # store csv data in the buffer
@@ -322,7 +316,7 @@ with connection:
             report_stats['failed_unloads'] += 1
             report_stats['failed_unloads_list'].append(object_key)
             report(report_stats)
-            clean_exit(1,'Failed psycopg2 query attempt.')
+            clean_exit(1,'Failed pymysql query attempt.')
         else:
             logger.info(
                 'Boto3 upload to S3 successful. Object prefix is %s/%s/%s',
