@@ -1,3 +1,4 @@
+-- taken from the explore: https://analytics.gov.bc.ca/explore/system__activity/history?qid=R3D5NBmh4C0ecNjTprCgF0&origin_space=116&toggle=vis
 SELECT
     (CASE 
         WHEN (dashboard.preferred_viewer != 'dashboards-next') OR (dashboard.preferred_viewer IS NULL)  
