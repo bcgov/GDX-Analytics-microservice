@@ -5,7 +5,7 @@ This folder contains the script, configuration files (within the [config.d](./co
 
 ## Overview
 
-The [mysql_to_s3.py](./mysql_to_s3.py) script performs the function of copying data from MySQL into S3 and EC2. A example below demonstrates the use of the `mysql_to_s3.py` script to perform an unload of data from MySQL into a file stored in S3 ([skip to Usage Example section](#usage-example)).  
+The [mysql_to_s3.py](./mysql_to_s3.py) script performs the function of copying data from MySQL into S3. A example below demonstrates the use of the `mysql_to_s3.py` script to perform an export of data from MySQL into a file stored in S3 ([skip to Usage Example section](#usage-example)).  
 
 ### Setup
 
@@ -113,7 +113,7 @@ The example service may be run once as follows:
 $ pipenv run python mysql_to_s3.py -c config.d/example.json
 ```
 
-This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/test_microservice-iam-key/mysql_to_s3/`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `test_mysql-to-s3_%Y%m%dT%H%M%S.txt` (where the dates in the key name are computed values).
+This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/test_microservice-iam-key/mysql_to_s3/`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.sql). The key of the object created under that path will resemble: `test_mysql-to-s3_%Y%m%dT%H%M%S.txt` (where the dates in the key name are computed values).
 
 ## Project Status
 
