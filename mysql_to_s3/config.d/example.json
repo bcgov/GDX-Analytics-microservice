@@ -8,7 +8,7 @@
   "database": "looker",
   "header": true,
   "extension": ".txt", 
-  "escapechar": "\\",
+  "escapechar": null,
   "sep": "|",
   "quoting": 1,
   "quotechar": "\""
