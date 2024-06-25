@@ -113,7 +113,7 @@ The example service may be run once as follows:
 $ pipenv run python mysql_to_s3.py -c config.d/example.json
 ```
 
-This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/pmrp_gdx/example`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `pmrp_YYYYMMDD_YYYYMMDD_YYYYMMDDTHH_part000` (where the dates in the key name are computed values).
+This creates an object in S3, specifically into `S3://sp-ca-bc-gov-131565110619-12-microservices/client/test_microservice-iam-key/mysql_to_s3/`, which stores delimited content emitted from MySQL, based on the results of the configured `"dml"` value: [`"example.sql"`](./dml/example.json). The key of the object created under that path will resemble: `test_mysql-to-s3_yyyymmddThhMMss.txt` (where the dates in the key name are computed values).
 
 ## Project Status
 
