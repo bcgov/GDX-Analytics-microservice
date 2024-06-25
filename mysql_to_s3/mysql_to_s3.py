@@ -110,7 +110,7 @@ try:
         port=3306,
         user=mysqluser,
         password=mysqlpass,
-        database=database) # TODO: may want to make this a variable set in the config
+        database=database)
 except pymysql.Error:
     logger.error('Unable to connect to MySQL database')
     clean_exit(1,'Failed pymysql connection attempt attempt.')
@@ -300,7 +300,6 @@ with connection:
             logger.info(request_query)
             
             #
-            # TODO: check datetime format
             # TODO: look into using chunks to handle large data
             #
             # creating the format of the csv using settings in cofig
