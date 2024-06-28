@@ -31,7 +31,7 @@ from botocore.exceptions import ClientError
 import lib.logs as log
 
 # used to suppress the PythonDeprecationWarning for python 3.7
-# should be fixed wity python 3.8
+# should be fixed with python 3.8
 boto3.compat.filter_python_deprecation_warnings()
 
 logger = logging.getLogger(__name__)

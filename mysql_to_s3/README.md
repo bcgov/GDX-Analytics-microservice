@@ -5,7 +5,7 @@ This folder contains the script, configuration files (within the [config.d](./co
 
 ## Overview
 
-The [mysql_to_s3.py](./mysql_to_s3.py) script performs the function of copying data from MySQL into S3. A example below demonstrates the use of the `mysql_to_s3.py` script to perform an export of data from MySQL into a file stored in S3 ([skip to Usage Example section](#usage-example)).  
+The [mysql_to_s3.py](./mysql_to_s3.py) script performs the function of copying data from MySQL into S3. An example below demonstrates the use of the `mysql_to_s3.py` script to perform an export of data from MySQL into a file stored in S3 ([skip to Usage Example section](#usage-example)).  
 
 ### Setup
 
