@@ -4,7 +4,7 @@ SELECT * FROM (
         (DATE(healthgateway_actions.timestamp )) AS "healthgateway_actions.event_date",
         healthgateway_actions.text AS "healthgateway_actions.text",
         COUNT(*) AS "healthgateway_actions.count"
-    FROM looker.BD_snowplow_web_block_healthgateway_actions AS healthgateway_actions
+    FROM looker.NZ_snowplow_web_block_healthgateway_actions AS healthgateway_actions
     WHERE (healthgateway_actions.action) = ''submit_app_rating'' AND ((( healthgateway_actions.timestamp  ) >= ((DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ))) AND ( healthgateway_actions.timestamp  ) < ((DATEADD(day,1, DATEADD(day,-1, DATE_TRUNC(''day'',GETDATE()) ) ))))) AND (healthgateway_actions.page_urlhost ) IS NOT NULL
     GROUP BY
         1,
