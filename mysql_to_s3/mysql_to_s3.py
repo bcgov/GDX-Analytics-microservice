@@ -265,7 +265,12 @@ connection_string = "mysql+pymysql://{}:{}@{}:{}/{}".format(
     '3306', 
     database
 )
-connection = create_engine(connection_string)
+try:
+    engine = create_engine(connection_string)
+except create_engine.OperationalError as e:
+    logger.error("Cannot connect to the MySQL database %s", e)
+    clean_exit(1,'Failed SQLAlchemy engine creation attempt.')
+
 
 # set up S3 connection
 try:
@@ -284,7 +289,7 @@ request_query = open('dml/{}'.format(dml_file), 'r').read()
 try:
     csv_buffer = StringIO()
     logger.info('executing query and storing results in a dataframe')
-    df = pd.read_sql(request_query, connection)
+    df = pd.read_sql(request_query, engine)
 except pymysql.OperationalError as e:
     logger.error("An error occurred. Error number {0}: {1}.".format(e.args[0],e.args[1]))
     logger.error('unable to execute query found in: {}'.format(dml_file))
