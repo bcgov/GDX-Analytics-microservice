@@ -28,6 +28,7 @@ import pymysql
 import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
+from sqlalchemy import create_engine
 import lib.logs as log
 
 # used to suppress the PythonDeprecationWarning for python 3.7
@@ -257,16 +258,19 @@ def get_unprocessed_objects():
 
 
 # MySQL connection to the database
+connection_string = "mysql+pymysql://{}:{}@{}:{}/{}".format(
+    mysqluser, 
+    mysqlpass, 
+    'looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+    '3306', 
+    database
+)
 try:
-    connection = pymysql.connect(
-        host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-        port=3306,
-        user=mysqluser,
-        password=mysqlpass,
-        database=database)
-except pymysql.Error:
-    logger.error('Unable to connect to MySQL database')
-    clean_exit(1,'Failed pymysql connection attempt attempt.')
+    engine = create_engine(connection_string)
+except create_engine.OperationalError as e:
+    logger.error("Cannot connect to the MySQL database %s", e)
+    clean_exit(1,'Failed SQLAlchemy engine creation attempt.')
+
 
 # set up S3 connection
 try:
@@ -282,111 +286,110 @@ except ClientError:
 # the _substantive_ query, one that users expect to see as output in S3.
 request_query = open('dml/{}'.format(dml_file), 'r').read()
 
-with connection:
+try:
+    csv_buffer = StringIO()
+    logger.info('executing query and storing results in a dataframe')
+    df = pd.read_sql(request_query, engine)
+except pymysql.OperationalError as e:
+    logger.error("An error occurred. Error number {0}: {1}.".format(e.args[0],e.args[1]))
+    logger.error('unable to execute query found in: {}'.format(dml_file))
+    logger.error(request_query)
+else: 
     try:
-        csv_buffer = StringIO()
-        logger.info('executing query and storing results in a dataframe')
-        df = pd.read_sql(request_query, connection)
-    except pymysql.OperationalError as e:
-        logger.error("An error occurred. Error number {0}: {1}.".format(e.args[0],e.args[1]))
-        logger.error('unable to execute query found in: {}'.format(dml_file))
-        logger.error(request_query)
-    else: 
-        try:
-            logger.info('dml file used: {}'.format(dml_file))
-            logger.info(request_query)
+        logger.info('dml file used: {}'.format(dml_file))
+        logger.info(request_query)
             
-            # creating the format of the csv using settings in cofig
-            df.to_csv(
-                path_or_buf=csv_buffer,     # store csv data in the buffer
-                sep=sep,                    # delimiter used
-                header=header,              # should there be a header
-                escapechar=escapechar,      # escape character used
-                quoting=quoting,            # type of quoting used
-                quotechar=quotechar,        # quote character used
-                index=False)                # removing the row number
-            logger.info('writing results into buffer')
+        # creating the format of the csv using settings in cofig
+        df.to_csv(
+            path_or_buf=csv_buffer,     # store csv data in the buffer
+            sep=sep,                    # delimiter used
+            header=header,              # should there be a header
+            escapechar=escapechar,      # escape character used
+            quoting=quoting,            # type of quoting used
+            quotechar=quotechar,        # quote character used
+            index=False)                # removing the row number
+        logger.info('writing results into buffer')
 
-            # Put the file into S3 batch folder
-            object_key = object_key_builder(object_prefix)
-            resource.Object(bucket, '{}/{}'.format(batch_prefix, object_key)).put(Body=csv_buffer.getvalue())
-        except ClientError:
-            logger.error(('Upload of the results from %s execution to S3 failed.'
+        # Put the file into S3 batch folder
+        object_key = object_key_builder(object_prefix)
+        resource.Object(bucket, '{}/{}'.format(batch_prefix, object_key)).put(Body=csv_buffer.getvalue())
+    except ClientError:
+        logger.error(('Upload of the results from %s execution to S3 failed.'
                           'Quitting with error code 1'), dml_file)
-            report_stats['failed_unloads'] += 1
-            report_stats['failed_unloads_list'].append(object_key)
-            report(report_stats)
-            clean_exit(1,'Failed pymysql query attempt.')
-        else:
-            logger.info(
-                'Boto3 upload to S3 successful. Object prefix is %s/%s/%s',
-                bucket, batch_prefix, object_key)
-            report_stats['successful_unloads'] += 1
-            report_stats['successful_unloads_list'].append(object_key)
+        report_stats['failed_unloads'] += 1
+        report_stats['failed_unloads_list'].append(object_key)
+        report(report_stats)
+        clean_exit(1,'Failed pymysql query attempt.')
+    else:
+        logger.info(
+            'Boto3 upload to S3 successful. Object prefix is %s/%s/%s',
+            bucket, batch_prefix, object_key)
+        report_stats['successful_unloads'] += 1
+        report_stats['successful_unloads_list'].append(object_key)
             
-            # optionally add the file extension and transfer to storage folders
-            objects = get_unprocessed_objects()
+        # optionally add the file extension and transfer to storage folders
+        objects = get_unprocessed_objects()
 
-            for object in objects:
-                key = object.key # aka the batch prefix of the object
-                filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
+        for object in objects:
+            key = object.key # aka the batch prefix of the object
+            filename = key[key.rfind('/')+1:]  # get the filename (after the last '/')
 
-                # final paths that include the filenames
-                copy_good_prefix = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
-                copy_bad_prefix = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
-                copy_from_prefix = key 
+            # final paths that include the filenames
+            copy_good_prefix = key.replace(f'{archive}/batch/', f'{archive}/good/', 1)
+            copy_bad_prefix = key.replace(f'{archive}/batch/', f'{archive}/bad/', 1)
+            copy_from_prefix = key 
                     
-                if 'extension' in config:
-                    # if an extension was set in the config, add it to the end of the file
-                    extension = config['extension']
-                    filename_with_extension = f"{key}{extension}"
-                    logger.info('File extension set in %s as "%s"', config_file, extension)
-                else:
-                    filename_with_extension = key 
-                    logger.info('File extension not set in %s', config_file)
+            if 'extension' in config:
+                # if an extension was set in the config, add it to the end of the file
+                extension = config['extension']
+                filename_with_extension = f"{key}{extension}"
+                logger.info('File extension set in %s as "%s"', config_file, extension)
+            else:
+                filename_with_extension = key 
+                logger.info('File extension not set in %s', config_file)
                 
-                try:
-                    # final storage path that includes the filename and optional extension, removes the batch part of the prefix and leaves the client
-                    copy_to_prefix = filename_with_extension.replace(f'{archive}/batch/', '', 1)
+            try:
+                # final storage path that includes the filename and optional extension, removes the batch part of the prefix and leaves the client
+                copy_to_prefix = filename_with_extension.replace(f'{archive}/batch/', '', 1)
                     
-                    logger.info('Copying to s3 /client ...')
-                    client.copy_object(
-                        Bucket=bucket,
-                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
-                        Key=copy_to_prefix)
-                except ClientError:
-                    logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
-                    logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
-                    report_stats['unstored_objects'] += 1
-                    report_stats['unstored_objects_list'].append(copy_from_prefix)
+                logger.info('Copying to s3 /client ...')
+                client.copy_object(
+                    Bucket=bucket,
+                    CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                    Key=copy_to_prefix)
+            except ClientError:
+                logger.exception('Exception copying from s3://%s/%s', bucket, copy_from_prefix)
+                logger.exception('to s3://%s/%s', bucket, copy_to_prefix)
+                report_stats['unstored_objects'] += 1
+                report_stats['unstored_objects_list'].append(copy_from_prefix)
                     
-                    logger.info('Copying to s3 /bad ...')
-                    client.copy_object(
-                        Bucket=bucket,
-                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
-                        Key=copy_bad_prefix)
-                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
-                    logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
-                    report_stats['bad_objects_list'].append(copy_bad_prefix)
-                    report_stats['bad_objects'] += 1
+                logger.info('Copying to s3 /bad ...')
+                client.copy_object(
+                    Bucket=bucket,
+                    CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                    Key=copy_bad_prefix)
+                logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                logger.info('Copied to s3://%s/%s', bucket, copy_bad_prefix)
+                report_stats['bad_objects_list'].append(copy_bad_prefix)
+                report_stats['bad_objects'] += 1
                     
-                    report(report_stats)
-                    clean_exit(1,'Failed boto3 copy_object attempt.')
-                else:
-                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
-                    logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
-                    report_stats['stored_objects'] += 1
-                    report_stats['stored_objects_list'].append(copy_to_prefix)
+                report(report_stats)
+                clean_exit(1,'Failed boto3 copy_object attempt.')
+            else:
+                logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                logger.info('Copied to s3://%s/%s', bucket, copy_to_prefix)
+                report_stats['stored_objects'] += 1
+                report_stats['stored_objects_list'].append(copy_to_prefix)
                     
-                    logger.info('Copying to s3 /good ...')
-                    client.copy_object(
-                        Bucket=bucket,
-                        CopySource='{}/{}'.format(bucket, copy_from_prefix),
-                        Key=copy_good_prefix)
-                    logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
-                    logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
-                    report_stats['good_objects'] += 1
-                    report_stats['good_objects_list'].append(copy_good_prefix)
+                logger.info('Copying to s3 /good ...')
+                client.copy_object(
+                    Bucket=bucket,
+                    CopySource='{}/{}'.format(bucket, copy_from_prefix),
+                    Key=copy_good_prefix)
+                logger.info('Copied from s3://%s/%s', bucket, copy_from_prefix)
+                logger.info('Copied to s3://%s/%s', bucket, copy_good_prefix)
+                report_stats['good_objects'] += 1
+                report_stats['good_objects_list'].append(copy_good_prefix)
 
         report(report_stats)
         clean_exit(0,'Finished succesfully.')

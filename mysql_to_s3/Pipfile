@@ -13,6 +13,7 @@ pandas = "*"
 boto3 = "*"
 botocore = "*"
 microservices = {editable = true,path = "./.."}
+sqlalchemy = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
