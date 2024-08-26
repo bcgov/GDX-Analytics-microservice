@@ -12,6 +12,7 @@ pandas = "*"
 psycopg2-binary = "*"
 mysql-connector-python="*"
 microservices = {editable = true,path = "./.."}
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.8"
