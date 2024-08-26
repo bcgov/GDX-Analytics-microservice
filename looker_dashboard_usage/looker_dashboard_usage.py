@@ -30,6 +30,7 @@ from io import StringIO
 import pandas as pd
 import datetime
 from lib.redshift import RedShift
+from sqlalchemy import create_engine
 
 # Get script start time
 local_tz = get_localzone()
@@ -169,11 +170,14 @@ def report(data):
 
 # Mysql Database connection string
 def get_looker_db_connection():
-  return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                            port='3306',
-                            database=looker_database,
-                            user=looker_user,
-                            password=looker_passwd)
+  connection_string = "mysql+pymysql://{}:{}@{}:{}/{}".format(
+    looker_user, 
+    looker_passwd, 
+    'looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+    '3306', 
+    looker_database
+  )
+  return create_engine(connection_string)
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
