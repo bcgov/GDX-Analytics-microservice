@@ -14,8 +14,6 @@
 # Usage       : python looker_dashboard_usage.py looker_dashboard_usage.json
 
 
-import mysql.connector as connection
-from mysql.connector.errors import Error
 import logging
 import lib.logs as log
 from tzlocal import get_localzone
@@ -30,6 +28,8 @@ from io import StringIO
 import pandas as pd
 import datetime
 from lib.redshift import RedShift
+from sqlalchemy import create_engine
+import pymysql
 
 # Get script start time
 local_tz = get_localzone()
@@ -88,7 +88,7 @@ tables=[
     FROM looker.history
     LEFT JOIN looker.dashboard
     ON history.dashboard_id = dashboard.id
-    WHERE history.COMPLETED_AT LIKE '{prev_date}%'
+    WHERE history.COMPLETED_AT LIKE '{prev_date}%%'
     AND status NOT LIKE 'error'
     AND source like 'dashboard';'''},
   {'tablename':'user','query':'SELECT * FROM looker.user;'},
@@ -169,11 +169,14 @@ def report(data):
 
 # Mysql Database connection string
 def get_looker_db_connection():
-  return connection.connect(host='looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
-                            port='3306',
-                            database=looker_database,
-                            user=looker_user,
-                            password=looker_passwd)
+  connection_string = "mysql+pymysql://{}:{}@{}:{}/{}".format(
+    looker_user, 
+    looker_passwd, 
+    'looker-backend.cos2g85i8rfj.ca-central-1.rds.amazonaws.com',
+    '3306', 
+    looker_database
+  )
+  return create_engine(connection_string)
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
@@ -208,8 +211,7 @@ def query_mysql_db(table):
   try:
     mydb = get_looker_db_connection()
     result_dataframe = read_table_to_dataframe(table,mydb)
-    mydb.close() #close the connection
-  except connection.Error as err:
+  except create_engine.OperationalError as err:
     logger.exception('Connection to Looker Internal DB failed.')
     logger.exception(f'mysql errno, sqlstate, msg: {err}')
     report_stats['failed'] += 1

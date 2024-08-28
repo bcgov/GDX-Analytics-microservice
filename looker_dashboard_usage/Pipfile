@@ -10,8 +10,9 @@ botocore = "*"
 tzlocal = "*"
 pandas = "*"
 psycopg2-binary = "*"
-mysql-connector-python="*"
 microservices = {editable = true,path = "./.."}
+sqlalchemy = "*"
+pymysql = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
