@@ -68,6 +68,7 @@
       "runtime"
     ],
     "dtype_dic_strings": [
+      "message",
       "dashboard_id"
     ]
   }
