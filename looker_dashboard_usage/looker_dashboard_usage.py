@@ -155,8 +155,10 @@ def report(data):
   # START CHANGES - 2022/11/28 BEO GDXDSD-5398
   if data['good_list']:
     print(
+       # START CHANGES - 2024/10/08 VV GDXDSD-7111
       "\nList of objects successfully fully ingested from S3, processed, "
-      "loaded to S3 ('good'), and copied to Redshift:")
+      "copied from Redshift, and loaded to S3 ('good'):")
+      # END CHANGES - 2024/10/08 VV GDXDSD-7111
     for i, item in enumerate(data['good_list'], 1):
       print(f"{i}.",structure_output_item(item))
   if data['bad_list']:
