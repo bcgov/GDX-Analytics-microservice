@@ -4,7 +4,7 @@
     "destination": "processed",
     "directory": "looker_dashboards",
     "doc": "history.*",
-    "dbtable": "microservice.history",
+    "dbtable": "microservice.looker_history",
     "column_count": 35,
     "columns": [
       "id",
