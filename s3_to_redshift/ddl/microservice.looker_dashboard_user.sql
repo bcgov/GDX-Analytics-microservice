@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS microservice.dashboard_user 
+CREATE TABLE IF NOT EXISTS microservice.looker_dashboard_user 
 (
   "id" INT NOT NULL ENCODE ZSTD,
   "is_admin" INT ENCODE ZSTD,
@@ -37,4 +37,4 @@ CREATE TABLE IF NOT EXISTS microservice.dashboard_user
   "requires_email_verification" INT ENCODE ZSTD
 );
 
-GRANT SELECT ON microservice.dashboard_user TO "looker";
+GRANT SELECT ON microservice.looker_dashboard_user TO "looker";

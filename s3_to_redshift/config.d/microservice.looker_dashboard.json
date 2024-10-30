@@ -4,7 +4,7 @@
     "destination": "processed",
     "directory": "looker_dashboards",
     "doc": "dashboard\\..*",
-    "dbtable": "microservice.dashboard",
+    "dbtable": "microservice.looker_dashboard",
     "column_count": 33,
     "columns": [
       "id",
