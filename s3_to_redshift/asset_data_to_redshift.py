@@ -718,4 +718,4 @@ report(report_stats)
 #this connection is never opened if no ojects were processed.
 if len(objects_to_process) >=1 :
     spdb.close_connection()
-clean_exit(0, 'Finished all processing cleanly.')
+clean_exit(EX_OK, 'Finished all processing cleanly.')
