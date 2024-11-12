@@ -109,14 +109,6 @@ else:
 
 truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
-conn_string = """
-dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
-""".format(dbname='snowplow',
-           host='redshift.analytics.gov.bc.ca',
-           port='5439',
-           user=os.environ['pguser'],
-           password=os.environ['pgpass'])
-
 
 with open('ddl/build_derived_assets.sql', 'r') as file:
     query = file.read()

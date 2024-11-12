@@ -112,15 +112,6 @@ def main():
     aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
     aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
 
-    # prep database call to pull the batch file into redshift
-    conn_string = """
-    dbname='{dbname}' host='{host}' port='{port}' user='{user}' \
-    password={password}
-    """.format(dbname='snowplow',
-               host='redshift.analytics.gov.bc.ca',
-               port='5439',
-               user=os.environ['pguser'],
-               password=os.environ['pgpass'])
 
     # bucket = the S3 bucket
     # filename = the name of the original file being processed
