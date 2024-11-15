@@ -15,6 +15,18 @@
 # Usage         : python asset_data_to_redshift.py configfile.json
 #
 
+# Exit codes
+EX_OK = 0          # successful termination
+EX_USAGE = 64      # command line usage error
+EX_DATAERR = 65    # data format error
+EX_NOINPUT = 66    # cannot open input
+EX_SOFTWARE = 70   # internal software error
+EX_OSERR = 71      # system error (e.g., can't fork)
+EX_IOERR = 74      # input/output error
+EX_NOPERM = 77     # permission denied
+EX_CONFIG = 78     # configuration error
+
+
 import re  # regular expressions
 from io import StringIO
 import os  # to read environment variables
@@ -59,15 +71,20 @@ def clean_exit(code, message):
 # check that configuration file was passed as argument
 if (len(sys.argv) != 2):
     print('Usage: python asset_data_to_redshift.py config.json')
-    clean_exit(1, 'Bad command use.')
+    clean_exit(EX_USAGE, 'Bad command use.')# Exit with EX_USAGE for command line error
 configfile = sys.argv[1]
 # confirm that the file exists
 if os.path.isfile(configfile) is False:
     print("Invalid file name {}".format(configfile))
-    clean_exit(1, 'Bad file name.')
+    clean_exit(EX_NOINPUT, 'Bad file name.')  # Exit with EX_NOINPUT for missing input file
 # open the confifile for reading
-with open(configfile) as f:
-    data = json.load(f)
+try:
+    with open(configfile) as f:
+        data = json.load(f)
+except json.JSONDecodeError:
+    print("Configuration file has an invalid format.")
+    clean_exit(EX_SOFTWARE, 'Configuration file format error')  # Exit with EX_SOFTWARE for config issue
+
 
 if 'empty_files_ok' in data:
     empty_files_ok = data['empty_files_ok']
@@ -75,9 +92,21 @@ else:
     empty_files_ok = False
 
 # get variables from config file
-bucket = data['bucket']
-source = data['source']
-destination = data['destination']
+if 'bucket' not in data:
+    clean_exit(EX_CONFIG, "Missing required 'bucket' key in config.")
+else:
+    bucket = data['bucket']
+
+if 'source' not in data:
+    clean_exit(EX_CONFIG, "Missing required 'source' key in config.")
+else:
+    source = data['source']
+
+if 'destination' not in data:
+    clean_exit(EX_CONFIG, "Missing required 'destination' key in config.")
+else:
+    destination = data['destination']
+
 directory = data['directory']
 doc = data['doc']
 if 'dbschema' in data:
@@ -116,12 +145,11 @@ bucket_name = my_bucket.name
 
 # Constructs the database copy query string
 def copy_query(dbtable, batchfile, log):
-    if log:
-        aws_key = 'AWS_ACCESS_KEY_ID'
-        aws_secret_key = 'AWS_SECRET_ACCESS_KEY'
-    else:
-        aws_key = os.environ['AWS_ACCESS_KEY_ID']
-        aws_secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    try:
+        aws_key = 'AWS_ACCESS_KEY_ID' if log else os.environ['AWS_ACCESS_KEY_ID']
+        aws_secret_key = 'AWS_SECRET_ACCESS_KEY' if log else os.environ['AWS_SECRET_ACCESS_KEY']
+    except KeyError as e:
+        clean_exit(EX_CONFIG, f"Missing AWS environment variable: {e}")
     query = """
 COPY {0}\nFROM 's3://{1}/{2}'\n\
 CREDENTIALS 'aws_access_key_id={3};aws_secret_access_key={4}'\n\
@@ -160,14 +188,17 @@ def cleanup(object_keys, path):
         #store the filename that was processed       
         filename = f'{destination}/{path}/{key}'
         #deletes the processed file
-        client.delete_object(Bucket=bucket, Key=filename)
+        try:
+            client.delete_object(Bucket=bucket, Key=filename)
+        except ClientError as e:
+            clean_exit(EX_IOERR, f"Failed to delete object {filename} from S3: {e}")
 
 
 def report(data):
     '''reports out the data from the main program loop'''
     # if no objects were processed; do not print a report
     if data["objects"] == 0:
-        return
+        clean_exit(EX_NOINPUT, "No objects to process.")
     print(f'Report: {__file__}\n')
     print(f'Config: {configfile}\n')
     # get times from system and convert to Americas/Vancouver for printing
@@ -201,10 +232,12 @@ def report(data):
         print('\nList of objects that were not processed due to early exit:')
         for i, meta in enumerate(data['incomplete_list']):
             print(f"{i}: {meta.key}")
+        clean_exit(EX_DATAERR, "Some objects were not processed due to early exit.")
     if data['empty_list']:
         print('\nList of empty objects:')
         for i, meta in enumerate(data['empty_list']):
             print(f"{i}: {meta.key}")
+        clean_exit(EX_DATAERR, "Some objects were empty.")
 
 
 # This bucket scan will find unprocessed objects.
@@ -297,6 +330,7 @@ for object_summary in objects_to_process:
                 report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
+            clean_exit(EX_SOFTWARE, "Failed to delete good objects due to ClientError.")
         
         try:
             client.copy_object(Bucket=f"{bucket}",
@@ -314,8 +348,7 @@ for object_summary in objects_to_process:
         #clean up the intermediate table if bad file is hit
         spdb.query(bad_table_cleanup)
         spdb.close_connection()
-        clean_exit(1, f'Empty file {object_summary.key} in objects to process, '
-                   'no further processing.')
+        clean_exit(EX_DATAERR, f'Bad file {object_summary.key} in objects to process, no further processing.')
     elif((obj['ContentLength'] == 0) and (empty_files_ok)):
         logger.info('%s is empty, but empty files are set to be ok.',
                      object_summary.key)
@@ -449,6 +482,7 @@ for object_summary in objects_to_process:
                     
             except ClientError:
                 logger.exception("S3 delete failed")
+                clean_exit(EX_SOFTWARE, "Failed to delete good objects due to ClientError.")
 
             try:
                 client.copy_object(
@@ -457,12 +491,12 @@ for object_summary in objects_to_process:
                     + object_summary.key, Key=badfile)
             except Exception as e:
                 logger.exception("S3 transfer failed.\n{0}".format(e.message))
+                clean_exit(EX_IOERR, "Failed to copy object to bad file.")
             report(report_stats)
             #clean up the intermediate table if bad file is hit
             spdb.query(bad_table_cleanup)
             spdb.close_connection()
-            clean_exit(1, f'Bad file {object_summary.key} in objects to '
-                       'process, no further processing.')
+            clean_exit(EX_DATAERR, f'Bad file {object_summary.key} in objects to process, no further processing.')
     else:
         report_stats['processed'] += 1
 
@@ -501,6 +535,7 @@ for object_summary in objects_to_process:
                 report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
+            clean_exit(EX_SOFTWARE, "Failed to delete good objects due to ClientError.")
 
         try:
             client.copy_object(Bucket=f"{bucket}",
@@ -508,12 +543,12 @@ for object_summary in objects_to_process:
                                Key=outfile)
         except ClientError:
             logger.exception("S3 transfer failed")
+            clean_exit(EX_IOERR, "Failed to copy object")
         report(report_stats)
         #clean up the intermediate table if bad file is hit
         spdb.query(bad_table_cleanup)
         spdb.close_connection()
-        clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
-                   'no further processing.')
+        clean_exit(EX_DATAERR, f'Bad file {object_summary.key} in objects to process, no further processing.')
     except ValueError:
         report_stats['failed'] += 1
         report_stats['bad'] += 1
@@ -532,6 +567,7 @@ for object_summary in objects_to_process:
                 report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
+            clean_exit(EX_SOFTWARE, "Failed to delete good objects due to ClientError.")
 
         try:
             client.copy_object(Bucket=f"{bucket}",
@@ -539,12 +575,12 @@ for object_summary in objects_to_process:
                                Key=outfile)
         except ClientError:
             logger.exception("S3 transfer failed")
+            clean_exit(EX_IOERR, "Failed to copy object")
         report(report_stats)
         #clean up the intermediate table if bad file is hit
         spdb.query(bad_table_cleanup)
         spdb.close_connection()
-        clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
-                   'no further processing.')
+        clean_exit(EX_DATAERR, f'Bad file {object_summary.key} in objects to process, no further processing.')
 
     # Truncate strings according to config set column string length limits
     if 'column_string_limit' in data:
@@ -643,6 +679,7 @@ COMMIT;
             + object_summary.key, Key=outfile)
     except ClientError:
         logger.exception("S3 transfer failed")
+        clean_exit(EX_IOERR, "Failed to copy object")
     else:
         if outfile == goodfile:
             path = 'good'
@@ -663,11 +700,11 @@ COMMIT;
                 report_stats['good_list'] = 0
         except ClientError:
             logger.exception("S3 delete failed")
+            clean_exit(EX_SOFTWARE, "Failed to delete good objects due to ClientError.")
         #clean up the intermediate table if bad file is hit
         spdb.query(bad_table_cleanup)
         spdb.close_connection()
-        clean_exit(1, f'Bad file {object_summary.key} in objects to process, '
-                   'no further processing.')
+        clean_exit(EX_DATAERR, f'Bad file {object_summary.key} in objects to process, no further processing.')
     report_stats['good'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
@@ -681,4 +718,4 @@ report(report_stats)
 #this connection is never opened if no ojects were processed.
 if len(objects_to_process) >=1 :
     spdb.close_connection()
-clean_exit(0, 'Finished all processing cleanly.')
+clean_exit(EX_OK, 'Finished all processing cleanly.')

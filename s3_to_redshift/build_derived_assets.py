@@ -17,7 +17,16 @@
 #               : has run using the *_assets.json config file and updated the
 #               : {{schema}}.asset_downloads table.
 #
-
+# Exit codes
+EX_OK = 0          # successful termination
+EX_USAGE = 64      # command line usage error
+EX_DATAERR = 65    # data format error
+EX_NOINPUT = 66    # cannot open input
+EX_SOFTWARE = 70   # internal software error
+EX_OSERR = 71      # system error (e.g., can't fork)
+EX_IOERR = 74      # input/output error
+EX_NOPERM = 77     # permission denied
+EX_CONFIG = 78     # configuration error
 import os
 import logging
 import sys
@@ -47,18 +56,22 @@ def clean_exit(code, message):
     sys.exit(code)
 
 
+# Check and create the logs directory, with error handling for OS-level failures
 if not os.path.exists('logs'):
-    os.makedirs('logs')
+    try:
+        os.makedirs('logs')
+    except OSError as e:
+        clean_exit(EX_OSERR, f"Error creating logs directory: {e}")
 
 # check that configuration file was passed as argument
 if len(sys.argv) != 2:
     print('Usage: python build_derived_assets.py config.json')
-    clean_exit(1, 'Bad command use.')
+    clean_exit(EX_USAGE, 'Bad command use.')
 configfile = sys.argv[1]
 # confirm that the file exists
 if os.path.isfile(configfile) is False:
     print("Invalid file name {}".format(configfile))
-    clean_exit(1, 'Invalid file name.')
+    clean_exit(EX_NOINPUT, 'Invalid file name.')
 # open the confifile for reading
 with open(configfile) as f:
     data = json.load(f)
@@ -110,8 +123,12 @@ else:
 truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
 
-with open('ddl/build_derived_assets.sql', 'r') as file:
-    query = file.read()
+# Open the SQL file for reading, with error handling if the file is missing
+try:
+    with open('ddl/build_derived_assets.sql', 'r') as file:
+        query = file.read()
+except FileNotFoundError:
+    clean_exit(EX_NOINPUT, 'SQL file ddl/build_derived_assets.sql not found.')
 query = query.format(schema_name=schema_name,
            asset_host=asset_host,
            asset_source=asset_source,
@@ -132,16 +149,18 @@ report_stats = {
 # Execute the transaction against Redshift using local lib redshift module
 table_name = dbtable
 spdb = RedShift.snowplow(table_name)
-if spdb.query(query):
-    report_stats['loaded'] += 1
-    report_stats['good_list'].append(table_name)
-else:
-    report_stats['failed'] += 1
-    report_stats['bad_list'].append(table_name)
-    report_stats['incomplete_list'].append(table_name)
-    clean_exit(1, f'Query failed to load {table_name}, '
-               'no further processing.')
+try:
+    if spdb.query(query):
+        report_stats['loaded'] += 1
+        report_stats['good_list'].append(table_name)
+    else:
+        report_stats['failed'] += 1
+        report_stats['bad_list'].append(table_name)
+        report_stats['incomplete_list'].append(table_name)
+        clean_exit(EX_DATAERR, f'Query failed to load {table_name}, no further processing.')
+except Exception as e:
+    clean_exit(EX_SOFTWARE, f"Error with Redshift query execution: {e}")
 spdb.close_connection()
 
 report(report_stats)
-clean_exit(0, 'Finished all processing cleanly.')
+clean_exit(EX_OK, 'Finished all processing cleanly.')
