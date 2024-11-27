@@ -1,0 +1,12 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "theq_sdprabi/sdpr_hourly/v01-Mar_2023_incremental",
+  "object_prefix": "sdpr_hourly",
+  "dml": "sdpr_hourly.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ",",
+  "addquotes": false
+}
