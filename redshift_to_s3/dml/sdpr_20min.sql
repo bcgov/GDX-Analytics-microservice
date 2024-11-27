@@ -35,7 +35,7 @@ SELECT * FROM (
         "derived"."theq_sdpr_step1" AS "theq_sdpr_poc"
     WHERE
         ("welcome_time") >= ((DATEADD(day,0, DATE_TRUNC(''day'',CONVERT_TIMEZONE(''America/\Vancouver'', GETDATE())) ))) AND
-        ("welcome_time") < ((DATEADD(hour,0, DATE_TRUNC(''hour'', CONVERT_TIMEZONE(''America/\Vancouver'', GETDATE())) ))) AND  
+        ("welcome_time") < (CONVERT_TIMEZONE(''America/\Vancouver'', GETDATE())) AND  
         (TRANSLATE(TRANSLATE(theq_sdpr_poc.office_name, '' '', ''_''),''.'','''') ) IS NOT NULL
     GROUP BY
         "theq_sdpr_poc.date",
