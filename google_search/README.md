@@ -1,9 +1,6 @@
-# Google API microservices
+# Google Search Console API microservices
 
-This directory contains scripts, configs, and DDL files describing the Google API calling microservices implemented on the GDX-Analytics platform. There are three microservices: 
-- [Google Search Console API](#google-search-console-api-loader-microservice)
-- [Google Business Profile Performance API](#google-my-business-api-loader-microservice)
-- [Google My Business Driving Directions API](#google-my-business-driving-directions-api-loader-microservice)
+This directory contains scripts, configs, and DDL files describing the Google Search console API calling microservice implemented on the GDX-Analytics platform. 
 
 Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
 
@@ -40,6 +37,7 @@ Log files are appended at the debug level into file called `google_search.log` u
 The Google Search API loader microservice requires the following environment variables be set to run correctly.
 
 - `GOOGLE_MICROSERVICE_CONFIG`: the path to the json configuration file, e.g.: `\path\to\google_search.json`;
+- `pguser`: the database username for the microservice user;
 - `pgpass`: the database password for the microservice user;
 - `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from S3 to Redshift; and,
 - `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from S3 to Redshift.
@@ -70,101 +68,12 @@ The JSON configuration is loaded as an environmental variable defined as `GOOGLE
 }
 ```
 
-### Google My Business API Loader microservice
-
-The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
-
-Google makes location insights data available for a time range spanning 18 months ago to 3 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
-> The maximum range is 18 months from the request date. In some cases, the data may still be missing for days close to the request date. Missing data will be specified in the metricValues in the response.
-
-The script iterates each location for the date range specified on the date range specified by config keys `start_date` and `end_date`. If no range is set (those key values are left as blank strings), then the script attempts to query for the full range of data availability.
-
-Log files are appended at the debug level into file called `google_mybusiness.log` under a `logs/` folder which much be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
-
-#### Configuration
-
-##### Environment Variables
-
-The Google Search API loader microservice requires the following environment variables be set to run correctly.
-
-- `pgpass`: the database password for the microservice user;
-- `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from S3 to Redshift; and,
-- `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from S3 to Redshift.
-
 ##### Command Line Arguments
 
-- `-o` or `--oauth`: the OAuth Credentials JSON file;
-- `-a` or `--auth`: the stored authorization dat file;
 - `-c` or `--conf`: the microservice configuration file;
-- `-d` or `--debug`: runs the microservice in debug mode (currently unsupported).
-
-##### Configuration File
-
-The JSON configuration is required, following a `-c` or `--conf` flag when running the `google_mybusiness.py` script. It follows this structure:
-
-- `"bucket"`: a string to define the S3 bucket where CSV Google My Business API query responses are stored.
-- `"dbtable"`: a string to define the Redshift table where the S3 stored CSV files are copied to after their creation.
-- `"metrics"`: an list containing the list of metrics to pull from Google My Business
-- `"locations"`: an object that annotates account information from clients that have provided us access”
-  - `"client_shortname"`: the client name to be recorded in the client column of the table for filtering. This shortname will also map the path where the `.csv` files loaded into AWS S3 as `'client/google_mybusiness_<client_shortname>/'`.
-  - `"name"`: The account Name label
-  - `"names_replacement"`: a list to replace matched values from the locations under this account as suggested by: `['find','replace']`. For example, in the case of Service BC, all locations are prefixed with "Service BC Centre". We replace this with nothing in order to get _just_ the unique names (the locations' community names).
-  - `"id"`: the location group, used for validation when querying the API.
-  - `"start_date"`: the query start date as `"YYYY-MM-DD"`, leave as `""` to get the oldest data possible (defaults to the longest the API accepts, 18 months ago)
-  - `"end_date"`: the query end date as `"YYYY-MM-DD"`, leave as `""` to get the most recent data possible (defaults to the most recent that the API has been tested to provide, 3 days ago)
-
-
-### Google My Business Driving Directions API Loader Microservice
-
-#### Script
-
-The `google_directions.py` script automates the loading of Google Business Profile Performance API insights reports into S3 (as a `.csv` file), which it then loads to Redshift. Create the logs directory before running if it does not already exist. The script requires a `JSON` config file as specified in the "_Configuration_" section below. It also must be passed command line locations for Google Credentials files; a usage example is in the header comment in the script itself.
-
-Log files are appended at the debug level into file called `google_directions.log` under a `logs/` folder which must be created manually. Info level logs are output to stdout. In the log file, events are logged with the format showing the log level, the function name, the timestamp with milliseconds, and the message: `INFO:__main__:2010-10-10 10:00:00,000:<log message here>`.
-
-#### Table
-
-The `google.mybusiness` schema is defined by the google.mybusiness.sql file.
-
-#### Configuration
-
-##### Environment Variables
-
-The Google Search API loader microservice requires the following environment variables be set to run correctly.
-
-- `pgpass`: the database password for the microservice user;
-- `AWS_ACCESS_KEY_ID`: the AWS access key for the account authorized to perform COPY commands from S3 to Redshift; and,
-- `AWS_SECRET_ACCESS_KEY`: the AWS secret access key for the account authorized to perform COPY commands from S3 to Redshift.
-
-##### Command Line Arguments
-
-- `-o` or `--oauth`: the OAuth Credentials JSON file;
-- `-a` or `--auth`: the stored authorization dat file;
-- `-c` or `--conf`: the microservice configuration file;
-- `-d` or `--debug`: runs the microservice in debug mode (currently unsupported).
-
-##### Configuration File
-
-The configuration for this microservice is in the `config_mybusiness.json` file.
-
-The JSON configuration fields are as described below:
-
-| Key label | Value type | Value Description |
-|-|-|-|
-| `bucket` | string | The bucket name to write to |
-| `dbtable` | string | The table name in Redshift to insert on |
-| `destination` | string | A top level path in the S3 bucket to deposit the files after processing (good or bad), and also to check for to determine if this microservice was already run today (in order to avoid inserting duplicate data) |
-| `locationGroups[]` | object (`location`) | objects representing locations, described below. This is an object to in order to accommodate future expansion on this field as necessary. |
-
-`location` has been structured as an object in order to allow easier future extensibility, if necessary. The fields currently set in `location` are described below:
-
-| Key label | Value type | Value Description |
-|-|-|-|
-| `clientShortname` | string | An internal shortname for a client's location group. An environment variable must be set as: `<clientShortname>_accountid=<accountid>` in order to map the Location Group Account ID to this client shortname and pull the API data. The `clientShortname` is also used to set the object path on S3 as: `S3://<bucket>/client/google_mybusiness_<clientShortname>` |
-| `aggregate_days[]` | string | A 1 to 3 item list that can include only unique values of `"SEVEN"`, `"THIRTY"` or `"NINETY"` |
 
 ### Credentials and Authentication
-All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration files (eg. `'credentials_search.json'`, `'credentials_mybusiness.json'`) are required to run the scripts. 
+The `google_search.py` script uses [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration file `'credentials_search.json'` is required to run the script. 
 
 Go to your Google Console at https://console.cloud.google.com/. 
 
@@ -219,35 +128,11 @@ Follow these steps to setup credentials and authentication:
 - In each script, the `flow_from_clientsecrets` process initializes the OAuth2 authorization flow. It takes the following arguments:
 - `CLIENT_SECRET`: the OAuth Credentials JSON file script argument (eg. `'credentials.dat'`)
 - `scope` is Google APIs authorization web address (eg. `'https://www.googleapis.com/auth/webmasters.readonly'`)
-- `redirect_uri` specifies a loopback address. As per [Google's documentation](https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration), this can be any open port. The three scipts have been coded to use:
-  - [`google_search.py`](./google_search.py) on port 4200
-  - [`google_mybusiness.py`](./google_mybusiness.py) on port 4201
-  - [`google_directions.py`](./google_directions.py) on port 4202      
-
-### Google My Business Service BC Derived
-The script `google_my_business_servicebc_derived.py` automates the build of `google_mybusiness_servicebc_derived` which is a compilation of 3 tables within Redshift. The three tables to be combined are `google.locations`, `servicebc.datedimension`, and `servicebc.office_info`. These table names are predefined in the SQL query. The resulting table will be named based off of the config variables (noted below.) With the default json file as is the file will be named `google.google_mybusiness_servicebc_derived`.
-
-#### Configuration 
-
-The JSON configuration is required, following a `-c` or `--conf` flag when running the `config_servicebc.json` script. It follows this structure:   
-- `"schema"`: a string to define the Redshift schema that will contain the resulting table
-- `"database table"`: a string to define the name of the resulting Redshift table from the build
-- `"dml"`: a string to define the name of a file containing a SQL query. 
-
-##### Environment Variables
-
-The Google My Business Service BC Derived microservice requires the following environment variables be set to be run correctly. 
-
-- `pguser`: the database username for the microservice user;
-- `pgpass`: the database password for the microservice user;
-
-##### Command Line Arguments
-
-- `-c` or `--conf`: the microservice configuration file;
+- `redirect_uri` specifies a loopback address. As per [Google's documentation](https://developers.google.com/identity/protocols/oauth2/resources/loopback-migration), this can be any open port. The `google_search.py` scipt have been coded to use port 4200   
 
 ## Project Status
 
-As clients provide GDX Analytics with access to their Google Search of My Business profiles, they will be added to the configuration file to be handled by the microservice.
+As clients provide GDX Analytics with access to their Google Search profiles, they will be added to the configuration file to be handled by the microservice.
 
 ## Getting Help
 
