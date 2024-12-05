@@ -1,6 +1,6 @@
 # Google API microservices
 
-This directory contains scripts, configs, and DDL files describing the Google Business Profile Performance API calling microservice implemented on the GDX-Analytics platform. 
+This directory contains scripts, configs, and DDL files describing the Google My Business API calling microservice implemented on the GDX-Analytics platform. 
 
 Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
 
@@ -53,7 +53,7 @@ The JSON configuration is required, following a `-c` or `--conf` flag when runni
 
 
 ### Credentials and Authentication
-All three scripts use [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration file `'credentials_mybusiness.json'` is required to run the script. 
+The `google_mybusiness.py` script uses [Google OAuth 2.0 for Installed Applications](https://googleapis.github.io/google-api-python-client/docs/oauth-installed.html) and the `flow_from_clientsecrets` library. Credentials configuration file `'credentials_mybusiness.json'` is required to run the script. 
 
 Go to your Google Console at https://console.cloud.google.com/. 
 
