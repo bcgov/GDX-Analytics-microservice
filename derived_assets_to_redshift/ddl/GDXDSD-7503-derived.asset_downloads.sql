@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS cmslite.asset_downloads
+CREATE TABLE IF NOT EXISTS test.gdxdsd_7503_asset_downloads
 ( 
   "ip" VARCHAR(255) ENCODE ZSTD NOT NULL,
   "date_timestamp" VARCHAR(255)  ENCODE ZSTD,
@@ -16,4 +16,4 @@ CREATE TABLE IF NOT EXISTS cmslite.asset_downloads
   "referrer_medium" VARCHAR(255) ENCODE ZSTD
 );
 
-GRANT SELECT ON cmslite.asset_downloads TO "looker";
+GRANT SELECT ON test.gdxdsd_7503_asset_downloads TO "looker";

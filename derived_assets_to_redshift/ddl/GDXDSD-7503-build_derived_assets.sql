@@ -1,8 +1,8 @@
 BEGIN;
 SET SEARCH_PATH TO '{schema_name}';
-INSERT INTO asset_downloads_derived (
-SELECT '{asset_scheme_and_authority}' ||
-    SPLIT_PART(assets.request_string, ' ',2)
+INSERT INTO gdxdsd_7503_asset_downloads_derived (
+SELECT LEFT ('{asset_scheme_and_authority}' || 
+    SPLIT_PART(assets.request_string, ' ',2), 4093)
     AS asset_url,
 assets.date_timestamp::TIMESTAMP,
 assets.ip AS ip_address,
@@ -167,7 +167,7 @@ CASE
                 '//$','/'),
             '%20',' ')
         AS truncated_asset_url_nopar_case_insensitive
-         FROM {schema_name}.asset_downloads AS assets
+         FROM {schema_name}.gdxdsd_7503_asset_downloads AS assets
         -- Asset files not in the getmedia folder for TIBC and
         -- workbc must be filtered out
        WHERE '{asset_scheme_and_authority}' NOT IN (
