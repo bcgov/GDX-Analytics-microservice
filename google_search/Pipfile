@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tzlocal = "*"
+pytz = "*"
+backoff = "*"
+boto3 = "*"
+httplib2 = "*"
+psycopg2-binary = "*"
+oauth2client = "*"
+google-api-python-client = "*"
+microservices = {editable = true,path = "./.."}
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
