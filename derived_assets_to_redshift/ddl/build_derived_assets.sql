@@ -1,8 +1,8 @@
 BEGIN;
 SET SEARCH_PATH TO '{schema_name}';
 INSERT INTO asset_downloads_derived (
-SELECT '{asset_scheme_and_authority}' ||
-    SPLIT_PART(assets.request_string, ' ',2)
+SELECT LEFT ('{asset_scheme_and_authority}' || 
+    SPLIT_PART(assets.request_string, ' ',2), 4093)
     AS asset_url,
 assets.date_timestamp::TIMESTAMP,
 assets.ip AS ip_address,
