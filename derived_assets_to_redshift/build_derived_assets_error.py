@@ -127,7 +127,7 @@ truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
 
 # Open the SQL file for reading, with error handling if the file is missing
 try:
-    with open('INSERTED_ERROR_ddl/GDXDSD-7503-build_derived_assets_problematic.sql', 'r') as file:
+    with open('ddl/GDXDSD-7503-build_derived_assets_problematic.sql', 'r') as file:
         query = file.read()
 except FileNotFoundError:
     clean_exit(EX_NOINPUT, 'SQL file ddl/build_derived_assets.sql not found.')
