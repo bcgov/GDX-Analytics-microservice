@@ -50,7 +50,9 @@ class RedShift:
                 "To begin investigating this database error, connect to the "
                 "%s database with administrative credentials, then execute:\n"
                 "> SELECT TOP 1 * FROM stl_load_errors WHERE filename LIKE "
-                "'%%%s%%';", self.dbname, self.batchfile)
+                "'%%%s%%';\n"
+                "Note: If the error occurred during an INSERT operation rather than a LOAD operation, "
+                "the error won’t be found in stl_load_errors.", self.dbname, self.batchfile)
 
     def open_connection(self):
         'opens a connection to the Redshift database using the provided'
