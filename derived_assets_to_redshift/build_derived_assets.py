@@ -52,7 +52,9 @@ logging.getLogger("RedShift").setLevel(logging.WARNING)
 # Provides exit code and logs message
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.info('Exiting with code %s : %s', str(code), message)
+    error_message = f'Exiting with code {code} : {message}'
+    logger.info(error_message)
+    print(error_message)
     sys.exit(code)
 
 
