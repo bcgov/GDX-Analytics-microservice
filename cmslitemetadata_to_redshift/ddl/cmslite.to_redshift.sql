@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS {dbschema}.themes (
 "subtheme"       VARCHAR(2047) ENCODE LZO,
 "topic"          VARCHAR(2047) ENCODE LZO,
 "subtopic"       VARCHAR(2047) ENCODE LZO,
-"subsubtopic"    VARCHAR(2047) ENCODE LZO
+"subsubtopic"    VARCHAR(2047) ENCODE LZO,
+"full_tree_nodes" VARCHAR(2047) ENCODE LZO
 )
 DISTSTYLE AUTO
 SORTKEY ( node_id );
@@ -185,7 +186,8 @@ theme,
 subtheme,
 topic,
 subtopic,
-subsubtopic
+subsubtopic,
+full_tree_nodes
 FROM biglist
 WHERE index = 1;
 --- fix for https://www2.gov.bc.ca/getvaccinated.html (note that there are two extra entries for this one)
@@ -252,6 +254,7 @@ CREATE TABLE IF NOT EXISTS {dbschema}.asset_themes (
 "asset_topic"		   VARCHAR(2047) ENCODE ZSTD,
 "asset_subtopic"	   VARCHAR(2047) ENCODE ZSTD,
 "asset_subsubtopic"	   VARCHAR(2047) ENCODE ZSTD,
+"full_tree_nodes"     VARCHAR(2047) ENCODE ZSTD,
 "sitekey"           VARCHAR(20) ENCODE ZSTD
 );
 ALTER TABLE {dbschema}.asset_themes OWNER TO microservice;
@@ -418,6 +421,7 @@ asset_subtheme,
 asset_topic,
 asset_subtopic,
 asset_subsubtopic,
+full_tree_nodes,
 sitekey
 FROM biglist
 WHERE index = 1;
