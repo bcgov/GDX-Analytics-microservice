@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS cmslite.asset_themes (
 	"asset_topic"		VARCHAR(2047) ENCODE ZSTD,
 	"asset_subtopic"	VARCHAR(2047) ENCODE ZSTD,
 	"asset_subsubtopic"	VARCHAR(2047) ENCODE ZSTD,
-	"full_tree_nodes"   VARCHAR(2047) ENCODE ZSTD,
+	"full_tree_nodes"	VARCHAR(2047) ENCODE ZSTD,
 	"sitekey"			VARCHAR(20) ENCODE ZSTD
 );      
 ALTER TABLE cmslite.asset_themes OWNER TO microservice;
