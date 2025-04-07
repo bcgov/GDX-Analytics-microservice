@@ -13,9 +13,11 @@ CREATE TABLE IF NOT EXISTS cmslite.themes (
 	subtheme       VARCHAR(2047) ENCODE LZO,
 	topic          VARCHAR(2047) ENCODE LZO,
 	subtopic       VARCHAR(2047) ENCODE LZO,
-	subsubtopic    VARCHAR(2047) ENCODE LZO
+	subsubtopic    VARCHAR(2047) ENCODE LZO,
+	full_tree_nodes VARCHAR(2047) ENCODE LZO
+
 )
-DISTKEY AUTO
+DISTSTYLE AUTO
 SORTKEY ( node_id );
 ALTER TABLE cmslite.themes OWNER TO microservice;
 GRANT SELECT ON cmslite.themes TO looker;
