@@ -131,6 +131,9 @@
     {
       "name": "https://hcapparticipants.gov.bc.ca/",
       "start_date_default": "2024-03-24"
+    },
+    {
+      "name": "https://www.healthlinkbc.ca"
     }
   ]
 }
