@@ -1,0 +1,12 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "doug_test/GDXDSD-7845/theq_sbc/sbc_20min/v01-20_min_sbc_data_feed",
+  "object_prefix": "sbc_20min",
+  "dml": "sbc_20min.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": "|",
+  "addquotes": false
+}
