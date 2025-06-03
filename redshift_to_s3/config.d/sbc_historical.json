@@ -1,0 +1,10 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "doug_test/GDXDSD-7845/theq_sbc/historical/v01-20_min_sbc_data_feed",
+  "object_prefix": "sbc",
+  "dml": "sbc_historical.sql",
+  "header": true,
+  "addquotes": false
+}
