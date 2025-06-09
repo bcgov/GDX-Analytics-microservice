@@ -14,6 +14,7 @@ SELECT * FROM (
         "counter_type" AS "cfms_poc.counter_type",
             (CASE WHEN "inaccurate_time" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.inaccurate_time",
             (CASE WHEN "no_wait_visit" THEN ''Yes'' ELSE ''No'' END) AS "cfms_poc.no_wait_visit",
+        "program_id"  AS "cfms_poc.program_id",
         "program_name" AS "cfms_poc.program_name",
         "transaction_name" AS "cfms_poc.transaction_name",
         "service_count" AS "cfms_poc.service_count",
@@ -30,7 +31,12 @@ SELECT * FROM (
         AVG((1.00 * cfms_poc.waiting_duration)/(60*60*24) ) AS "cfms_poc.waiting_duration_per_service_average",
         AVG((1.00 * cfms_poc.prep_duration)/(60*60*24) ) AS "cfms_poc.prep_duration_per_service_average",
         AVG((1.00 * cfms_poc.serve_duration)/(60*60*24) ) AS "cfms_poc.serve_duration_per_service_average",
-        AVG((1.00 * cfms_poc.hold_duration)/(60*60*24) ) AS "cfms_poc.hold_duration_per_service_average"
+        AVG((1.00 * cfms_poc.hold_duration)/(60*60*24) ) AS "cfms_poc.hold_duration_per_service_average",
+        (1.00 * cfms_poc.service_creation_duration)/(60*60*24)  AS "cfms_poc.service_creation_duration_per_visit",
+        (1.00 * cfms_poc.waiting_duration)/(60*60*24)  AS "cfms_poc.waiting_duration_per_service",
+        (1.00 * cfms_poc.prep_duration)/(60*60*24)  AS "cfms_poc.prep_duration_per_service",
+        (1.00 * cfms_poc.serve_duration)/(60*60*24)  AS "cfms_poc.serve_duration_per_service",
+        (1.00 * cfms_poc.hold_duration)/(60*60*24)  AS "cfms_poc.hold_duration_per_service"
     FROM
         "derived"."theq_step1" AS "cfms_poc"
     WHERE
@@ -52,6 +58,7 @@ SELECT * FROM (
         "cfms_poc.counter_type",
         "cfms_poc.inaccurate_time",
         "cfms_poc.no_wait_visit",
+        "cfms_poc.program_id",
         "cfms_poc.program_name",
         "cfms_poc.transaction_name",
         "cfms_poc.service_count",
@@ -60,7 +67,12 @@ SELECT * FROM (
         "cfms_poc.prep_duration_zscore",
         "cfms_poc.serve_duration_zscore",
         "cfms_poc.service_creation_duration_zscore",
-        "cfms_poc.waiting_duration_zscore"
+        "cfms_poc.waiting_duration_zscore",
+        "cfms_poc.service_creation_duration_per_visit",
+        "cfms_poc.waiting_duration_per_service",
+        "cfms_poc.prep_duration_per_service",
+        "cfms_poc.serve_duration_per_service",
+        "cfms_poc.hold_duration_per_service"
     ORDER BY
         "cfms_poc.welcome_time"
 )
