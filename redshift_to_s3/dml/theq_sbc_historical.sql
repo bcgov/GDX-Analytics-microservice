@@ -31,12 +31,7 @@ SELECT * FROM (
         AVG((1.00 * cfms_poc.waiting_duration)/(60*60*24) ) AS "cfms_poc.waiting_duration_per_service",
         AVG((1.00 * cfms_poc.prep_duration)/(60*60*24) ) AS "cfms_poc.prep_duration_per_service",
         AVG((1.00 * cfms_poc.serve_duration)/(60*60*24) ) AS "cfms_poc.serve_duration_per_service",
-        AVG((1.00 * cfms_poc.hold_duration)/(60*60*24) ) AS "cfms_poc.hold_duration_per_service",
-        (1.00 * cfms_poc.service_creation_duration)/(60*60*24)  AS "cfms_poc.service_creation_duration_per_visit",
-        (1.00 * cfms_poc.waiting_duration)/(60*60*24)  AS "cfms_poc.waiting_duration_per_service",
-        (1.00 * cfms_poc.prep_duration)/(60*60*24)  AS "cfms_poc.prep_duration_per_service",
-        (1.00 * cfms_poc.serve_duration)/(60*60*24)  AS "cfms_poc.serve_duration_per_service",
-        (1.00 * cfms_poc.hold_duration)/(60*60*24)  AS "cfms_poc.hold_duration_per_service"
+        AVG((1.00 * cfms_poc.hold_duration)/(60*60*24) ) AS "cfms_poc.hold_duration_per_service"
     FROM
         "derived"."theq_step1" AS "cfms_poc"
     WHERE
@@ -67,12 +62,7 @@ SELECT * FROM (
         "cfms_poc.prep_duration_zscore",
         "cfms_poc.serve_duration_zscore",
         "cfms_poc.service_creation_duration_zscore",
-        "cfms_poc.waiting_duration_zscore",
-        "cfms_poc.service_creation_duration_per_visit",
-        "cfms_poc.waiting_duration_per_service",
-        "cfms_poc.prep_duration_per_service",
-        "cfms_poc.serve_duration_per_service",
-        "cfms_poc.hold_duration_per_service"
+        "cfms_poc.waiting_duration_zscore"
     ORDER BY
         "cfms_poc.welcome_time"
 )
