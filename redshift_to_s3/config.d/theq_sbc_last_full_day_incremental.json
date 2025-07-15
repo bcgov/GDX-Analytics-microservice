@@ -1,0 +1,12 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "theq_sbc/daily-incremental/v01-20_min_sbc_data_feed",
+  "object_prefix": "theq_sbc_daily_incremental",
+  "dml": "theq_sbc_last_full_day_incremental.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": "|",
+  "addquotes": true 
+}
