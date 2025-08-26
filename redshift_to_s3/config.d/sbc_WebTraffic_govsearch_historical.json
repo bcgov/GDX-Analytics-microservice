@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "sbc_WebTraffic/historical",
+  "object_prefix": "sbc_WebTraffic_govsearch",
+  "dml": "sbc_WebTraffic_govsearch_historical.sql",
+  "header": true,
+  "sfts_path": "SBC/Shared/Secured/SS_BI/SS_GDX_IN/WebTraffic_data/historical",
+  "extension": ".csv"
+}
