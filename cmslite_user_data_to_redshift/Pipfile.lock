@@ -255,7 +255,7 @@
                 "sha256:40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32"
             ],
             "markers": "python_version < '3.10'",
-            "version": "==1.26.20"
+            "version": ">=2.5.0"
         }
     },
     "develop": {}
