@@ -43,7 +43,6 @@ yvr_dt_start = (yvr_tz
 # set up logging
 logger = logging.getLogger(__name__)
 log.setup()
-logging.getLogger("RedShift").setLevel(logging.WARNING)
 
 # Handle exit code
 def clean_exit(code, message):
