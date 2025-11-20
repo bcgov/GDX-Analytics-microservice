@@ -47,7 +47,7 @@ log.setup()
 # Handle exit code
 def clean_exit(code, message):
     """Exits with a logger message and code"""
-    logger.debug('Exiting with code %s : %s', str(code), message)
+    logger.info('Exiting with code %s : %s', str(code), message)
     sys.exit(code)
 
 
@@ -127,16 +127,16 @@ def is_processed(object_summary):
     except ClientError:
         pass  # this object does not exist under the good destination path
     else:
-        logger.debug("{0} was processed as good already.".format(filename))
+        logger.info("{0} was processed as good already.".format(filename))
         return True
     try:
         client.head_object(Bucket=bucket_name, Key=badfile)
     except ClientError:
         pass  # this object does not exist under the bad destination path
     else:
-        logger.debug("{0} was processed as bad already.".format(filename))
+        logger.info("{0} was processed as bad already.".format(filename))
         return True
-    logger.debug("{0} has not been processed.".format(filename))
+    logger.info("{0} has not been processed.".format(filename))
     return False
 
 
@@ -385,7 +385,7 @@ COMMIT;
 
         # Execute the transaction against Redshift using local lib
         # redshift module
-        logger.debug(logquery)
+        logger.info(logquery)
         spdb = RedShift.snowplow(batchfile)
         if spdb.query(query):
             outfile = destination + "/good/" + object_summary.key
@@ -434,7 +434,7 @@ COMMIT;
     report_stats['processed'] += 1
     report_stats['good_list'].append(object_summary)
     report_stats['incomplete_list'].remove(object_summary)
-    logger.debug("finished %s", object_summary.key)
+    logger.info("finished %s", object_summary.key)
 
 # Delete tmp files and dir once microservice has finished processing
 delete_tmp()
