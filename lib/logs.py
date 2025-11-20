@@ -67,7 +67,7 @@ class CustomFormatter(logging.Formatter):
         return filtered 
 
 def setup(dir='logs', minLevel=logging.INFO):
-    """ Set up dual logging to console and to logfile.
+    """ Set up logging to file.
     """
 
     # Create the root logger.
