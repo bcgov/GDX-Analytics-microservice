@@ -130,6 +130,10 @@
     },
     {
       "name": "https://www.healthlinkbc.ca"
+    },
+    {
+      "name": "https://healthymindsbc.gov.bc.ca/",
+      "start_date_default": "2025-10-08"
     }
   ]
 }
