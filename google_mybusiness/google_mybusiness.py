@@ -466,27 +466,48 @@ for account in validated_accounts:
                 dailyRange_startDate_month=start_date.month,
                 dailyRange_startDate_year=start_date.year
             )
-            try:
-                #executing the call
-                dailyMetric = daily_m.execute()
-            except googleapiclient.errors.HttpError as error:
-                #if it fails log and report it
-                err_str = "Error trying to collect " + str(metric)
-                err_str += " for location: " + str(location_name)
-                err_str += " with error: " + str(error)
-                logger.exception(err_str)
-                if location_name not in report_stats['failed_process_list']:
-                    report_stats['failed_process_list'].append(location_name)
-                    report_stats['not_retrieved'] += 1
-                continue
-            else:
-                #if the call succeeds report it
-                report_stats['retrieved'] += 1
-            
-                if str(location_name) not in report_stats['retrieved_list']:
-                    report_stats['retrieved_list'][str(location_name)] = 1
+
+            # variables used for exponential backoff
+            backoff_count = 0
+            sleep_timer = 1
+
+            # try exponential backoff 5 times
+            while backoff_count < 6:
+                try:
+                    #executing the call
+                    dailyMetric = daily_m.execute()
+                except googleapiclient.errors.HttpError as error:
+                    # if 5th time through exponential backoff
+                    # log error in logs and reporing, then continue
+                    if backoff_count == 5: 
+                        #if it fails log and report it
+                        err_str = "Error trying to collect " + str(metric)
+                        err_str += " for location: " + str(location_name)
+                        err_str += " with error: " + str(error)
+                        logger.exception(err_str)
+                        if location_name not in report_stats['failed_process_list']:
+                            report_stats['failed_process_list'].append(location_name)
+                            report_stats['not_retrieved'] += 1
+                        continue
+                    # go through exponential backoff routine
+                    else:
+                        backoff_count += 1
+                        sleep(sleep_timer+random.uniform(0.0, 1.0))
+                        sleep_timer = sleep_timer*2            
+                        logger.warning(
+                            "Retrying connection to Google Analytics with %s wait time", sleep_timer
+                        )
                 else:
-                    report_stats['retrieved_list'][str(location_name)] += 1
+                    #if the call succeeds report it
+                    report_stats['retrieved'] += 1
+                
+                    if str(location_name) not in report_stats['retrieved_list']:
+                        report_stats['retrieved_list'][str(location_name)] = 1
+                    else:
+                        report_stats['retrieved_list'][str(location_name)] += 1
+                    
+                    # manually set to break out of while loop
+                    backoff_count = 6
             
             #pulling out the necessary data
             daily_metrics = dailyMetric['timeSeries']['datedValues']
