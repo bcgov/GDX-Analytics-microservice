@@ -1,5 +1,5 @@
 SELECT * FROM (
--- based on the SQL runner: https://analytics.gov.bc.ca/sql/dpvp2sqgp7pwzm
+-- based on the SQL runner: https://analytics.gov.bc.ca/sql/tqzyw3sstgkkcr
   SELECT 
     metadata.hr_url,
     metadata.node_id,
