@@ -1,5 +1,5 @@
 SELECT * FROM (
--- based on the SQL runner: https://analytics.gov.bc.ca/sql/dpvp2sqgp7pwzm
+-- based on the SQL runner: https://analytics.gov.bc.ca/sql/tqzyw3sstgkkcr
   SELECT 
     metadata.hr_url,
     metadata.node_id,
@@ -22,7 +22,7 @@ SELECT * FROM (
     hr_url LIKE ''%gov/content/kicking-horse-canyon-project%'' OR
     hr_url LIKE ''%content/industry/construction-industry/transportation-infrastructure%'' OR
     hr_url LIKE ''%land-use-regulation/subdividing-land%'' OR
-    hr_url LIKE ''%ministries/transportation-and-infrastructure%'' OR
+    hr_url LIKE ''%ministries/transportation%'' OR
     hr_url LIKE ''%citizens-services/servicebc%''
   )
   AND site_id = ''CA4CBBBB070F043ACF7FB35FE3FD1081''
