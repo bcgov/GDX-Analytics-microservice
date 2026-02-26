@@ -15,7 +15,6 @@
 
 
 import logging
-import lib.logs as log
 from tzlocal import get_localzone
 from pytz import timezone
 import os  # to read environment variables
@@ -27,7 +26,14 @@ import json  # to read json config files
 from io import StringIO
 import pandas as pd
 import datetime
+
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root) 
+
 from lib.redshift import RedShift
+import lib.logs as log
 from sqlalchemy import create_engine
 import pymysql
 
