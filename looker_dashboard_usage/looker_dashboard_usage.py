@@ -15,6 +15,7 @@
 
 
 import logging
+import warnings
 from tzlocal import get_localzone
 from pytz import timezone
 import os  # to read environment variables
@@ -101,9 +102,13 @@ tables=[
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
 
-# set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
 
 
 # START CHANGES - 2022/11/28 BEO GDXDSD-5398
