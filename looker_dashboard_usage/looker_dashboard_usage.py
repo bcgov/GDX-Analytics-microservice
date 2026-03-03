@@ -15,7 +15,7 @@
 
 
 import logging
-import lib.logs as log
+import warnings
 from tzlocal import get_localzone
 from pytz import timezone
 import os  # to read environment variables
@@ -27,7 +27,14 @@ import json  # to read json config files
 from io import StringIO
 import pandas as pd
 import datetime
+
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root) 
+
 from lib.redshift import RedShift
+import lib.logs as log
 from sqlalchemy import create_engine
 import pymysql
 
@@ -95,9 +102,13 @@ tables=[
   {'tablename':'user_facts','query':'SELECT * FROM looker.user_facts;'}
 ]
 
-# set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
 
 
 # START CHANGES - 2022/11/28 BEO GDXDSD-5398
