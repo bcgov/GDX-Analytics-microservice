@@ -22,9 +22,14 @@ from io import StringIO
 import os  # to read environment variables
 import json  # to read json config files
 import sys  # to read command line parameters
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 import itertools  # functional tools for creating and using iterators
 from datetime import datetime
 import logging
+import warnings
 import boto3  # s3 access
 from botocore.exceptions import ClientError
 import pandas as pd  # data processing
@@ -102,9 +107,13 @@ def main():
     delim = data['delim']
     truncate = data['truncate']
 
-    # set up S3 connection
-    client = boto3.client('s3')  # low-level functional API
-    resource = boto3.resource('s3')  # high-level object-oriented API
+    # Suppresses boto3's Python 3.9 PythonDeprecationWarning
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore",category=Warning)
+        # set up S3 connection
+        client = boto3.client('s3')  # low-level functional API
+        resource = boto3.resource('s3')  # high-level object-oriented API
+    
     # subsitute this for your s3 bucket name.
     my_bucket = resource.Bucket(bucket)
     bucket_name = my_bucket.name
