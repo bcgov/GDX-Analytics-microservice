@@ -1,0 +1,20 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "source": "client",
+  "destination": "processed",
+  "directory": "epdlookup_env",
+  "doc": "epd_web_pages.*",
+  "dbtable": "microservice.epdlookup",
+  "column_count": 7,
+  "columns": [
+    "node_id",
+    "report_branch",
+    "ministry",
+    "division",
+    "branch",
+    "program_area",
+    "program_area_from_smes"
+  ],
+  "delim": "|",
+  "truncate": true 
+}
