@@ -29,6 +29,11 @@ import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
 from sqlalchemy import create_engine
+import warnings
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 import lib.logs as log
 
 # used to suppress the PythonDeprecationWarning for python 3.7
@@ -274,8 +279,11 @@ except create_engine.OperationalError as e:
 
 # set up S3 connection
 try:
-    client = boto3.client('s3')  # low-level functional API
-    resource = boto3.resource('s3')  # high-level object-oriented API
+    # Suppresses boto3's Python 3.9 PythonDeprecationWarning
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore",category=Warning) 
+        client = boto3.client('s3')  # low-level functional API
+        resource = boto3.resource('s3')  # high-level object-oriented API
     res_bucket = resource.Bucket(bucket)  # resource bucket object
     bucket_name = res_bucket.name
 except ClientError:
