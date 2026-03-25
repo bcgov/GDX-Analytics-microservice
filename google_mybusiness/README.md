@@ -2,11 +2,11 @@
 
 This directory contains scripts, configs, and DDL files describing the Google My Business API calling microservice implemented on the GDX-Analytics platform. 
 
-Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
+Information on the shared approach to [credentials and authentication](#credentials-and-authentication) can be found below.
 
 ### Google My Business API Loader microservice
 
-The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
+The `google_mybusiness.py` script pulls the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
 
 Google makes location insights data available for a time range spanning 18 months ago to 3 days ago (as tests have determined to be a reliable "*to date*"). From the Google Business Profile Performance API [BasicMetricsRequest reference guide](https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries):
 > The maximum range is 18 months from the request date. In some cases, the data may still be missing for days close to the request date. Missing data will be specified in the metricValues in the response.
