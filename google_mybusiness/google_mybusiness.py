@@ -55,6 +55,12 @@
 
 import os
 import sys
+
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
+
 import json
 import boto3
 import logging
