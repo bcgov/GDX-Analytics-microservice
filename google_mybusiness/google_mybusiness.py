@@ -85,6 +85,8 @@ from oauth2client.file import Storage
 from oauth2client.client import flow_from_clientsecrets
 import lib.logs as log
 
+import warnings
+
 # Get script start time
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
@@ -142,6 +144,12 @@ config_locations = config['locations']
 s3 = boto3.client('s3')
 resource = boto3.resource('s3')
 
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
 
 # set up the Redshift connection
 dbname = 'snowplow'
