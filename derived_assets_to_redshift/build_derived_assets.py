@@ -31,6 +31,10 @@ import os
 import logging
 import sys
 import json  # to read json config files
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 from lib.redshift import RedShift
 from datetime import datetime
 from tzlocal import get_localzone
