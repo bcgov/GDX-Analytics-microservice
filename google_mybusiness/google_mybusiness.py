@@ -580,7 +580,7 @@ for account in validated_accounts:
         # Trying suggested include_groups=False
         df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1], include_groups=False)
         # Trial
-        df = df.groupby(groupers)[groupees].apply(lambda g: g.ffill().iloc[-1])
+        # df = df.groupby(groupers)[groupees].apply(lambda g: g.ffill().iloc[-1])
  
         # prepare csv buffer
         csv_buffer = StringIO()
