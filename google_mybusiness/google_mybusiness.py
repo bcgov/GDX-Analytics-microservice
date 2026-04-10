@@ -575,7 +575,11 @@ for account in validated_accounts:
         # reference: https://stackoverflow.com/a/36746793/5431461
         groupers = ['date', 'client', 'location', 'location_id']
         groupees = [e.lower() for e in config_metrics]
+        # Original
         # df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1])
+        # Trying suggested include_groups=False
+        df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1], include_groups=False)
+        # Trial
         df = df.groupby(groupers)[groupees].apply(lambda g: g.ffill().iloc[-1])
  
         # prepare csv buffer
