@@ -15,9 +15,14 @@
 #
 import os
 import logging
+import warnings
 import argparse
 import json
 import sys
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 from datetime import datetime, date, timedelta
 from tzlocal import get_localzone
 from pytz import timezone
@@ -25,6 +30,7 @@ import psycopg2
 import boto3
 from botocore.exceptions import ClientError
 import lib.logs as log
+from lib.redshift import RedShift
 import re
 
 logger = logging.getLogger(__name__)
@@ -103,9 +109,13 @@ dbname='{dbname}' host='{host}' port='{port}' user='{user}' password={password}
            user=pguser,
            password=pgpass)
 
-# set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
+    
 res_bucket = resource.Bucket(bucket)  # resource bucket object
 bucket_name = res_bucket.name
 
