@@ -34,6 +34,10 @@ import json  # to read json config files
 import sys  # to read command line parameters
 import os.path  # file handling
 import logging
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 import lib.logs as log
 from datetime import datetime
 from tzlocal import get_localzone
@@ -43,6 +47,7 @@ from botocore.exceptions import ClientError
 import pandas as pd  # data processing
 import pandas.errors
 from lib.redshift import RedShift
+import warnings
 
 from ua_parser import user_agent_parser
 # ua_parser documentation: https://github.com/ua-parser/uap-python
@@ -136,9 +141,12 @@ if 'drop_columns' in data:
 else:
     drop_columns = {}
 truncate_intermediate_table = 'TRUNCATE TABLE ' + dbtable + ';'
-# set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
 my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
 bucket_name = my_bucket.name
 
