@@ -23,16 +23,26 @@ from io import StringIO
 import os  # to read environment variables
 import json  # to read json config files
 import sys  # to read command line parameters
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
+import lib.logs as log
 from lib.redshift import RedShift
 import os.path  # file handling
 import shutil
 import logging
 from shutil import unpack_archive
-from lib.redshift import RedShift
-import lib.logs as log
 from datetime import datetime
 from tzlocal import get_localzone
 from pytz import timezone
+import warnings
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+    # set up S3 connection
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
 
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
