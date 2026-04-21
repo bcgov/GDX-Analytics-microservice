@@ -44,7 +44,7 @@
 			"dateformat": [
 				{
 					"field": "activity_date",
-					"format": "%Y-%m-%d %H:%M:%S"
+					"format": "%Y-%m-%d %H:%M:%S.%f"
 				  }
 			]
 		},
@@ -63,7 +63,7 @@
 			  "dateformat": [
 				  {
 					"field": "created_dt",
-					"format": "%Y-%m-%d %H:%M:%S"
+					"format": "%Y-%m-%d %H:%M:%S.%f"
 				  }
 			  ]
 		}
