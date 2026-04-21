@@ -14,7 +14,6 @@
 # Usage         : python cmslite_user_data_to_redshift.py configfile.json
 #
 
-import boto3  # s3 access
 from botocore.exceptions import ClientError
 import pandas as pd  # data processing
 import pandas.errors
@@ -37,12 +36,7 @@ from datetime import datetime
 from tzlocal import get_localzone
 from pytz import timezone
 import warnings
-# Suppresses boto3's Python 3.9 PythonDeprecationWarning
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=Warning)
-    # set up S3 connection
-    client = boto3.client('s3')  # low-level functional API
-    resource = boto3.resource('s3')  # high-level object-oriented API
+import boto3  # s3 access
 
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
@@ -85,8 +79,12 @@ truncate = data['truncate']
 delim = data['delim']
 
 # set up S3 connection
-client = boto3.client('s3')  # low-level functional API
-resource = boto3.resource('s3')  # high-level object-oriented API
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=Warning)
+    client = boto3.client('s3')  # low-level functional API
+    resource = boto3.resource('s3')  # high-level object-oriented API
+
 my_bucket = resource.Bucket(bucket)  # subsitute this for your s3 bucket name.
 bucket_name = my_bucket.name
 
