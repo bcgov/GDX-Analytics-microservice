@@ -21,10 +21,6 @@ The `google.mybusiness` schema is defined by the google.mybusiness.sql file.
 
 #### Configuration
 
-##### Python version
-
-This microservice has been tested to work with Python 3.9.
-
 ##### Environment Variables
 
 The Google Search API loader microservice requires the following environment variables be set to run correctly.
