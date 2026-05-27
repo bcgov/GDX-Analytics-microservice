@@ -73,10 +73,13 @@ from oauth2client.client import HttpAccessTokenRefreshError
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client import tools
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError as GoogleHttpError
-import psycopg2  # For Amazon Redshift IO
 import warnings
+# Suppresses googleapiclient's Python 3.9 FutureWarnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError as GoogleHttpError
+import psycopg2  # For Amazon Redshift IO
 here = os.path.dirname(os.path.abspath(__file__))
 branch_root = os.path.abspath(os.path.join(here, ".."))
 if branch_root not in sys.path:
