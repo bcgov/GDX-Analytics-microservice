@@ -408,7 +408,7 @@ for account in validated_accounts:
             start_date = (
                 datetime.datetime.today().date()
                 - dateutil.relativedelta.relativedelta(months=18)
-                + timedelta(days=MAX_CORRECTION_DAYS)
+                + timedelta(days=1)
                 ).isoformat()
 
         # query RedShift to see if there is a date already loaded
@@ -417,11 +417,10 @@ for account in validated_accounts:
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
 
-        # If it is loaded with some data for this ID, use that date plus
-        # one day as the start_date.
+        # If data already exists for this location, reload the correction window
         if (last_loaded_date is not None
                 and last_loaded_date.isoformat() >= start_date):
-            start_date = last_loaded_date + timedelta(days=1)
+            start_date = datetime.datetime.today().date() - timedelta(days=MAX_CORRECTION_DAYS)
             start_date = start_date.isoformat()
 
         start_time = start_date + 'T01:00:00Z'
@@ -524,7 +523,7 @@ for account in validated_accounts:
                 if 'value' in date_value:
                     metric_val = int(date_value['value'])
                 else:
-                    metric_val = None
+                    metric_val = 0
 
                 if date not in daily_data:
                     daily_data[date] = {metric: metric_val}
