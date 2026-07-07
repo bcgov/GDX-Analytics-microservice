@@ -73,9 +73,17 @@ from oauth2client.client import HttpAccessTokenRefreshError
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client import tools
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError as GoogleHttpError
+import warnings
+# Suppresses googleapiclient's Python 3.9 FutureWarnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError as GoogleHttpError
 import psycopg2  # For Amazon Redshift IO
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
 import lib.logs as log
 
 # Get script start times
@@ -231,9 +239,13 @@ config_source = config['source']
 config_directory = config['directory']
 dml_file = config['dml']
 
-# Create S3 client and resouce
-client = boto3.client('s3')
-resource = boto3.resource('s3')
+# Suppresses boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+
+    # Create S3 client and resouce
+    client = boto3.client('s3')
+    resource = boto3.resource('s3')
 
 # Set up the Redshift connection
 dbname = 'snowplow'
