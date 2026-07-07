@@ -427,7 +427,7 @@ for account in validated_accounts:
         # the query time. More details in the API reference at:
         # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
-            datetime.datetime.today().date() - timedelta(days=3)).isoformat()
+            datetime.datetime.today().date() - timedelta(days=5)).isoformat()
         # if an end_date is defined in the config file, use that date
         end_date = account['end_date']
         if end_date == '':
@@ -441,7 +441,7 @@ for account in validated_accounts:
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         # if start and end times are same or if start time is > end time,
         # then there's no new data
-        if start_time >= end_time:
+        if start_time > end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
@@ -520,7 +520,7 @@ for account in validated_accounts:
                 if 'value' in date_value:
                     metric_val = int(date_value['value'])
                 else:
-                    metric_val = 0
+                    metric_val = None
 
                 if date not in daily_data:
                     daily_data[date] = {metric: metric_val}
