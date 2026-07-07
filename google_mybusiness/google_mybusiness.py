@@ -79,6 +79,10 @@ from oauth2client.file import Storage
 from oauth2client.client import flow_from_clientsecrets
 import lib.logs as log
 
+# Define request interval
+DATA_LAG_DAYS = 3
+MAX_CORRECTION_DAYS = 7
+
 # Get script start time
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
@@ -404,7 +408,7 @@ for account in validated_accounts:
             start_date = (
                 datetime.datetime.today().date()
                 - dateutil.relativedelta.relativedelta(months=18)
-                + timedelta(days=1)
+                + timedelta(days=MAX_CORRECTION_DAYS)
                 ).isoformat()
 
         # query RedShift to see if there is a date already loaded
@@ -427,7 +431,7 @@ for account in validated_accounts:
         # the query time. More details in the API reference at:
         # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
-            datetime.datetime.today().date() - timedelta(days=5)).isoformat()
+            datetime.datetime.today().date() - timedelta(days=DATA_LAG_DAYS)).isoformat()
         # if an end_date is defined in the config file, use that date
         end_date = account['end_date']
         if end_date == '':
@@ -600,6 +604,13 @@ for account in validated_accounts:
             AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY'])
         logger.info(logquery)
 
+        # Delete existing rows for this location/date range before COPY
+        delete_query = f"""
+            DELETE FROM {config_dbtable}
+            WHERE location_id = %s
+            AND date BETWEEN %s AND %s
+        """
+        
         # Define s3 bucket paths
         goodfile = f"{config_destination}/good/{object_key}"
         badfile = f"{config_destination}/bad/{object_key}"
@@ -608,6 +619,11 @@ for account in validated_accounts:
         with psycopg2.connect(conn_string) as conn:
             with conn.cursor() as curs:
                 try:
+                    curs.execute(delete_query, (
+                        f"{account_uri}/{location_uri}",
+                        start_date.strftime('%Y-%m-%d'),
+                        end_date.strftime('%Y-%m-%d')
+                    ))
                     curs.execute(query)
                 except psycopg2.Error as e:
                     logger.error("".join((
