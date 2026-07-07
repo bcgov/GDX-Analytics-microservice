@@ -565,7 +565,7 @@ for account in validated_accounts:
  
         # prepare csv buffer
         csv_buffer = StringIO()
-        df.to_csv(csv_buffer, index=True, header=True, sep='|')
+        df.to_csv(csv_buffer, index=True, header=True, sep='|', na_rep='', float_format='%.0f')
 
         # Set up the S3 path to write the csv buffer to
         object_key_path = (f"{config_source}/"
