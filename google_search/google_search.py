@@ -598,25 +598,24 @@ yvr_dt_start = (yvr_tz
                         datetime.now(local_tz)
                         .astimezone(yvr_tz)))
 
-# # This query will INSERT INTO cmslite.google_dt
-# # cmslite.google_dt, a derived table built from google.googlesearch
-# # Get sql for dt build form dml folder
-# query = open('dml/{}'.format(dml_file), 'r').read()
+# This query will INSERT INTO cmslite.google_dt
+# cmslite.google_dt, a derived table built from google.googlesearch
+# Get sql for dt build form dml folder
+query = open('dml/{}'.format(dml_file), 'r').read()
 
-# # Execute the query and log the outcome
-# logger.info(query)
-# with psycopg2.connect(conn_string) as conn:
-#     with conn.cursor() as curs:
-#         try:
-#             curs.execute(query)
-#         except psycopg2.Error:
-#             logger.exception("Google Search DT loading failed")
-#             report_stats['dt_build_success'] = False
-#             report(report_stats)
-#             clean_exit(1, 'Could not rebuild DT in Redshift.')
-#         else:
-#             report_stats['dt_build_success'] = True
-#             logger.info("Google Search DT loaded successfully")
-#             report(report_stats)
-#             clean_exit(0, 'Finished successfully.')
-report(report_stats)
+# Execute the query and log the outcome
+logger.info(query)
+with psycopg2.connect(conn_string) as conn:
+    with conn.cursor() as curs:
+        try:
+            curs.execute(query)
+        except psycopg2.Error:
+            logger.exception("Google Search DT loading failed")
+            report_stats['dt_build_success'] = False
+            report(report_stats)
+            clean_exit(1, 'Could not rebuild DT in Redshift.')
+        else:
+            report_stats['dt_build_success'] = True
+            logger.info("Google Search DT loaded successfully")
+            report(report_stats)
+            clean_exit(0, 'Finished successfully.')
