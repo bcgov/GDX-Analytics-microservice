@@ -79,6 +79,10 @@ from oauth2client.file import Storage
 from oauth2client.client import flow_from_clientsecrets
 import lib.logs as log
 
+# Define request interval
+DATA_LAG_DAYS = 3
+MAX_CORRECTION_DAYS = 7
+
 # Get script start time
 local_tz = get_localzone()
 yvr_tz = timezone('America/Vancouver')
@@ -413,11 +417,10 @@ for account in validated_accounts:
             logger.info("first time loading %s: %s",
                         account['name'], loc['name'])
 
-        # If it is loaded with some data for this ID, use that date plus
-        # one day as the start_date.
+        # If data already exists for this location, reload the correction window
         if (last_loaded_date is not None
                 and last_loaded_date.isoformat() >= start_date):
-            start_date = last_loaded_date + timedelta(days=1)
+            start_date = datetime.datetime.today().date() - timedelta(days=MAX_CORRECTION_DAYS)
             start_date = start_date.isoformat()
 
         start_time = start_date + 'T01:00:00Z'
@@ -427,7 +430,7 @@ for account in validated_accounts:
         # the query time. More details in the API reference at:
         # https://developers.google.com/my-business/reference/performance/rest/v1/locations/getDailyMetricsTimeSeries
         date_api_upper_limit = (
-            datetime.datetime.today().date() - timedelta(days=3)).isoformat()
+            datetime.datetime.today().date() - timedelta(days=DATA_LAG_DAYS)).isoformat()
         # if an end_date is defined in the config file, use that date
         end_date = account['end_date']
         if end_date == '':
@@ -441,7 +444,7 @@ for account in validated_accounts:
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         # if start and end times are same or if start time is > end time,
         # then there's no new data
-        if start_time >= end_time:
+        if start_time > end_time:
             logger.info(
                 "Redshift already contains the latest avaialble data for %s.",
                 location_name)
@@ -565,7 +568,7 @@ for account in validated_accounts:
  
         # prepare csv buffer
         csv_buffer = StringIO()
-        df.to_csv(csv_buffer, index=True, header=True, sep='|')
+        df.to_csv(csv_buffer, index=True, header=True, sep='|', na_rep='-', float_format='%.0f')
 
         # Set up the S3 path to write the csv buffer to
         object_key_path = (f"{config_source}/"
@@ -594,12 +597,19 @@ for account in validated_accounts:
              "CREDENTIALS 'aws_access_key_id={AWS_ACCESS_KEY_ID};"
              "aws_secret_access_key={AWS_SECRET_ACCESS_KEY}' "
              "IGNOREHEADER AS 1 MAXERROR AS 0 DELIMITER '|' "
-             "NULL AS '-' ESCAPE;"))
+             "NULL AS '-' EMPTYASNULL BLANKSASNULL ESCAPE;"))
         query = logquery.format(
             AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID'],
             AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY'])
         logger.info(logquery)
 
+        # Delete existing rows for this location/date range before COPY
+        delete_query = f"""
+            DELETE FROM {config_dbtable}
+            WHERE location_id = %s
+            AND date BETWEEN %s AND %s
+        """
+        
         # Define s3 bucket paths
         goodfile = f"{config_destination}/good/{object_key}"
         badfile = f"{config_destination}/bad/{object_key}"
@@ -608,6 +618,11 @@ for account in validated_accounts:
         with psycopg2.connect(conn_string) as conn:
             with conn.cursor() as curs:
                 try:
+                    curs.execute(delete_query, (
+                        f"{account_uri}/{location_uri}",
+                        start_date.strftime('%Y-%m-%d'),
+                        end_date.strftime('%Y-%m-%d')
+                    ))
                     curs.execute(query)
                 except psycopg2.Error as e:
                     logger.error("".join((
