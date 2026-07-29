@@ -1,0 +1,11 @@
+{
+  "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
+  "storage": "client",
+  "archive": "processed",
+  "directory": "webdata_bcstats/antiracism_click_monthly/v00_manual",
+  "object_prefix": "webdata_bcstats_antiracism_click_monthly",
+  "dml": "antiracism_click_monthly.sql",
+  "header": true,
+  "extension": ".csv",
+  "delimiter": ","
+}
