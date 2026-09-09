@@ -2,7 +2,7 @@
   "bucket": "sp-ca-bc-gov-131565110619-12-microservices",
   "storage": "client",
   "archive": "processed",
-  "directory": "webdata_bcstats/govstats_search_monthly/v00_manual",
+  "directory": "webdata_bcstats/govstats_search_monthly/v01_auto",
   "object_prefix": "webdata_bcstats_govstats_search_monthly",
   "dml": "govstats_search_monthly.sql",
   "header": true,
