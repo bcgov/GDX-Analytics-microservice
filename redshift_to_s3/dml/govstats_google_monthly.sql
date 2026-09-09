@@ -1,5 +1,5 @@
 SELECT * FROM (
--- based on the SQL runner: https://analytics.gov.bc.ca/sql/2xczvvqwwb7ywt
+-- based on the SQL runner: https://analytics.gov.bc.ca/sql/gnxcthctjvydhq
   SELECT
       (TO_CHAR(DATE_TRUNC(''month'', "date"), ''YYYY-MM'')) AS "google_search.google_search_month",
       "query" AS "google_search.query",
