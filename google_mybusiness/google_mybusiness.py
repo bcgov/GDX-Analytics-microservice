@@ -55,8 +55,17 @@
 
 import os
 import sys
+
+here = os.path.dirname(os.path.abspath(__file__))
+branch_root = os.path.abspath(os.path.join(here, ".."))
+if branch_root not in sys.path:
+    sys.path.insert(0, branch_root)
+
 import json
 import boto3
+
+import warnings
+
 import logging
 import psycopg2
 import argparse
@@ -73,7 +82,10 @@ from time import sleep
 import random
 
 import googleapiclient.errors
-from googleapiclient.discovery import build
+# Suppress googleapiclient's Python 3.9 FutureWarnings for googleapiclient.discovery
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    from googleapiclient.discovery import build
 from oauth2client import tools
 from oauth2client.file import Storage
 from oauth2client.client import flow_from_clientsecrets
@@ -131,10 +143,13 @@ config_dbtable = config['dbtable']
 config_metrics = config['metrics']
 config_locations = config['locations']
 
-
+# Suppress boto3's Python 3.9 PythonDeprecationWarning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=Warning)
+    
 # set up the S3 resource
-s3 = boto3.client('s3')
-resource = boto3.resource('s3')
+    s3 = boto3.client('s3') # low-level functional API
+    resource = boto3.resource('s3') # high-level object-oriented API
 
 
 # set up the Redshift connection
@@ -561,7 +576,11 @@ for account in validated_accounts:
         # reference: https://stackoverflow.com/a/36746793/5431461
         groupers = ['date', 'client', 'location', 'location_id']
         groupees = [e.lower() for e in config_metrics]
-        df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1])
+
+        # Suppress FutureWarnings for DataFrameGroupBy.apply
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=FutureWarning)
+            df = df.groupby(groupers).apply(lambda g: g[groupees].ffill().iloc[-1])
  
         # prepare csv buffer
         csv_buffer = StringIO()

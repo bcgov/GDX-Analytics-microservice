@@ -4,6 +4,8 @@ This directory contains scripts, configs, and DDL files describing the Google My
 
 Information on the shared approached to [credentials and authentication](#credentials-and-authentication) can be found below.
 
+This microservice has been tested to work with Python 3.9.
+
 ### Google My Business API Loader microservice
 
 The `google_mybusiness.py` script pulling the Google Business Profile Performance API data for locations according to the accounts specified in `google_mybusiness.json`. The metrics from each location are consecutively recorded as `.csv` files in S3 and then copied to Redshift.
