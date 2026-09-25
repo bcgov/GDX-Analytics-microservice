@@ -433,10 +433,15 @@ for account in validated_accounts:
                         account['name'], loc['name'])
 
         # If data already exists for this location, reload the correction window
+        # without going earlier than the configured/derived start date.
         if (last_loaded_date is not None
                 and last_loaded_date.isoformat() >= start_date):
-            start_date = datetime.datetime.today().date() - timedelta(days=MAX_CORRECTION_DAYS)
-            start_date = start_date.isoformat()
+
+            correction_start = (
+                datetime.datetime.today().date() - timedelta(days=MAX_CORRECTION_DAYS)
+            ).isoformat()
+
+            start_date = max(start_date, correction_start)
 
         start_time = start_date + 'T01:00:00Z'
         start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
