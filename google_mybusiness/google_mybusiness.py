@@ -93,7 +93,7 @@ import lib.logs as log
 
 # Define request interval
 DATA_LAG_DAYS = 3
-MAX_CORRECTION_DAYS = 7
+MAX_CORRECTION_DAYS = 60
 
 # Get script start time
 local_tz = get_localzone()
