@@ -132,14 +132,14 @@ def report(data):
   # print success result 
   suc_unsuc_message=('This microservice ran: ')
 
-  # Determine if the run was successfull / unsuccessful / empty and append to message
-  if data['bad_list']:
-      suc_unsuc_message+=( 'unsuccessful\n')
-  elif data['good_list']:
-      suc_unsuc_message+=( 'successful\n')
+  # Determine whether the microservice completed successfully.
+  # GDXDSD-8627: Zero-row results are successful queries, not failures.
+  if data['failed'] > 0 or data['bad'] > 0 or data['bad_list']:
+    suc_unsuc_message += 'unsuccessful\n'
   else:
-      suc_unsuc_message+=( 'empty\n')
-  print(f"{suc_unsuc_message}")
+    suc_unsuc_message += 'successful\n'
+
+  print(suc_unsuc_message)
   # END changes - 2022/11/28 BEO GDXDSD-5398
 
   # get times from system and convert to Americas/Vancouver for printing
@@ -153,6 +153,9 @@ def report(data):
     f'elapsing: {yvr_dt_end - yvr_dt_start}.\n')
   print(f'Objects to process: {data["objects"]}')
   print(f'Objects that failed to process: {data["failed"]}')
+
+  # GDXDSD-8627: Include successful zero-row queries in the report.
+  print(f'Queries returning zero rows: {data["empty"]}')
   print(f'Objects output to \'processed/good\': {data["good"]}')
   print(f'Objects output to \'processed/bad\': {data["bad"]}')
   # START CHANGES - 2022/11/28 BEO GDXDSD-5398
@@ -168,6 +171,11 @@ def report(data):
     print('\nList of objects that failed to process:')
     for i, item in enumerate(data['bad_list'], 1):
       print(f"{i}.",structure_output_item(item))
+  # GDXDSD-8627: Identify queries skipped because no data was returned.
+  if data['empty_list']:
+    print('\nQueries completed successfully with zero rows (no S3 upload):')
+    for i, item in enumerate(data['empty_list'], 1):
+      print(f"{i}.", structure_output_item(item))
   return()
   # END changes - 2022/11/28 BEO GDXDSD-5398
 
@@ -185,13 +193,16 @@ def get_looker_db_connection():
 
 
 # Reporting variables. Accumulates as the the loop below is traversed
+# GDXDSD-8627: Track zero-row queries separately from successful uploads and failures.
 report_stats = {
     'objects': 4,
     'failed': 0,
     'good': 0,
     'bad': 0,
+    'empty': 0,
     'good_list': [],
-    'bad_list': []
+    'bad_list': [],
+    'empty_list': []
 }
 
 # Reads a query against a db table and returns a dataframe
@@ -262,7 +273,15 @@ for table in tables:
     report_stats['bad_list'].append(table['tablename'])
     report(report_stats)
     clean_exit(1,'Querying Looker Internal Database failed')
-
+  # GDXDSD-8627: A successful query with zero rows should not create an S3 file.
+  if df.empty:
+    logger.info(
+      f"Query for looker.{table['tablename']} completed "
+      "successfully with 0 rows. Skipping S3 upload."
+    )
+    report_stats['empty'] += 1
+    report_stats['empty_list'].append(table['tablename'])
+    continue
   # upload df to S3 microservices bucket
   try:
     write_dataframe_as_csv_to_s3(df,table['tablename'])
